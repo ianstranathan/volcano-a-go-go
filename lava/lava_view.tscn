@@ -1,0 +1,13 @@
+[gd_scene load_steps=4 format=3 uid="uid://bir11ajaiuyxg"]
+
+[ext_resource type="Shader" uid="uid://bdav7f8p42paj" path="res://lava/lava_view.gdshader" id="1_yrwgl"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_5c23f"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dtepu"]
+shader = ExtResource("1_yrwgl")
+shader_parameter/_t = 0.0
+
+[node name="LavaView" type="Sprite2D"]
+material = SubResource("ShaderMaterial_dtepu")
+scale = Vector2(7.8, 7.8)
+texture = ExtResource("2_5c23f")

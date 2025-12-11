@@ -1,0 +1,46 @@
+[gd_scene load_steps=6 format=3 uid="uid://by5kd51cixxgu"]
+
+[ext_resource type="Script" uid="uid://bo2vw5tl14uk4" path="res://player.gd" id="1_yf0e5"]
+[ext_resource type="Shader" uid="uid://bx8fp0q38t35n" path="res://player/capsule_player.gdshader" id="2_g1dw6"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_rkbax"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yw30f"]
+shader = ExtResource("2_g1dw6")
+shader_parameter/radius = 0.0
+shader_parameter/height = 0.355
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ugqs2"]
+radius = 20.0
+height = 100.0
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_yf0e5")
+move_speed = 250.0
+jump_distance_to_peak = 125.0
+fall_distance_from_peak = 80.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_yw30f")
+texture = ExtResource("2_rkbax")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_ugqs2")
+
+[node name="JumpBufferTimer" type="Timer" parent="."]
+wait_time = 0.25
+one_shot = true
+
+[node name="CoyoteTimeTimer" type="Timer" parent="."]
+wait_time = 0.1
+one_shot = true
+
+[node name="FloorCheckContainer" type="Node2D" parent="."]
+
+[node name="RayCast2D" type="RayCast2D" parent="FloorCheckContainer"]
+position = Vector2(0, 8)
+
+[node name="RayCast2D3" type="RayCast2D" parent="FloorCheckContainer"]
+position = Vector2(15, 8)
+
+[node name="RayCast2D2" type="RayCast2D" parent="FloorCheckContainer"]
+position = Vector2(-15, 8)
