@@ -41,7 +41,13 @@ var is_on_ground := true # -- our "truth" about being on the ground (e.g. slight
 var can_jump := true
 @onready var g: float = jump_gravity
 
+
+@export_category("Lava")
+# -- TODO NOTE
+@export var lava_ref: Node2D
+
 func _ready() -> void:
+	assert(lava_ref)
 	coyote_timer.wait_time = COYOTE_TIME_DURATION
 	jump_buffer_timer.wait_time = JUMP_BUFFER_DURATION
 
@@ -84,6 +90,7 @@ func handle_jump():
 
 func do_jump(jump_type):
 	# -- logic of what to jump
+	jump_buffer_timer.stop()
 	match jump_type:
 		JumpTypes.REGULAR:
 			velocity.y = jump_speed
@@ -113,6 +120,9 @@ func handle_falling():
 			coyote_timer.start()
 
 func _physics_process(delta: float) -> void:
+	# -- TODO
+	tmp_burn_handle()
+	
 	move();
 	handle_jump()
 	handle_falling()
@@ -243,6 +253,7 @@ func movement_state_transition(new_movement_state: MovementStates):
 						g = fall_gravity
 						$Label.text = "FALLING"
 					MovementStates.WALL_SLIDING:
+						#jump_buffer_timer.stop()
 						g = _wall_slide_gravity()
 						$Label.text = "WALL SLIDING"
 			MovementStates.FALLING:
@@ -250,6 +261,8 @@ func movement_state_transition(new_movement_state: MovementStates):
 					MovementStates.IDLE:
 						$Label.text = "IDLE"
 					MovementStates.WALL_SLIDING:
+						# -- maybe?
+						#jump_buffer_timer.stop()
 						g = _wall_slide_gravity()
 						$Label.text = "WALL_SLIDING"
 			MovementStates.CROUCHING:
@@ -295,3 +308,25 @@ func _wall_slide_gravity() -> float:
 	var ret = (1. - _t) * A + _t * B
 	#print("ret: ", ret, "at t: ", t)
 	return ret
+
+
+#--TODO
+# -- completely replace this w/ proper visual, just here for 
+# -- tmp feedback
+var can_burn: bool = true
+func tmp_burn_handle() -> void:
+	var d = abs((global_position.y + 0.5 * $CollisionShape2D.shape.height)- lava_ref.lava_fn( global_position.x))
+	var hit_lava = d < 5
+	
+	if can_burn and hit_lava and lava_ref:
+		var mat = $Sprite2D.material
+		var burn_tween = create_tween()
+		mat.set_shader_parameter("dummy_burn_timer", 0.)
+		burn_tween.tween_property(mat, "shader_parameter/dummy_burn_timer", 5.0, 3.)
+		can_burn = false
+				
+	# -- going back accross lava threshold after getting burned
+	if !can_burn and hit_lava:
+		can_burn = true
+
+	

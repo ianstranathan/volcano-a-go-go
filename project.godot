@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 Kinematics="*res://globals/kinematics.gd"
 
+[display]
+
+window/size/mode=2
+
 [input]
 
 jump={
@@ -45,3 +49,9 @@ reset={
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":12,"pressure":0.0,"pressed":true,"script":null)
 ]
 }
+
+[layer_names]
+
+2d_physics/layer_1="StaticBodies"
+2d_physics/layer_2="Player"
+2d_physics/layer_3="AnimatableBodies"
