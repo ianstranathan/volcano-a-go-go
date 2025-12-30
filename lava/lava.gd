@@ -79,16 +79,13 @@ func _physics_process(delta: float) -> void:
 @onready var half_x: float = level_params.level_dimensions.x / 2.0
 func lava_fn( world_x: float) -> float:
 	var fn_ret = 0.0
-	
 	# -- From shader as reference
 	# func +=  sc[i].x * sin(sc[i].y * uv.x + sc[i].y - _time);
 	# func += fn_y_offset;
-
 	for coeffs in sinusoid_coeffs:
 		var A = coeffs.x * half_y
 		var B = coeffs.y
 		var x = world_x / half_x
-		# -- why the shader time different from the CPU time?
 		fn_ret -= A * sin((B * x) - t)
 	
 	fn_ret += lava_world_y_offset

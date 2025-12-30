@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=21 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="1_l1rk1"]
@@ -14,6 +14,9 @@
 [ext_resource type="PackedScene" uid="uid://j2as0dklypue" path="res://platforms/coll_sprite_matcher.tscn" id="12_vsp63"]
 [ext_resource type="PackedScene" uid="uid://cvpf74tya22rc" path="res://items/grappling_hook/grappling_hook.tscn" id="13_vsp63"]
 [ext_resource type="Texture2D" uid="uid://c4oflmcqxtgy3" path="res://assets/grapple.svg" id="14_b686c"]
+[ext_resource type="Script" uid="uid://ft8ft4puh52p" path="res://game/vfx_container.gd" id="15_hb504"]
+[ext_resource type="Shader" uid="uid://bex3q7bc4xrdf" path="res://game/lava_heat_distortion.gdshader" id="16_ee6o4"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://shaders/reusuable_fastnoise.tres" id="17_4cobl"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_dakft"]
 shader = ExtResource("3_4fuuu")
@@ -25,6 +28,13 @@ _data = {
 "points": PackedVector2Array(0, 0, 0, 0, 0, -8, 0, 0, 0, 0, 0, -416)
 }
 point_count = 2
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4cobl"]
+shader = ExtResource("16_ee6o4")
+shader_parameter/noise_tex = ExtResource("17_4cobl")
+shader_parameter/distortion_uv_height = 0.0
+shader_parameter/distortion_thickness = 0.20000000298024
+shader_parameter/ss_blur = 0.499999988824
 
 [node name="Game" type="Node2D" node_paths=PackedStringArray("player", "lava")]
 script = ExtResource("1_dxrkv")
@@ -57,7 +67,7 @@ lava_ref = NodePath("../Lava")
 metadata/_edit_group_ = true
 
 [node name="Camera" parent="." node_paths=PackedStringArray("target") instance=ExtResource("2_vasa2")]
-zoom = Vector2(0.8, 0.8)
+zoom = Vector2(0.7, 0.7)
 target = NodePath("../Player")
 
 [node name="StaticBodyCOntainer" type="Node2D" parent="."]
@@ -83,7 +93,7 @@ color = Color(0.9647059, 0.6, 0, 1)
 coll_extents = Vector2(200, 50)
 
 [node name="LH_WALL" parent="StaticBodyCOntainer" instance=ExtResource("7_u5opy")]
-position = Vector2(-372, -208)
+position = Vector2(-372, -184)
 rotation = 1.5707964
 
 [node name="RH_WALL" parent="StaticBodyCOntainer" instance=ExtResource("7_u5opy")]
@@ -140,3 +150,14 @@ coll_extents = Vector2(250, 250)
 position = Vector2(-112, 26)
 scene_resource = ExtResource("13_vsp63")
 _texture = ExtResource("14_b686c")
+
+[node name="VFX_container" type="Node2D" parent="." node_paths=PackedStringArray("lava_ref", "camera_ref", "post_processing_quad")]
+script = ExtResource("15_hb504")
+lava_ref = NodePath("../Lava")
+camera_ref = NodePath("../Camera")
+post_processing_quad = NodePath("PostProcessingQuad")
+
+[node name="PostProcessingQuad" type="Sprite2D" parent="VFX_container"]
+material = SubResource("ShaderMaterial_4cobl")
+position = Vector2(0, -32)
+texture = ExtResource("4_dxrkv")

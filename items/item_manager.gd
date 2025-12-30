@@ -1,7 +1,7 @@
 extends Node2D
 
 var item: Node2D
-signal item_started( overrides_vel: bool )
+signal item_started()
 signal item_finished
 
 @export var input_manager: InputManager
@@ -26,10 +26,10 @@ func pick_up(_item_type: ItemGlobals.ItemType, item_rsc: PackedScene, fn: Callab
 	# -------------------------------------------- signals
 	item.item_started.connect( func(type: ItemGlobals.ItemType):
 		if type == ItemGlobals.ItemType.MOBILITY:
-			item_started.emit( true ))
+			emit_signal("item_started"))
 	item.item_finished.connect( func(type: ItemGlobals.ItemType):
 		if type == ItemGlobals.ItemType.MOBILITY:
-			item_finished.emit( false ))
+			emit_signal("item_finished"))
 	# --------------------------------------------
 	add_child(item)
 	set_physics_process( true )
