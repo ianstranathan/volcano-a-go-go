@@ -1,0 +1,42 @@
+[gd_scene load_steps=4 format=3 uid="uid://b6bhj5gb1klq0"]
+
+[ext_resource type="Texture2D" uid="uid://vc4wmewwfixw" path="res://assets/particle_masks/floaty_64.png" id="1_qcmst"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_6728t"]
+blend_mode = 1
+particles_animation = true
+particles_anim_h_frames = 7
+particles_anim_v_frames = 7
+particles_anim_loop = true
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_1xxqm"]
+lifetime_randomness = 0.2
+particle_flag_disable_z = true
+inherit_velocity_ratio = 0.357
+velocity_pivot = Vector3(0, 200, 0)
+direction = Vector3(0, -1, 0)
+spread = 180.0
+initial_velocity_min = 81.92
+initial_velocity_max = 243.48
+gravity = Vector3(0, 5, 0)
+linear_accel_min = -42.86
+linear_accel_max = -2.23517e-06
+scale_min = 0.1
+scale_max = 0.7
+color = Color(0.423529, 0.352941, 1, 1)
+hue_variation_min = -0.23
+hue_variation_max = -2.23517e-08
+anim_speed_max = 1.86
+
+[node name="ParticleTest" type="Node2D"]
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_6728t")
+amount = 200
+texture = ExtResource("1_qcmst")
+lifetime = 2.27
+explosiveness = 1.0
+randomness = 1.0
+trail_sections = 3
+trail_section_subdivisions = 1
+process_material = SubResource("ParticleProcessMaterial_1xxqm")

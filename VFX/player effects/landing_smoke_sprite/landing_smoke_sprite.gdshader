@@ -13,7 +13,7 @@ void fragment() {
 	float n = noise_sample_1.r * noise_sample_2.r;
 	float _t = t * t;
 	float mask = smoothstep(_t, _t + fwidth(n), n);
-	
+
 	float a = 1. - (t * t);
 	COLOR *= mask * a;
 }
