@@ -28,7 +28,7 @@ size = Vector2(50, 20)
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
-collision_mask = 13
+collision_mask = 15
 script = ExtResource("1_yf0e5")
 jump_distance_to_peak = 125.0
 fall_distance_from_peak = 80.0
@@ -126,7 +126,6 @@ collision_mask = 32
 script = ExtResource("8_rgyib")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ClimbingInterface"]
-visible = false
 shape = SubResource("CapsuleShape2D_ugqs2")
 
 [node name="BufferTimersContainer" type="Node2D" parent="."]

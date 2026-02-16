@@ -51,6 +51,5 @@ func _physics_process(delta):
 		NetManager.process_authoritative_command( multiplayer.get_unique_id(),
 												  current_command)
 	else:
-		# predict locally
 		player.apply_command(current_command)
 		NetManager.send_input_to_host.rpc_id(1, current_command.serialize())

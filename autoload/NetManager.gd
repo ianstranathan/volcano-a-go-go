@@ -52,23 +52,22 @@ func _physics_process(delta: float) -> void:
 		current_tick += 1
 		_timer -= TICK_RATE
 		
-		# --- BROADCAST LOGIC FOR LISTEN SERVER ---
 		if multiplayer.is_server():
 			# Every tick, the Host tells all Clients the current "Truth"
 			for id in player_instances_by_player_id:
-				var p = player_instances_by_player_id[id]
+				var _player = player_instances_by_player_id[id]
 				# We send the tick number so clients can handle interpolation/jitter later
-				sync_player_state.rpc(id, p.global_position, current_tick)
+				sync_player_state.rpc(id,
+									  _player.global_position,
+									  current_tick)
 
-# The "State" broadcast from Host to Clients
+
+# -- Only host (authority) -> to client, as often (unreliable) as we can
 @rpc("authority", "unreliable")
 func sync_player_state(id: int, pos: Vector2, _server_tick: int):
-	# Clients receive this
 	if player_instances_by_player_id.has(id):
 		var p = player_instances_by_player_id[id]
-		
-		# Don't let the server snap the position of our LOCAL player 
-		# (Unless we are doing professional server reconciliation)
+		# -- only update remote representations
 		if not p.is_multiplayer_authority():
 			p.global_position = pos
 			# We can store server_tick here later for interpolation logic
