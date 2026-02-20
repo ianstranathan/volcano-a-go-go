@@ -3,19 +3,37 @@ extends Node2D
 class_name PickupItem
 
 # NOTE
+
+var world_id: int
+
+
 enum ItemType {
 	MOBILITY,
 	CREATION,
 	DESTRUCTION
 }
 
-# -- backing variables
+# -- backing variables for editor vs non-editor
 var _pickup_radius: float = 35.0
 var _type: ItemType = ItemType.MOBILITY
-var _texture: Texture2D
+
 
 # -- Exports
-@export var scene_resource: PackedScene
+@export var item_lookup: ItemsDb.ItemNames:
+	set(value):
+		item_lookup = value
+		_update_texture()
+
+@export var _texture: Texture2D:
+	set(value):
+		_texture = value
+		if sprite:
+			sprite.texture = value
+			_update_sprite_scale()
+	get:
+		return _texture
+
+
 @export var pickup_radius: float:
 	set(value):
 		_pickup_radius = value
@@ -33,19 +51,10 @@ var _texture: Texture2D
 	get:
 		return _type
 
-@export var texture: Texture2D:
-	set(value):
-		_texture = value
-		if sprite:
-			sprite.texture = value
-			_update_sprite_scale()
-	get:
-		return _texture
 
+func _update_texture():
+	_texture = ItemsDb.get_texture(item_lookup)
 
-# ===============================
-# Internal helper methods
-# ===============================
 
 func _update_collision():
 	var coll_shape: CollisionShape2D = get_node_or_null("Area2D/CollisionShape2D")
@@ -77,24 +86,18 @@ func color_from_type() -> Color:
 	return Color(0.0, 0.0, 0.0, 1.0)
 
 
-# ===============================
-# Runtime logic
-# ===============================
-
 func _ready() -> void:
 	if not Engine.is_editor_hint():
-		# Ensure scene_resource exists
-		assert(scene_resource, "Attach an item to the pickup item: %s" % name)
-
+		# ensure that the world has given this item an id to reference
+		#assert( world_id, "WorldItems hasn't tagged this item")
 		_update_sprite_color()
-
+		
+		# -- Pickups should only work on the host's machine
 		$Area2D.body_entered.connect(func(body):
+			if not multiplayer.is_server():
+				return
+			# -- only the host's local version of the client
+			# -- can interact with a pickup
 			if body is Player:
-				body.get_node("ItemManager").pick_up(
-					scene_resource,
-					pick_up_finished_callback
-				)
+				NetManager.sync_item_pickup.rpc( world_id, body.name.to_int(), item_lookup )
 		)
-
-func pick_up_finished_callback():
-	queue_free()

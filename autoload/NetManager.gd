@@ -62,16 +62,18 @@ func _physics_process(delta: float) -> void:
 									  current_tick)
 
 
-# -- Only host (authority) -> to client, as often (unreliable) as we can
-@rpc("authority", "unreliable")
-func sync_player_state(id: int, pos: Vector2, _server_tick: int):
-	if player_instances_by_player_id.has(id):
-		var p = player_instances_by_player_id[id]
-		# -- only update remote representations
-		if not p.is_multiplayer_authority():
-			p.global_position = pos
-			# We can store server_tick here later for interpolation logic
-			
+# In NetManager
+@rpc("authority", "unreliable") # "unreliable" is perfect for position
+func sync_player_state(id: int, pos: Vector2, _tick: int):
+	# -- no need to update the same player again
+	if id == multiplayer.get_unique_id():
+		return 
+
+	var _player = player_instances_by_player_id.get(id)
+	if _player:
+		# -- interpolation here
+		_player.global_position = pos
+
 
 # Start hosting a server
 func host(player_name: String) -> void:
@@ -202,9 +204,9 @@ func unregister_player(peer_id: int) -> void:
 
 
 # -- small optimization to not do an RPC if 
-func process_authoritative_command(peer_id, cmd: PlayerCommand) -> void:
-	player_instances_by_player_id[peer_id].apply_command(cmd)
-
+#func process_authoritative_command(peer_id, cmd: PlayerCommand) -> void:
+	#player_instances_by_player_id[peer_id].apply_command(cmd)
+#
 
 # -- this just routes a command to a player
 @rpc("any_peer", "unreliable")
@@ -214,3 +216,17 @@ func send_input_to_host(byte_arr: PackedByteArray) -> void:
 	var sender_id = multiplayer.get_remote_sender_id()
 	var cmd = PlayerCommand.deserialize(byte_arr)
 	player_instances_by_player_id[sender_id].apply_command(cmd)
+
+
+# -- this is called when a player picks up an item
+# -- authority => only the host can send this
+# -- call_local => host does it too
+# -- reliable => can't miss packet
+@rpc("authority", "call_local", "reliable")
+func sync_item_pickup(a_world_id:int, a_peer_id: int, item_lookup_enum: ItemsDb.ItemNames):
+	
+	# -- we want to tell the other players that this pickup exists
+	Events.item_picked_up.emit( a_world_id )
+	var _player = player_instances_by_player_id[ a_peer_id ]
+	if _player:
+		_player.get_node("ItemManager").pick_up(item_lookup_enum)

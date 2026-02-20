@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 class_name Player
 
+signal item_picked_up( world_id )
 
 @export_group("Kinematics")
 @export var baseline_speed: float = 250.0
@@ -674,7 +675,6 @@ func apply_command( c: PlayerCommand):
 	# -- client side predication stuff
 	#var sequence_id := 0
 # ------------------------------------------------------------------------------
-
 #
 #--TODO
 # -- completely replace this w/ proper visual, just here for tmp feedback

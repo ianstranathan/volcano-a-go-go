@@ -7,13 +7,6 @@ Local: Runs the logic immediately
 Local: Sends Command to the host via rpc_id(1, args)
 Host: Receives command, runs it on their "Server version" the player, 
 and then broadcasts that everyone else.
-
-
-Methods:
-	- serialize_command
-	- deserialize_command: 
-	- serialize_state
-	- deserialize_state
 """
 
 @onready var player: Player = get_parent()
@@ -43,13 +36,13 @@ func _ready() -> void:
 
 
 func _physics_process(delta):
-	if not is_multiplayer_authority():
-		return
-	controller.update_command(current_command, delta)
-	if multiplayer.is_server():
-		# -- skip RPC 
-		NetManager.process_authoritative_command( multiplayer.get_unique_id(),
-												  current_command)
-	else:
+	if is_multiplayer_authority():
+		# -- immediately move the local player
+		controller.update_command(current_command, delta)
 		player.apply_command(current_command)
-		NetManager.send_input_to_host.rpc_id(1, current_command.serialize())
+		
+		# -- save an rpc if this is the host
+		if !multiplayer.is_server():
+			# -- send the command to the host for it to move it's remote copies
+			# -- and tell the other players that that player moved
+			NetManager.send_input_to_host.rpc_id(1, current_command.serialize())

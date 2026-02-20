@@ -41,8 +41,10 @@ func _on_player_info_received(peer_id: int, _name: String, spawn_index: int):
 
 # -- we're just piping this ID from the NetManager
 func spawn_player(peer_id: int, _name: String, spawn_index: int):
-	# -- no duplicates (don't spawn the same id twice)
+	# -- scene name is the peer id to keep things straight
 	var a_players_name = str(peer_id)
+	
+	# -- no duplicates (don't spawn the same id twice)
 	if players_container.has_node( a_players_name ):
 		return
 	# -- 

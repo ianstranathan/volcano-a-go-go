@@ -19,6 +19,8 @@ config/icon="res://icon.svg"
 
 GeneralUtils="*res://utils/general_utils.gd"
 NetManager="*res://autoload/NetManager.gd"
+ItemsDb="*res://autoload/items_db.gd"
+Events="*res://autoload/events.gd"
 
 [display]
 

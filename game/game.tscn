@@ -1,9 +1,12 @@
-[gd_scene load_steps=5 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=8 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
 [ext_resource type="PackedScene" uid="uid://boqw66q2xy4sh" path="res://camera/camera.tscn" id="2_vasa2"]
+[ext_resource type="Script" uid="uid://b6pvhklc66hme" path="res://game/world_items.gd" id="5_dxrkv"]
+[ext_resource type="PackedScene" uid="uid://csxlguu7f4gt6" path="res://items/pickup_item/pickup_item.tscn" id="6_dakft"]
 [ext_resource type="PackedScene" uid="uid://4d5kvc0vxnc1" path="res://placeholders/palceholder_platform/placeholder_platform.tscn" id="7_u5opy"]
+[ext_resource type="Texture2D" uid="uid://5bw8tr2frxw4" path="res://assets/rope-coil.svg" id="7_y36n6"]
 
 [node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points")]
 script = ExtResource("1_dxrkv")
@@ -78,3 +81,11 @@ position = Vector2(176, -195)
 
 [node name="Marker2D4" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(-286, 0)
+
+[node name="WorldItems" type="Node2D" parent="."]
+script = ExtResource("5_dxrkv")
+
+[node name="PickupItem" parent="WorldItems" instance=ExtResource("6_dakft")]
+position = Vector2(-564, -153)
+item_lookup = 2
+_texture = ExtResource("7_y36n6")
