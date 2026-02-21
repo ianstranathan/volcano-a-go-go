@@ -173,6 +173,11 @@ func do_jump(jump_type):
 			velocity = Vector2(-last_wall_normal.x * (jump_speed / 1.6),
 								(jump_speed / 1.5))
 			velocity *= jump_speed_modifier
+			Events.world_effect.emit(
+							name.to_int(), 
+							Effects.EffectNames.WALL_JUMP, 
+							global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
+							true if last_wall_normal.x < 0 else false)
 			
 	movement_state_transition_to(MovementStates.JUMPING)
 
@@ -592,10 +597,11 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						pass
 			MovementStates.FALLING:
 				hang_time_modifier = 1.0
+				var play_landing_effect = false
 				match new_movement_state:
 					MovementStates.IDLE:
 						g = fall_gravity
-					
+						play_landing_effect = true
 					# -- CASE wall jumping coyote time
 					MovementStates.JUMPING:
 						g = jump_gravity
@@ -607,6 +613,14 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						#_wall_slide_gravity()
 					MovementStates.LEDGE_GRABBING:
 						pass
+				
+				if play_landing_effect:
+					Events.world_effect.emit(
+						name.to_int(), 
+						Effects.EffectNames.LANDING_SMOKE, 
+						global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
+						false)
+
 			MovementStates.CROUCHING:
 				pass
 			MovementStates.WALL_SLIDING:

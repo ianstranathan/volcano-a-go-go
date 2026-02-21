@@ -20,3 +20,11 @@ func is_in_opposite_direction_1D( x: float, y: float) -> bool:
 	# -- this is actually then <=, not <, careful
 	#return not is_in_same_direction_1D(x, y)
 	return x * y < 0.0
+
+
+func align_sprite_to_world_origin_offset(s: CanvasItem) -> Vector2:
+	assert(s is Sprite2D or s is AnimatedSprite2D)
+	if s is AnimatedSprite2D:
+		var _texture = s.sprite_frames.get_frame_texture(s.animation, s.frame)
+		return (_texture.get_size() * s.scale) / 2.
+	return sprite_size(s) / 2.

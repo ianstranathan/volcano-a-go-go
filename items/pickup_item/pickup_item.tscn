@@ -16,7 +16,6 @@ shader_parameter/src_col = Color(0.504, 0.214, 1, 1)
 script = ExtResource("1_edkex")
 pickup_radius = 30.0
 sprite = NodePath("Sprite2D")
-texture = ExtResource("2_bklxq")
 
 [node name="Area2D" type="Area2D" parent="."]
 collision_layer = 8

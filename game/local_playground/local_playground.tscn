@@ -1,0 +1,70 @@
+[gd_scene load_steps=6 format=3 uid="uid://bklryikn7u3h8"]
+
+[ext_resource type="PackedScene" uid="uid://4d5kvc0vxnc1" path="res://placeholders/palceholder_platform/placeholder_platform.tscn" id="1_a6tbl"]
+[ext_resource type="Script" uid="uid://ce3fmtrtcy4c6" path="res://game/local_playground/local_playground.gd" id="1_tsjhu"]
+[ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_0yyne"]
+[ext_resource type="PackedScene" uid="uid://boqw66q2xy4sh" path="res://camera/camera.tscn" id="4_o1uyr"]
+[ext_resource type="Script" uid="uid://dae2c8i45te8f" path="res://game/world_effects.gd" id="5_o1uyr"]
+
+[node name="LocalPlayground" type="Node2D"]
+script = ExtResource("1_tsjhu")
+
+[node name="PlayersContainer" type="Node2D" parent="."]
+
+[node name="1" parent="PlayersContainer" instance=ExtResource("2_0yyne")]
+
+[node name="WorldGeometry" type="Node2D" parent="."]
+
+[node name="PlaceholderPlatform" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(0, 70)
+coll_extents = Vector2(6000, 50)
+
+[node name="PlaceholderPlatform2" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(-125, -125)
+coll_extents = Vector2(150, 50)
+
+[node name="PlaceholderPlatform3" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(175, -125)
+coll_extents = Vector2(150, 50)
+
+[node name="PlaceholderPlatform4" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(435, 0)
+coll_extents = Vector2(200, 50)
+
+[node name="RH_Boundary" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(1753, -405)
+coll_extents = Vector2(200, 2000)
+
+[node name="LH_Boundary" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(-2868, -405)
+coll_extents = Vector2(200, 2000)
+
+[node name="LH_WALL" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(-372, -236)
+coll_extents = Vector2(50, 300)
+
+[node name="LH_WALL2" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(-560, -80)
+
+[node name="RH_WALL" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(410, -640)
+coll_extents = Vector2(50, 1000)
+
+[node name="RH_WALL2" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(624, -640)
+rotation = 1.5707964
+coll_extents = Vector2(1000, 50)
+
+[node name="PlaceholderPlatform5" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(-26, -704)
+coll_extents = Vector2(300, 50)
+
+[node name="PlaceholderPlatform6" parent="WorldGeometry" instance=ExtResource("1_a6tbl")]
+position = Vector2(-336, -968)
+coll_extents = Vector2(200, 50)
+
+[node name="Camera" parent="." instance=ExtResource("4_o1uyr")]
+
+[node name="WorldEffects" type="Node2D" parent="." node_paths=PackedStringArray("players_container")]
+script = ExtResource("5_o1uyr")
+players_container = NodePath("../PlayersContainer")

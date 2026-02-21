@@ -34,39 +34,39 @@ func pick_up( item_lookup: ItemsDb.ItemNames):
 		var item = ItemsDb.get_item_from_lookup( item_lookup ).instantiate()
 		item_interface = item.item_interface
 
-		for component_name in ["raycast", "movement_override"]:
-			var comp: Node
-			var signals: Array[Signal]
-			var connections_fns: Array[Callable]
-			match component_name:
-				"raycast":
-					comp = get_component( item, func(c): return c is RayCastItemComponent)
-					if comp:
-						signals = [comp.intersected_something, comp.target_position_changed, comp.tree_exited]
-						connections_fns = [func(pos_or_null): self.emit_signal("item_targeted_something", pos_or_null),
-										   func(pos: Vector2): self.emit_signal("item_ray_target_position_changed", pos),
-										   func(): emit_signal("targeting_item_removed")]
-						targeting_item_added.emit()
-				"movement_override":
-					comp = get_component( item, func(c): return c is MovementOverrideComponent)
-					#print(comp)
-					if comp:
-						active_movement_override = comp
-						signals = [comp.movement_override_started, comp.movement_override_finished]
-						connections_fns = [func(): self.emit_signal("item_moving_started"),
-										   func(): self.emit_signal("item_moving_stopped")]
-			if comp:
-				for i in range(signals.size()):
-					signals[i].connect( connections_fns[i] )
-
-		if is_moving_item() or is_spawning_item():
-			# NOTE TODO FIXME
-			if is_moving_item():
-				item.input_manager = input_manager
-				item.player_ref = player_ref
-			elif items_container:
-				item.items_container_ref = items_container
-			call_deferred("add_child", item)
+		#for component_name in ["raycast", "movement_override"]:
+			#var comp: Node
+			#var signals: Array[Signal]
+			#var connections_fns: Array[Callable]
+			#match component_name:
+				#"raycast":
+					#comp = get_component( item, func(c): return c is RayCastItemComponent)
+					#if comp:
+						#signals = [comp.intersected_something, comp.target_position_changed, comp.tree_exited]
+						#connections_fns = [func(pos_or_null): self.emit_signal("item_targeted_something", pos_or_null),
+										   #func(pos: Vector2): self.emit_signal("item_ray_target_position_changed", pos),
+										   #func(): emit_signal("targeting_item_removed")]
+						#targeting_item_added.emit()
+				#"movement_override":
+					#comp = get_component( item, func(c): return c is MovementOverrideComponent)
+					##print(comp)
+					#if comp:
+						#active_movement_override = comp
+						#signals = [comp.movement_override_started, comp.movement_override_finished]
+						#connections_fns = [func(): self.emit_signal("item_moving_started"),
+										   #func(): self.emit_signal("item_moving_stopped")]
+			#if comp:
+				#for i in range(signals.size()):
+					#signals[i].connect( connections_fns[i] )
+#
+		#if is_moving_item() or is_spawning_item():
+			## NOTE TODO FIXME
+			#if is_moving_item():
+				#item.input_manager = input_manager
+				#item.player_ref = player_ref
+			#elif items_container:
+				#item.items_container_ref = items_container
+			#call_deferred("add_child", item)
 
 
 func get_component(item: Node2D, type_predicate_fn: Callable):

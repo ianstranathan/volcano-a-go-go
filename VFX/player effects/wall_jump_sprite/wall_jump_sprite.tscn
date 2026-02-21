@@ -1,0 +1,79 @@
+[gd_scene load_steps=12 format=3 uid="uid://dx1btggq2vhn2"]
+
+[ext_resource type="Texture2D" uid="uid://cvjo11s72lfk8" path="res://assets/Sprites/Wall jump.png" id="1_eimxg"]
+[ext_resource type="Script" uid="uid://c7ugnebpsmmn8" path="res://VFX/player effects/wall_jump_sprite/wall_jump_sprite.gd" id="1_w2xfm"]
+[ext_resource type="Script" uid="uid://cr3erhn5hhtot" path="res://VFX/player effects/vfx_effect_component.gd" id="3_klrf6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bymim"]
+atlas = ExtResource("1_eimxg")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0elfj"]
+atlas = ExtResource("1_eimxg")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vna6j"]
+atlas = ExtResource("1_eimxg")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2m3o4"]
+atlas = ExtResource("1_eimxg")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cvnkr"]
+atlas = ExtResource("1_eimxg")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fej6k"]
+atlas = ExtResource("1_eimxg")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_57oev"]
+atlas = ExtResource("1_eimxg")
+region = Rect2(192, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_gpehw"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bymim")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0elfj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vna6j")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2m3o4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cvnkr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fej6k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_57oev")
+}],
+"loop": false,
+"name": &"default",
+"speed": 24.0
+}]
+
+[node name="WallJumpSprite" type="Node2D"]
+z_index = 10
+script = ExtResource("1_w2xfm")
+
+[node name="VfxEffectComponent" type="Node" parent="."]
+script = ExtResource("3_klrf6")
+metadata/_custom_type_script = "uid://cr3erhn5hhtot"
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
+texture_repeat = 1
+scale = Vector2(4, 4)
+sprite_frames = SubResource("SpriteFrames_gpehw")
+autoplay = "default"
+frame = 6
+frame_progress = 1.0
