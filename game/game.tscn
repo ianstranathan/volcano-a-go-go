@@ -90,5 +90,6 @@ position = Vector2(-564, -153)
 item_lookup = 2
 _texture = ExtResource("7_y36n6")
 
-[node name="WorldEffects" type="Node2D" parent="."]
+[node name="WorldEffects" type="Node2D" parent="." node_paths=PackedStringArray("players_container")]
 script = ExtResource("8_y36n6")
+players_container = NodePath("../PlayersContainer")

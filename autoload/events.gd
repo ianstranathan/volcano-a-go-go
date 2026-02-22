@@ -10,4 +10,4 @@ percolating signals
 signal item_picked_up( world_id: int)
 
 # -- world effects connects to this in its _ready
-signal world_effect( player_id: int, effect_type: Effects.EffectNames, pos: Vector2 )
+signal world_effect( player_id: int, effect_type: Effects.EffectNames, pos: Vector2, flip:bool)

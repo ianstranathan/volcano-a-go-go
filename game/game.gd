@@ -68,11 +68,13 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 		$Camera.target_initialize(a_player)
 	players_container.add_child(a_player)
 	
+	# -- we need the players to spawn before running this
+	$WorldEffects.initialize_recurring_player_vfx()
 
 var rng = RandomNumberGenerator.new()
 
 func rand_player_color( seed_val: int) -> Color:
-	rng.seed = seed_val
+	rng.seed = seed_val + rng.randi()
 	var r = rng.randf()
 	var g = rng.randf()
 	var b = rng.randf()

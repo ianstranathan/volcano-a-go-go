@@ -9,7 +9,13 @@ signal item_picked_up( world_id )
 @onready var move_speed: float = baseline_speed
 
 @export var ACCL := 50.0
+# ------------------------------ turning game feel
+@export var TURN_ACCL: = 500.0
+@export var friction = 250.0       # Stopping power
+@export var responsiveness = 15.0   # How fast the "accel rate" itself changes
+# ------------------------------
 @onready var MOV_ACCL := ACCL
+@onready var current_accel = 0.0
 @export var DECL := 40.0
 @export var AIR_DECL := 10.0
 @export var TERMINAL_FALL_SPEED = 1400
@@ -98,6 +104,7 @@ var color: Color = Color(1., 1., 1., 1.);
 
 func _ready() -> void:
 	$Sprite2D.material.set_shader_parameter("src_col", color)
+	$Sprite2D.material.set_shader_parameter("dummy_burn_timer", 5.0)
 	
 	$ClimbingInterface.climbing_area_entered.connect( func(): can_climb = true )
 	$ClimbingInterface.climbing_area_exited.connect( func(): can_climb = false)
@@ -285,13 +292,7 @@ func set_debug_label(new_movement_state: MovementStates) -> void:
 
 
 #------------------------------------------------- movement state fns
-#func move(move_func_override = null) -> void:
-	#if move_func_override:
-		#move_func_override.call()
-	#else:
-		#var should_move = !is_zero_approx(move_input.x) and manual_wall_jump_frame_counter == 0
-		#if should_move:
-			#velocity.x = move_toward(velocity.x, move_input.x * move_speed * move_speed_modifier, MOV_ACCL)
+# Add this to your class variables at the top
 
 func move(move_func_override = null) -> void:
 	if move_func_override:
@@ -301,24 +302,44 @@ func move(move_func_override = null) -> void:
 	if manual_wall_jump_frame_counter > 0:
 		return
 
-	
-	var target_speed = move_input.x * move_speed * move_speed_modifier
-	
-	# 3. Only apply movement if we aren't "flying" faster than our max speed
-	# OR if we are trying to move in the opposite direction of our current flight.
-	var should_move = !is_zero_approx(move_input.x)
-	if should_move:
-		var is_flying_fast = abs(velocity.x) > (move_speed * move_speed_modifier)
-		var is_braking = sign(move_input.x) != sign(velocity.x) and !is_zero_approx(move_input.x)
-		if is_flying_fast and !is_braking:
-			# We are going faster than max_speed (from the wall jump)
-			# Apply air friction/drag instead of the move_toward logic
-			var _decl = (AIR_DECL if movement_state == MovementStates.FALLING or 
-						 movement_state == MovementStates.JUMPING else DECL)
-			velocity.x = move_toward(velocity.x, 0, _decl * get_physics_process_delta_time())
+	var top_speed = move_speed * move_speed_modifier
+	var input_x = move_input.x
+
+	if not is_zero_approx(input_x):
+		var target_speed = input_x * top_speed
+		
+		if last_move_input.x * input_x < 0:
+			side_somersault_timer.start()
+
+		var is_turning = input_x * velocity.x < 0
+		
+		var target_accel_rate = MOV_ACCL
+		# -- TODO
+		#--  Clean up and put in some game feel juice for turning inertia
+		if is_turning:
+			target_accel_rate = TURN_ACCL
+			
+			# -- TODO
+			if movement_state == MovementStates.WALKING:
+				Events.world_effect.emit(
+					name.to_int(), 
+					Effects.EffectNames.DIRECTION_CHANGE, 
+					# -- magic number beware, just wanted to offset it
+					global_position - Vector2(input_x * 20., 0.) , 
+					true if input_x > 0 else false)
+		
+		current_accel = lerp(current_accel, float(target_accel_rate), 0.15)
+
+		var is_overspeed = abs(velocity.x) > top_speed
+		
+		if is_overspeed and not is_turning:
+			var _decl = (AIR_DECL if movement_state in [MovementStates.FALLING, MovementStates.JUMPING] else DECL)
+			velocity.x = move_toward(velocity.x, 0, _decl)
 		else:
-			# Normal ground/air acceleration
-			velocity.x = move_toward(velocity.x, target_speed, MOV_ACCL)
+			velocity.x = move_toward(velocity.x, target_speed, current_accel)
+	else:
+		current_accel = move_toward(current_accel, MOV_ACCL, DECL)
+
 
 
 func check_for_falling() -> bool:
@@ -338,13 +359,8 @@ func idle_state_fn(_delta) -> void:
 func walking_state_fn(_delta) -> void:
 	if is_zero_approx(move_input.x) and side_somersault_timer.is_stopped():
 		movement_state_transition_to( MovementStates.IDLE)
-
 	check_for_jump()
 	move()
-	var switched_dir = true if last_move_input.x * move_input.x < 0 else false
-	if switched_dir:
-		side_somersault_timer.start()
-
 	if check_for_falling():
 		coyote_timer.start()
 
@@ -373,6 +389,8 @@ func start_climbing() -> void:
 
 var climb_move_override: Callable = (func(): 
 	velocity = velocity.move_toward(move_input * climb_speed * move_speed_modifier, MOV_ACCL))
+
+
 func climbing_state_fn(_delta):
 	check_for_jump() # -- will change to jump state
 	move( climb_move_override )
