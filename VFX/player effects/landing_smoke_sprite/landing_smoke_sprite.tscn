@@ -225,6 +225,7 @@ _data = {
 }
 
 [node name="LandingSmokeSprite" type="Node2D"]
+visible = false
 script = ExtResource("1_62tg1")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]

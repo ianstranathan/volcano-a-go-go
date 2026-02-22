@@ -8,6 +8,8 @@ var jump_released := false
 var aiming_input: Vector2 = Vector2.ZERO
 var using_controller := false
 var carrying_item := false
+var item_use_pressed := false  # Action: Did I just click?
+#var item_use_released := false # Action: Did I just let go?
 var tick := 0
 
 
@@ -26,9 +28,11 @@ func serialize() -> PackedByteArray:
 	if jump_released:   flags |= 1 << 1
 	if using_controller: flags |= 1 << 2
 	if carrying_item:   flags |= 1 << 3
+	if item_use_pressed:   flags |= 1 << 4
+	#if item_use_released:  flags |= 1 << 5
 	spb.put_u8(flags)
 
-	# -- 1 byte
+	# -- 4 bytes
 	spb.put_u32(tick)
 	
 	# -- 21 bytes total
@@ -51,6 +55,9 @@ static func deserialize(byte_arr: PackedByteArray) -> PlayerCommand:
 	cmd.jump_released   = bool(flags & (1 << 1))
 	cmd.using_controller = bool(flags & (1 << 2))
 	cmd.carrying_item   = bool(flags & (1 << 3))
-
+	cmd.item_use_pressed  = bool(flags & (1 << 4))
+	#cmd.item_use_released = bool(flags & (1 << 5))
+	
 	cmd.tick = spb.get_u32()
+	
 	return cmd

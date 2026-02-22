@@ -2,8 +2,6 @@ extends CharacterBody2D
 
 class_name Player
 
-signal item_picked_up( world_id )
-
 @export_group("Kinematics")
 @export var baseline_speed: float = 250.0
 @onready var move_speed: float = baseline_speed
@@ -80,6 +78,10 @@ var is_on_ground := true # -- our "truth" about being on the ground (e.g. slight
 
 #@export var lava_ref: Node2D
 
+# ---------------------------------------------------- multiplayer specific var
+var input_manager: LocalPlayerController
+# ----------------------------------------------------
+
 enum MovementStates
 {
 	IDLE,
@@ -111,28 +113,34 @@ func _ready() -> void:
 	#--------------------------------------------- grabbable component
 	#signal got_tossed( dir: Vector2)
 	#signal got_grabbed( n: Node2D)
-	#--------------------------------------------- grab manager
-	
-	#assert(items_container)
-	#
-	#$ItemManager.items_container = items_container
-	##--------------------------------------------- this controls aiming line
-	#$InputManager.aim_input_detected.connect( func():
-		#$AimingVisual.update_aiming_visual())
-	##--------------------------------------------- this controls aiming target
-	#$ItemManager.item_targeted_something.connect( func(pos_or_null):
-		#$AimingVisual.update_target_pos( pos_or_null))
-	#$ItemManager.item_ray_target_position_changed.connect( func(pos: Vector2):
-		#$AimingVisual.update_dir( pos ))
-	#$ItemManager.targeting_item_removed.connect( func():
-		#$AimingVisual.stop_aiming( ))
-	#$ItemManager.targeting_item_added.connect( func():
-		#$AimingVisual.start_aiming( ))
-		#
-	#$ItemManager.item_moving_started.connect( func():
-		#movement_state_transition_to( MovementStates.ITEM_MOVING))
-	#$ItemManager.item_moving_stopped.connect( func():
-		#coyote_timer.start())
+	#---------------------------------------------
+	assert(items_container)
+	$ItemManager.items_container = items_container
+	# ------------------------------------------------------------ Local signals
+	if is_multiplayer_authority():
+		input_manager = $PlayerController.get_child(0)
+		assert($PlayerController.get_children().size() == 1)
+		assert(input_manager is LocalPlayerController)
+		$ItemManager.input_manager = input_manager
+		var aiming_visual  = load("res://player/aiming_visual/aiming_visual.tscn").instantiate()
+		add_child(aiming_visual)
+		# -------------------------------------------- this controls aiming line
+		input_manager.aim_input_detected.connect( func():
+			aiming_visual.update_aiming_visual())
+		# ------------------------------------------ this controls aiming target
+		$ItemManager.item_targeted_something.connect( func(pos_or_null):
+			aiming_visual.update_target_pos( pos_or_null))
+		$ItemManager.item_ray_target_position_changed.connect( func(pos: Vector2):
+			aiming_visual.update_dir( pos ))
+		$ItemManager.targeting_item_removed.connect( func():
+			aiming_visual.stop_aiming( ))
+		$ItemManager.targeting_item_added.connect( func():
+			aiming_visual.start_aiming( ))
+	##----------------------------------- this controls having items move player
+		$ItemManager.item_moving_started.connect( func():
+			movement_state_transition_to( MovementStates.ITEM_MOVING))
+		$ItemManager.item_moving_stopped.connect( func():
+			coyote_timer.start())
 
 	coyote_timer.timeout.connect( coyote_time_resolution)
 
@@ -497,29 +505,29 @@ func wall_sliding_state_fn(_delta) -> void:
 		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
 
 # -- probably move this elsewhere
-#func item_moving_state_fn(_delta) -> void:
-	#if $ItemManager.active_movement_override.allows_horizontal_movement():
-		#move(move_input.x * move_speed * move_speed_modifier, MOV_ACCL)
-	#if $ItemManager.active_movement_override.allows_jump() and !jump_buffer_timer.is_stopped():
-			#$ItemManager.stop_using_item()
-			#velocity.y += jump_speed * jump_speed_modifier
-			#movement_state_transition_to(MovementStates.JUMPING)
-	#if ($ItemManager.active_movement_override.allows_ledge_grab() and 
-		#is_ledge_grabbing() and 
-		#ledge_grab_buffer_timer.is_stopped()):
-		## -- we stop gravity and falling velocity, save the climbing pos
-		#$ItemManager.stop_using_item()
-		#velocity = Vector2.ZERO
-		#g = 0
-		#ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
-		#movement_state_transition_to(MovementStates.LEDGE_GRABBING)
-	## -- does this allow me to remove fall check in parachute?
-	#if $ItemManager.active_movement_override.stops_on_floor() and my_is_on_floor():
-		#$ItemManager.stop_using_item()
-		#movement_state_transition_to(MovementStates.IDLE)
-	#if $ItemManager.active_movement_override.allows_rope_climb() and should_start_climbing():
-		#$ItemManager.stop_using_item()
-		#start_climbing()
+func item_moving_state_fn(_delta) -> void:
+	if $ItemManager.active_movement_override.allows_horizontal_movement():
+		move()
+	if $ItemManager.active_movement_override.allows_jump() and !jump_buffer_timer.is_stopped():
+			$ItemManager.stop_using_item()
+			velocity.y += jump_speed * jump_speed_modifier
+			movement_state_transition_to(MovementStates.JUMPING)
+	if ($ItemManager.active_movement_override.allows_ledge_grab() and 
+		is_ledge_grabbing() and 
+		ledge_grab_buffer_timer.is_stopped()):
+		# -- we stop gravity and falling velocity, save the climbing pos
+		$ItemManager.stop_using_item()
+		velocity = Vector2.ZERO
+		g = 0
+		ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
+		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
+	# -- does this allow me to remove fall check in parachute?
+	if $ItemManager.active_movement_override.stops_on_floor() and my_is_on_floor():
+		$ItemManager.stop_using_item()
+		movement_state_transition_to(MovementStates.IDLE)
+	if $ItemManager.active_movement_override.allows_rope_climb() and should_start_climbing():
+		$ItemManager.stop_using_item()
+		start_climbing()
 
 
 func start_ledge_climb():
@@ -700,6 +708,11 @@ func apply_command( c: PlayerCommand):
 	if c.jump_released and movement_state == MovementStates.JUMPING:
 		velocity.y *= 0.4
 		movement_state_transition_to(MovementStates.FALLING)
+	
+	# -- this is a bit fragile I think, we only have an input manager
+	# -- if we're multiplayer authority
+	if input_manager:
+		$ItemManager.use_item(c.item_use_pressed)
 	#var aim_dir: Vector2 = Vector2.ZERO
 	#var using_controller := false
 	#var carrying_item := false

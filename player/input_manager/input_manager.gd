@@ -8,12 +8,8 @@ enum InputSourceType{
 	CONTROLLER,
 	KEYBOARD
 }
-
 var current_input_source: InputSourceType = InputSourceType.CONTROLLER
-
 const DEADZONE := 0.1
-
-
 
 func _input(event: InputEvent) -> void:
 	# -------------------------------------- change controller types

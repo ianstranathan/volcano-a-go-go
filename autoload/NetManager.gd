@@ -218,14 +218,11 @@ func send_input_to_host(byte_arr: PackedByteArray) -> void:
 	player_instances_by_player_id[sender_id].apply_command(cmd)
 
 
-# -- this is called when a player picks up an item
-# -- authority => only the host can send this
-# -- call_local => host does it too
-# -- reliable => can't miss packet
+# -- only a remote copy living on the host's machine can trigger the pickup
 @rpc("authority", "call_local", "reliable")
 func sync_item_pickup(a_world_id:int, a_peer_id: int, item_lookup_enum: ItemsDb.ItemNames):
 	# -- we want to tell the other players that this pickup exists
-	Events.item_picked_up.emit( a_world_id )
+	Events.item_picked_up.emit( a_world_id ) # -- what used to be a callback to delete the pickup
 	var _player = player_instances_by_player_id[ a_peer_id ]
 	if _player:
 		_player.get_node("ItemManager").pick_up(item_lookup_enum)

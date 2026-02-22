@@ -61,9 +61,13 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	# -- it's added to scene tree
 	# -- otherwise the controller logic breaks (remote vs local)
 	NetManager.register_player_instance(peer_id, a_player)
+	
+	# -- Initialize player stuff: 
+	# -- item_container, multiplayer authority, color, camera
 	a_player.set_multiplayer_authority(peer_id)
 	
 	a_player.color = rand_player_color( peer_id )
+	a_player.items_container = $WorldItems
 	if peer_id == multiplayer.get_unique_id():
 		$Camera.target_initialize(a_player)
 	players_container.add_child(a_player)
@@ -74,7 +78,7 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 var rng = RandomNumberGenerator.new()
 
 func rand_player_color( seed_val: int) -> Color:
-	rng.seed = seed_val + rng.randi()
+	rng.seed = seed_val
 	var r = rng.randf()
 	var g = rng.randf()
 	var b = rng.randf()

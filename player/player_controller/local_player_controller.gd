@@ -22,6 +22,7 @@ func update_command(player_command_ref: PlayerCommand, _delta):
 	player_command_ref.jump_released = just_released_action("jump")
 	player_command_ref.aiming_input = aiming_vector()
 	player_command_ref.using_controller = is_using_controller()
+	player_command_ref.item_use_pressed = just_pressed_action("use_item")
 
 
 func _input(event: InputEvent) -> void:

@@ -11,7 +11,9 @@ script = ExtResource("1_tsjhu")
 
 [node name="PlayersContainer" type="Node2D" parent="."]
 
-[node name="1" parent="PlayersContainer" instance=ExtResource("2_0yyne")]
+[node name="1" parent="PlayersContainer" node_paths=PackedStringArray("items_container") instance=ExtResource("2_0yyne")]
+position = Vector2(0, -64)
+items_container = NodePath("../../WorldItems")
 
 [node name="WorldGeometry" type="Node2D" parent="."]
 
@@ -68,3 +70,5 @@ coll_extents = Vector2(200, 50)
 [node name="WorldEffects" type="Node2D" parent="." node_paths=PackedStringArray("players_container")]
 script = ExtResource("5_o1uyr")
 players_container = NodePath("../PlayersContainer")
+
+[node name="WorldItems" type="Node2D" parent="."]
