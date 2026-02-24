@@ -22,12 +22,6 @@ func use_item(used_item_pressed: bool):
 	if used_item_pressed and is_instance_valid(item_interface):
 		item_interface.use( )
 
-#func _physics_process(_delta: float) -> void:
-	#if is_instance_valid(item_interface):
-		#if (input_manager.just_pressed_action("use_item") and item_interface.can_use()):
-			#item_interface.use( )
-	#else:
-		#return
 
 func pick_up(item_lookup: ItemsDb.ItemNames):
 	if item_interface:
@@ -44,12 +38,21 @@ func pick_up(item_lookup: ItemsDb.ItemNames):
 		item.input_manager = input_manager
 		# -- ray signaling and everything just happens locally
 		connect_local_signals(item)
-	#else:
-		#item.init_as_remote()
+	else:
+		connect_remote_signals(item)
 	add_child(item)
 
+
+func connect_remote_signals(item):
+	connect_signals_based_on_component(item, ["movement_override"])
+
+
 func connect_local_signals(item):
-	for component_name in ["raycast", "movement_override"]:
+	connect_signals_based_on_component(item, ["raycast", "movement_override"])
+
+
+func connect_signals_based_on_component(item, arr_of_signal_names):
+	for component_name in arr_of_signal_names:
 		var comp: Node
 		var signals: Array[Signal]
 		var connections_fns: Array[Callable]
@@ -128,9 +131,10 @@ func get_component(item: Node2D, type_predicate_fn: Callable):
 func stop_using_item() -> void:
 	item_interface.stop()
 
-# ------------------------------------------ small utils
+
 func is_spawning_item() -> bool:
 	return item_interface.use_mode == item_interface.ItemUseMode.ITEM_SPAWNING
+
 
 func is_moving_item() -> bool:
 	return item_interface.use_mode == item_interface.ItemUseMode.PLAYER_MOVING

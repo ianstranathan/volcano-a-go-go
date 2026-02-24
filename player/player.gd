@@ -101,7 +101,7 @@ enum MovementStates
 ## the dedicated container in the same scene depth as the player that holds item instances
 @export var items_container: Node2D
 
-#---------------------------------------------------------- sprite vars
+#------------------------------------------------------------------- sprite vars
 var color: Color = Color(1., 1., 1., 1.);
 
 func _ready() -> void:
@@ -110,12 +110,19 @@ func _ready() -> void:
 	
 	$ClimbingInterface.climbing_area_entered.connect( func(): can_climb = true )
 	$ClimbingInterface.climbing_area_exited.connect( func(): can_climb = false)
-	#--------------------------------------------- grabbable component
+	#------------------------------------------------------- grabbable component
 	#signal got_tossed( dir: Vector2)
 	#signal got_grabbed( n: Node2D)
 	#---------------------------------------------
 	assert(items_container)
 	$ItemManager.items_container = items_container
+	
+	#-------------------------------------------------- Local and remote signals
+	#----------------------------- this controls items being able to move player
+	$ItemManager.item_moving_started.connect( func():
+			movement_state_transition_to( MovementStates.ITEM_MOVING))
+	$ItemManager.item_moving_stopped.connect( func():
+			coyote_timer.start())
 	# ------------------------------------------------------------ Local signals
 	if is_multiplayer_authority():
 		input_manager = $PlayerController.get_child(0)
@@ -136,11 +143,6 @@ func _ready() -> void:
 			aiming_visual.stop_aiming( ))
 		$ItemManager.targeting_item_added.connect( func():
 			aiming_visual.start_aiming( ))
-	##----------------------------------- this controls having items move player
-		$ItemManager.item_moving_started.connect( func():
-			movement_state_transition_to( MovementStates.ITEM_MOVING))
-		$ItemManager.item_moving_stopped.connect( func():
-			coyote_timer.start())
 
 	coyote_timer.timeout.connect( coyote_time_resolution)
 
@@ -711,8 +713,8 @@ func apply_command( c: PlayerCommand):
 	
 	# -- this is a bit fragile I think, we only have an input manager
 	# -- if we're multiplayer authority
-	if input_manager:
-		$ItemManager.use_item(c.item_use_pressed)
+	
+	$ItemManager.use_item(c.item_use_pressed)
 	#var aim_dir: Vector2 = Vector2.ZERO
 	#var using_controller := false
 	#var carrying_item := false
