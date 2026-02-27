@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://d20jgxkhi0g20"]
+[gd_scene load_steps=5 format=3 uid="uid://d20jgxkhi0g20"]
 
 [ext_resource type="Texture2D" uid="uid://bksxf3p05m2h1" path="res://assets/Sprites/Character Icon Color.png" id="1_alun7"]
 [ext_resource type="Shader" uid="uid://xfqutuwow3py" path="res://UI/player_icon/player_icon.gdshader" id="1_rxmri"]
+[ext_resource type="Script" uid="uid://diiqpdohuss8u" path="res://UI/player_icon/player_icon.gd" id="1_sdrev"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sdrev"]
 shader = ExtResource("1_rxmri")
@@ -15,6 +16,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_sdrev")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 texture_filter = 3
