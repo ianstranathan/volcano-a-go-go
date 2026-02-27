@@ -17,12 +17,15 @@ const MAX_CLIENTS := 3 # Host + 3 clients = 4 total players
 var player_instances_by_player_id  := {} # dictionary: id_num : player_name
 var player_data := {} # id : { "name": string, "index": int, "color": Color }
 
+# ----------------------------------------------------------------- ticking vars
+var current_tick: int = 0     # -- each machines tick number for state reconcile
+var _timer: float = 0.0       # -- just counting up delta for tick increment
+const TICK_RATE := 1.0 / 60.0 # -- tick rate have to be deterministic
+var fract_tick: float = 0.0   # -- decimal remainder of the tick
+var update_remote_modulo : int = 2 # -- e.g. 60hz -> 30hz
+var clock_synced := false
 
-var current_tick: int = 0
-var _timer: float = 0.0
-const TICK_RATE := 1.0 / 60.0
-
-# Using constants prevents typos across your whole project!
+#---------------------------------------------------------------------
 const KEY_NAME = "name"
 const KEY_INDEX = "index"
 const KEY_COLOR = "color"
@@ -36,33 +39,27 @@ func create_player_entry(p_name: String, p_index: int) -> Dictionary:
 
 
 func _physics_process(delta: float) -> void:
+	# -- @Alex, this looks like it's doing a thing and then undoing
+	# -- but we need to account for CPU fluxuations, and can't depend on the
+	# -- implied 60hz, it has to be deterministic
 	_timer += delta
 	while _timer >= TICK_RATE:
 		current_tick += 1
 		_timer -= TICK_RATE
 		
-		if multiplayer.is_server():
-			# Every tick, the Host tells all Clients the current "Truth"
+		# -- if server and @ update remote rate
+		#@var simulation_tick = current_tick - 1
+		if multiplayer.is_server() and (current_tick % update_remote_modulo == 0):
 			for id in player_instances_by_player_id:
 				var _player = player_instances_by_player_id[id]
-				# We send the tick number so clients can handle interpolation/jitter later
-				sync_player_state.rpc(id,
-									  _player.global_position,
-									  current_tick)
-
-
-# In NetManager
-@rpc("authority", "unreliable") # "unreliable" is perfect for position
-func sync_player_state(id: int, pos: Vector2, _tick: int):
-	# -- no need to update the same player again
-	if id == multiplayer.get_unique_id():
-		return 
-
-	var _player = player_instances_by_player_id.get(id)
-	if _player:
-		# -- interpolation here
-		_player.global_position = pos
-
+				# -- remember that rpcs are automatically called to everyone
+				# -- but the caller assuming mirrored heirarchies
+				#print("Host sending tick: ", current_tick, " pos: ", _player.global_position)
+				sync_player_state.rpc(id, 
+					_player.player_controller.get_player_state( current_tick - 1 ).serialize()
+				)
+	# -- this is used for smoothly moving remote copies
+	fract_tick = _timer / TICK_RATE
 
 # Start hosting a server
 func host(player_name: String) -> void:
@@ -176,13 +173,6 @@ func load_game_scene(scene_path: String) -> void:
 	get_tree().change_scene_to_file(scene_path)
 
 
-@rpc("authority", "reliable")
-func sync_clock(server_tick: int):
-	# We add a bit of "buffer" for the travel time (latency)
-	# In a pro setup, you'd calculate RTT (Round Trip Time) here
-	current_tick = server_tick + 2
-
-
 # -- let the game actually tell you the lookup reference
 # -- i.e. game injects this when player is spawned
 func register_player_instance(peer_id: int, player: Player) -> void:
@@ -197,6 +187,45 @@ func unregister_player(peer_id: int) -> void:
 #func process_authoritative_command(peer_id, cmd: PlayerCommand) -> void:
 	#player_instances_by_player_id[peer_id].apply_command(cmd)
 #
+
+#@rpc("authority", "reliable")
+#func sync_clock(server_tick: int):
+	## We add a bit of "buffer" for the travel time (latency)
+	## In a pro setup, you'd calculate RTT (Round Trip Time) here
+	#current_tick = server_tick + 2
+
+# ------------------------------------------ player state & command routing RPCs
+# -- this is coming out at like 20-30hz
+# -- this gives us a snapshot of the host's truth
+# -- and we either reconcile or we interpolate
+@rpc("authority", "unreliable") # "unreliable" is perfect for position
+func sync_player_state(id: int, byte_arr: PackedByteArray):
+	var host_versions_state = PlayerState.deserialize( byte_arr )
+	if !multiplayer.is_server() and !clock_synced:
+		# Check if the incoming tick is actually valid data
+		if host_versions_state.tick > 0:
+			clock_synced = true
+			current_tick = host_versions_state.tick
+			print("Client clock synced to Host tick: ", current_tick)
+			return
+	
+	var _player = player_instances_by_player_id.get(id)
+	if !_player:
+		return
+	else:
+		if id == multiplayer.get_unique_id():
+			return 
+			# -- reconciliation
+			 #_player.player_controller.reconcile(host_version_pos,
+						  #host_version_velocity,
+						  #host_version_movement_state,
+						  #host_tick):                 
+		else:
+			# -- interpolation
+			# -- we just tell the controller to save this state, the interpolation
+			# -- happens on the local machine
+			_player.player_controller.update_remote_state( host_versions_state )
+			return
 
 # -- this just routes a command to a player
 @rpc("any_peer", "unreliable")
