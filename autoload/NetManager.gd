@@ -1,20 +1,8 @@
 extends Node
 
 """
-@rpc decoration string args:
-"authority": only server can send out rpc
-"call_local": run it on my machine too (normally rpc would run on everyone but the callers)
-
-When you decorate a function with @rpc, you generate helper methods for
-that function:
-	
-fn(args): Calling it normally
-
-fn.rpc(args): This sends the function call to everyone else connected to the session.
-
-fn.rpc_id(target_peer_id, args): This sends the function call only to one specific person.
-
 """
+
 # Signals for connection events
 signal peer_connected(id: int)
 signal peer_disconnected(id: int)
@@ -25,11 +13,11 @@ signal player_info_updated(id: int, player_name: String, spawn_index: int)
 const PORT := 8910
 const MAX_CLIENTS := 3 # Host + 3 clients = 4 total players
 
-# dictionary: id_num : player_name
-var player_instances_by_player_id  := {}
+
+var player_instances_by_player_id  := {} # dictionary: id_num : player_name
 var player_data := {} # id : { "name": string, "index": int, "color": Color }
 
-# -- interesting solution
+
 var current_tick: int = 0
 var _timer: float = 0.0
 const TICK_RATE := 1.0 / 60.0
@@ -45,6 +33,7 @@ func create_player_entry(p_name: String, p_index: int) -> Dictionary:
 		KEY_INDEX: p_index,
 		KEY_COLOR: Color.WHITE # Default
 	}
+
 
 func _physics_process(delta: float) -> void:
 	_timer += delta
@@ -96,6 +85,7 @@ func join(ip: String, player_name: String) -> void:
 	multiplayer.multiplayer_peer = peer
 	#player_names_by_player_id [multiplayer.get_unique_id()] = player_name
 	player_data[multiplayer.get_unique_id()] = create_player_entry(player_name, -1)
+
 
 func leave() -> void:
 	multiplayer.multiplayer_peer = null

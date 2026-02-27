@@ -11,11 +11,11 @@ func serialize() -> PackedByteArray:
 	spb.put_float(pos.y)
 	spb.put_float(vel.x)
 	spb.put_float(vel.y)
-	spb.put_float(tick)
+	spb.put_u32(tick)
 	return spb
 
 
-func deserialize(byte_arr: PackedByteArray) -> PlayerCommand:
+static func deserialize(byte_arr: PackedByteArray) -> PlayerCommand:
 	var ps = PlayerState.new()
 	var spb = StreamPeerBuffer.new()
 	spb.data_array = byte_arr
@@ -23,4 +23,5 @@ func deserialize(byte_arr: PackedByteArray) -> PlayerCommand:
 	ps.pos.y = spb.get_float()
 	ps.vel.x = spb.get_float()
 	ps.vel.y = spb.get_float()
+	ps.tick = spb.get_u32()
 	return ps

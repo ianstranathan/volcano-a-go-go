@@ -80,6 +80,7 @@ var is_on_ground := true # -- our "truth" about being on the ground (e.g. slight
 
 # ---------------------------------------------------- multiplayer specific var
 var input_manager: LocalPlayerController
+@onready var player_controller = $PlayerController
 # ----------------------------------------------------
 
 enum MovementStates
@@ -105,6 +106,8 @@ enum MovementStates
 var color: Color = Color(1., 1., 1., 1.);
 
 func _ready() -> void:
+	
+	#---------------------------------------------------------------------------
 	$Sprite2D.material.set_shader_parameter("src_col", color)
 	$Sprite2D.material.set_shader_parameter("dummy_burn_timer", 5.0)
 	
@@ -589,40 +592,23 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 	if movement_state != new_movement_state:
 		match movement_state:
 			MovementStates.IDLE:
-				# -- exit code here
 				match new_movement_state:
-					# -- enter code here
-					MovementStates.WALKING:
-						pass
 					MovementStates.JUMPING:
-						g = jump_gravity
 						current_platform = null
 					MovementStates.FALLING:
-						g = fall_gravity
 						current_platform = null
-					#MovementStates.ITEM_MOVING:
-						#pass
 			MovementStates.WALKING:
 				match new_movement_state:
-					MovementStates.IDLE:
-						pass
 					MovementStates.JUMPING:
-						g = jump_gravity
 						current_platform = null
 					MovementStates.FALLING:
-						g = fall_gravity
 						current_platform = null
 			MovementStates.JUMPING:
 				match new_movement_state:
 					MovementStates.FALLING:
 						hang_time_modifier = 1.0
-						g = fall_gravity
 					MovementStates.WALL_SLIDING:
 						velocity = velocity.clamp(Vector2(0., 50), Vector2(0., 100))
-						g = fall_gravity / 100.0
-						#g = _wall_slide_gravity()
-					MovementStates.LEDGE_GRABBING:
-						pass
 			MovementStates.FALLING:
 				hang_time_modifier = 1.0
 				var play_landing_effect = false
@@ -630,55 +616,41 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 					MovementStates.IDLE:
 						g = fall_gravity
 						play_landing_effect = true
-					# -- CASE wall jumping coyote time
-					MovementStates.JUMPING:
-						g = jump_gravity
 					MovementStates.WALL_SLIDING:
-						# -- design choice
-						# -- the wall slide should be predictable, but not boring
 						velocity = velocity.clamp(Vector2(0., 50), Vector2(0., 150))
-						g = fall_gravity / 100.0
-						#_wall_slide_gravity()
-					MovementStates.LEDGE_GRABBING:
-						pass
-				
 				if play_landing_effect:
 					Events.world_effect.emit(
 						name.to_int(), 
 						Effects.EffectNames.LANDING_SMOKE, 
 						global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
 						false)
-
-			MovementStates.CROUCHING:
-				pass
-			MovementStates.WALL_SLIDING:
-				match new_movement_state:
-					MovementStates.IDLE:
-						pass
-					MovementStates.JUMPING:
-						g = jump_gravity
-					MovementStates.FALLING:
-						g = fall_gravity
-			MovementStates.LEDGE_GRABBING:
-				match new_movement_state:
-					MovementStates.IDLE:
-						pass
-					MovementStates.FALLING:
-						g = fall_gravity
-					MovementStates.JUMPING:
-						g = jump_gravity
-			MovementStates.ITEM_MOVING:
-				g = jump_gravity
-			MovementStates.CLIMBING:
-				match new_movement_state:
-					MovementStates.JUMPING:
-						g = jump_gravity
-
 		# ----------------------------------
 		set_debug_label( new_movement_state )
 		movement_state = new_movement_state
 
+
 # ------------------------------------------------------- utils
+func gravity_from_state():
+	match movement_state:
+		MovementStates.IDLE:
+			return jump_gravity
+		MovementStates.WALKING:
+			return  jump_gravity
+		MovementStates.JUMPING:
+			return jump_gravity
+		MovementStates.FALLING:
+			return fall_gravity
+		MovementStates.CROUCHING:
+			return jump_gravity
+		MovementStates.WALL_SLIDING:
+			return fall_gravity / 100.0
+		MovementStates.LEDGE_GRABBING:
+			return 0
+		MovementStates.ITEM_MOVING:
+			return jump_gravity
+		MovementStates.CLIMBING:
+			return 0
+
 
 func slow(b: bool):
 	var slow_factor = 0.5
@@ -694,7 +666,8 @@ func slow(b: bool):
 
 # -- Utils to keep kinematic state straight with the outside world
 func get_g() -> float:
-	return (g * gravity_modifier * hang_time_modifier)
+	return (gravity_from_state() * gravity_modifier * hang_time_modifier)
+
 
 func can_parachute() -> bool:
 	return (movement_state == MovementStates.FALLING or movement_state == MovementStates.JUMPING)
