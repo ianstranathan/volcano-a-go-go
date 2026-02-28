@@ -3,18 +3,20 @@ class_name PlayerController
 
 
 """
-Local: Runs the logic immediately
-Local: Sends Command to the host via rpc_id(1, args)
-Host: Receives command, runs it on their "Server version" the player, 
-and then broadcasts that everyone else.
+Local: run command immediately, sends command to the host via rpc_id(1, args)
+Host: Receives command, runs it on their version the player
+
+Host broadcasts their remote copies state (See _physics_process in  NetManager) 
+to everyone else at a lower hz
+
+When a client recieves this broadcast (see sync_player_state in NetManager )
+it either updates the remote data (See update_remote_state in this script )
+if it's a remote copy (doesn't have authority)
+Or it reconciles the state (checks to make sure the position, velocity, and
+state variables agree to within a certain margin)
 """
 
 @onready var player: Player = get_parent()
-
-# -- stuff to send over network that can get serialized
-var current_command := PlayerCommand.new()
-var current_player_state := PlayerState.new()
-
 # -- either RemotePlayerController or LocalPlayerController
 var controller: Node2D
 
@@ -67,11 +69,11 @@ func get_circular_index( a_tick: int) -> int:
 
 func update_remote_state(host_state: PlayerState):
 	if host_state.tick <= 0: 
-		return # Ignore junk/init data
+		return # Ignore init data
 	#print("remote host updated with tick: ", host_state.tick, "and pos: ", host_state.pos)
 	var _i = host_state.tick % interpolation_buffer_size
 	interpolation_buffer[_i] = host_state
-	var incoming_tick = host_state.tick
+	#var incoming_tick = host_state.tick
 
 	# -- Keep track of the tick?
 	#if incoming_tick > last_confirmed_tick:
@@ -79,11 +81,10 @@ func update_remote_state(host_state: PlayerState):
 
 
 func _physics_process(delta):
-	# -- local prediction
+	# -- locally we're predicting (immediately moving) & saving input + state
 	if is_multiplayer_authority():
 		var _tick = NetManager.current_tick
 		var _index = get_circular_index( _tick )
-		
 		# -- save command and state
 		var current_command = command_history_buffer[_index]
 		current_command.tick = _tick                     # -- timestamp the command
@@ -105,7 +106,7 @@ func _process(_delta):
 		return
 
 	var render_tick = (NetManager.current_tick + NetManager.fract_tick) - 10.0
-	print("Client render_tick: ", render_tick, " Buffer has: ", interpolation_buffer.map(func(d): return d.tick))
+	#print("Client render_tick: ", render_tick, " Buffer has: ", interpolation_buffer.map(func(d): return d.tick))
 	var point_a: PlayerState = null
 	var point_b: PlayerState = null
 
@@ -147,6 +148,7 @@ func _process(_delta):
 	#
 	# -- interpolate position
 	if point_a and point_b:
+		# -- this is just normalizing (0, 1) t
 		var t = (render_tick - point_a.tick) / float(point_b.tick - point_a.tick)
 		player.global_position = point_a.pos.lerp(point_b.pos, clamp(t, 0.0, 1.0))
 	elif point_a:
