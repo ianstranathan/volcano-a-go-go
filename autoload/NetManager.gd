@@ -16,6 +16,9 @@ const MAX_CLIENTS := 3 # Host + 3 clients = 4 total players
 
 var player_instances_by_player_id  := {} # dictionary: id_num : player_name
 var player_data := {} # id : { "name": string, "index": int, "color": Color }
+const INPUT_BUFFER_SIZE = 60 # Store 1 second of inputs
+# id : Array[PlayerCommand]
+var remote_input_buffers := {}
 
 # ----------------------------------------------------------------- ticking vars
 var current_tick: int = 0     # -- each machines tick number for state reconcile
@@ -37,7 +40,7 @@ func create_player_entry(p_name: String, p_index: int) -> Dictionary:
 		KEY_COLOR: Color.WHITE # Default
 	}
 
-
+# -- this is driving everything
 func _physics_process(delta: float) -> void:
 	# -- @Alex, this looks like it's doing a thing and then undoing
 	# -- but we need to account for CPU fluxuations, and can't depend on the
@@ -47,18 +50,37 @@ func _physics_process(delta: float) -> void:
 		current_tick += 1
 		_timer -= TICK_RATE
 		
-		# -- if server and @ update remote rate
-		#@var simulation_tick = current_tick - 1
-		if multiplayer.is_server() and (current_tick % update_remote_modulo == 0):
-			for id in player_instances_by_player_id:
-				var _player = player_instances_by_player_id[id]
-				# -- remember that rpcs are automatically called to everyone
-				# -- but the caller assuming mirrored heirarchies
-				#print("Host sending tick: ", current_tick, " pos: ", _player.global_position)
-				sync_player_state.rpc(id, 
-					_player.player_controller.get_player_state( current_tick - 1 ).serialize()
-				)
-	# -- this is used for smoothly moving remote copies
+		# -- deterministic simulation rate
+		for id in player_instances_by_player_id:
+			var _player = player_instances_by_player_id[id]
+			
+			# -- are we the machine running this NetManager's instance? (host or client)
+			if id == multiplayer.get_unique_id():
+				# -- then step my simulation immediately (prediction)
+				_player.player_controller.on_tick_generated(current_tick, TICK_RATE)
+			
+			elif multiplayer.is_server():
+				host_process_remote_client(id, _player)
+		
+			if multiplayer.is_server() and (current_tick % update_remote_modulo == 0):
+				sync_player_state.rpc(
+						id, 
+						_player.player_controller.get_player_state( current_tick - 1 ).serialize()
+					)
+					#print("Host Broadcasting Tick: ", current_tick - 1, " for Player: ", id, " Pos: ", _player.global_position)
+			# -- host sends out RPC to give interpolation data to remote copies
+			# -- and reconciliation data for client's local version
+			#if multiplayer.is_server() and (current_tick % update_remote_modulo == 0):
+				#for id in player_instances_by_player_id:
+					#var _player = player_instances_by_player_id[id]
+					# -- remember that rpcs are automatically called to everyone
+					# -- but the caller assuming mirrored heirarchies
+					#print("Host sending tick: ", current_tick, " pos: ", _player.global_position)
+					#sync_player_state.rpc(
+						#id, 
+						#_player.player_controller.get_player_state( current_tick - 1 ).serialize()
+					#)
+		# -- this is used for smoothly moving remote copies
 	fract_tick = _timer / TICK_RATE
 
 # Start hosting a server
@@ -104,6 +126,15 @@ func _ready() -> void:
 	# connection_failed()
 	# server_disconnected()
 
+func setup_remote_buffer(id: int):
+	var buffer: Array[PlayerCommand] = []
+	buffer.resize(INPUT_BUFFER_SIZE)
+	# Pre-fill with empty commands to avoid null checks
+	for i in range(INPUT_BUFFER_SIZE):
+		buffer[i] = PlayerCommand.new()
+	remote_input_buffers[id] = buffer
+	#print(remote_input_buffers)
+
 # Called on server when a new peer connects
 func _on_peer_connected(new_player_id: int) -> void:
 	# -- this is what it would be doing normally
@@ -114,6 +145,7 @@ func _on_peer_connected(new_player_id: int) -> void:
 	if multiplayer.is_server():		
 		# -- Send the new peer all the already existing players
 		for peer_id in player_data :
+			setup_remote_buffer( peer_id )
 			var d = player_data[peer_id]
 			#_register_player.rpc_id(new_player_id,
 						  			#peer_id,
@@ -198,15 +230,15 @@ func unregister_player(peer_id: int) -> void:
 # -- this is coming out at like 20-30hz
 # -- this gives us a snapshot of the host's truth
 # -- and we either reconcile or we interpolate
-@rpc("authority", "unreliable") # "unreliable" is perfect for position
+@rpc("authority", "unreliable") 
 func sync_player_state(id: int, byte_arr: PackedByteArray):
 	var host_versions_state = PlayerState.deserialize( byte_arr )
 	if !multiplayer.is_server() and !clock_synced:
 		# Check if the incoming tick is actually valid data
 		if host_versions_state.tick > 0:
 			clock_synced = true
-			current_tick = host_versions_state.tick
-			print("Client clock synced to Host tick: ", current_tick)
+			current_tick = host_versions_state.tick + 5.0
+			#print("Client clock synced to Host tick: ", current_tick)
 			return
 	
 	var _player = player_instances_by_player_id.get(id)
@@ -227,14 +259,89 @@ func sync_player_state(id: int, byte_arr: PackedByteArray):
 			_player.player_controller.update_remote_state( host_versions_state )
 			return
 
+# ------------------------------------------------------------------------------
 # -- this just routes a command to a player
+#@rpc("any_peer", "unreliable")
+#func send_input_to_host(byte_arr: PackedByteArray) -> void:
+	#if not multiplayer.is_server():
+		#return
+	#var sender_id = multiplayer.get_remote_sender_id()
+	#var cmd = PlayerCommand.deserialize(byte_arr)
+	#player_instances_by_player_id[sender_id].apply_command(cmd)
+
+# ------------------------------------------------------------------------------
+#func host_process_remote_client(id: int, _player: Player):
+	#var buffer = remote_input_buffers.get(id)
+	#if buffer == null: return
+#
+	#var cmd = buffer.get(current_tick)
+	#
+	#if cmd:
+		#_player.execute_tick(TICK_RATE, cmd)
+		#buffer.erase(current_tick) # This is O(1) and very fast
+	#else:
+		## FALLBACK logic
+		#var empty_cmd = PlayerCommand.new()
+		#_player.execute_tick(TICK_RATE, empty_cmd)
+		#
+	## --- SMART CLEANUP ---
+	## Only clean once every 60 ticks (approx 1 second)
+	#if current_tick % 60 == 0:
+		#_clean_old_buffer_data(buffer)
+
+
+#func _clean_old_buffer_data(buffer: Dictionary):
+	## We only do this occasionally to prevent memory leaks from lost packets
+	#for t in buffer.keys():
+		#if t < current_tick:
+			#buffer.erase(t)
+
+# ------------------------------------------------------------------------------
+# Outline of flow:
+# local_player -> send_input_to_host ( -> host updates remote_input_buffers
+# then
+# in the hosts physics loop there is:
+#	elif multiplayer.is_server():
+		#host_process_remote_client(id, _player)
+# so, this is just applying the remote version of a player on the hosts machine
+# if it has a corresponding packet
+func host_process_remote_client(id: int, _player: Player):
+	if not remote_input_buffers.has(id):
+		setup_remote_buffer(id)
+	
+	var buffer = remote_input_buffers.get(id)
+	#print("we're in here")
+	if buffer == null:
+		return
+
+	var idx = current_tick % INPUT_BUFFER_SIZE
+	var cmd = buffer[idx]
+	
+	if cmd.tick == current_tick:
+		#print("Host HIT: Looking for ", current_tick, " but buffer has ", cmd.tick)
+		_player.execute_tick(TICK_RATE, cmd)
+	else:
+		#print("Host MISS: Looking for ", current_tick, " but buffer has ", cmd.tick)
+		#if current_tick % 60 == 0: # Print once a second so we don't spam
+			
+		# FALLBACK: The packet for this tick hasn't arrived yet
+		# We use an empty command or duplicate the previous one
+		var fallback_cmd = PlayerCommand.new() 
+		# Option: fallback_cmd.move_input = _player.last_move_input
+		_player.execute_tick(TICK_RATE, fallback_cmd)
+
+
 @rpc("any_peer", "unreliable")
 func send_input_to_host(byte_arr: PackedByteArray) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender_id = multiplayer.get_remote_sender_id()
 	var cmd = PlayerCommand.deserialize(byte_arr)
-	player_instances_by_player_id[sender_id].apply_command(cmd)
+	
+	# -- safety check
+	if remote_input_buffers.has(sender_id):
+		var idx = cmd.tick % INPUT_BUFFER_SIZE
+		remote_input_buffers[sender_id][idx] = cmd
 
 
 # -- only a remote copy living on the host's machine can trigger the pickup

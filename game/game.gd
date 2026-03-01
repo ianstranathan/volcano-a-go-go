@@ -71,7 +71,7 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	if peer_id == multiplayer.get_unique_id():
 		$Camera.target_initialize(a_player)
 	players_container.add_child(a_player)
-	
+
 	# -- we need the players to spawn before running this
 	$WorldEffects.initialize_recurring_player_vfx()
 

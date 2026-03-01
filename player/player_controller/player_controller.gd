@@ -68,6 +68,7 @@ func get_circular_index( a_tick: int) -> int:
 
 
 func update_remote_state(host_state: PlayerState):
+	#print("Client received state for: ", host_state.tick, " Buffer size: ", interpolation_buffer.size())
 	var incoming_tick = host_state.tick
 	if incoming_tick <= 0:
 		# -- ignore, chose -1 as intialization value
@@ -82,25 +83,25 @@ func update_remote_state(host_state: PlayerState):
 		last_confirmed_tick = incoming_tick
 
 
-func _physics_process(delta):
-	# -- locally we're predicting (immediately moving) & saving input + state
-	if is_multiplayer_authority():
-		var _tick = NetManager.current_tick
-		var _index = get_circular_index( _tick )
-		# -- save command and state
-		var current_command = command_history_buffer[_index]
-		current_command.tick = _tick                     # -- timestamp the command
-		controller.update_command(current_command, delta)# -- update the command
-		# -- save current state before you mutate it
-		reconciliation_state_buffer[_index].set_state( player, _tick )
-		# -- immediately move the local player, i.e. prediction
-		player.apply_command(current_command)
-		
-		# -- no need to rpc if this is the host (host is the truth afterall)
-		if !multiplayer.is_server():
-			# -- send the command to the host for it to move its remote copies
-			# -- and tell the other players that this player moved
-			NetManager.send_input_to_host.rpc_id(1, current_command.serialize())
+#func _physics_process(delta):
+	## -- locally we're predicting (immediately moving) & saving input + state
+	#if is_multiplayer_authority():
+		#var _tick = NetManager.current_tick
+		#var _index = get_circular_index( _tick )
+		## -- save command and state
+		#var current_command = command_history_buffer[_index]
+		#current_command.tick = _tick                     # -- timestamp the command
+		#controller.update_command(current_command, delta)# -- update the command
+		## -- save current state before you mutate it
+		#reconciliation_state_buffer[_index].set_state( player, _tick )
+		## -- immediately move the local player, i.e. prediction
+		#player.apply_command(current_command)
+		#
+		## -- no need to rpc if this is the host (host is the truth afterall)
+		#if !multiplayer.is_server():
+			## -- send the command to the host for it to move its remote copies
+			## -- and tell the other players that this player moved
+			#NetManager.send_input_to_host.rpc_id(1, current_command.serialize())
 
 
 var min_offset: float = 6.0    # Best case (100ms)
@@ -143,7 +144,7 @@ func _process(delta):
 		if data.tick <= render_tick:
 			point_a = data
 			# Since we are walking backwards, the very first tick <= render_tick 
-			# we find is guaranteed to be our best "point_a".
+			# we find is guaranteed to be the right one
 			break 
 		else:
 			point_b = data # This was > render_tick, so it's a candidate for point_b
@@ -162,3 +163,50 @@ func _process(delta):
 		# shortage_frames += 1
 		# we don't have enough data to interpolate => stay at the most recent packet
 		player.global_position = point_a.pos
+
+
+# -- TODO, check args using delta
+
+# -- Called from netmanager on a local controller
+# -- this allows a deterministic delta time (NetManager's TICK_RATE)
+func on_tick_generated(tick: int, delta: float):
+	# -- we don't need to check is_multiplayer_authority as this is
+	# -- already being done from NetManager checking IDs
+	
+	# -- this is being called from NetManager, so no need to make a function call
+	# -- or accessor back to NetManager
+	var _index = get_circular_index(tick)
+
+	# -- save command and state
+	var current_command = command_history_buffer[_index]
+	current_command.tick = tick                       # -- timestamp the command
+	controller.update_command(current_command, delta) # -- update the command
+
+	# -- save current state before applying it (slice of command and associated state)
+	reconciliation_state_buffer[_index].set_state( player, tick )
+
+	# -- immediately move the local player, i.e. prediction
+	player.execute_tick(delta, current_command)
+
+	# -- no need to rpc if this is the host (host is the truth afterall)
+	if !multiplayer.is_server():
+		#print("Client sending state for: ", current_command.tick)
+		# -- send the command to the host for it to move its remote copies
+		# -- and tell the other players that this player moved
+		NetManager.send_input_to_host.rpc_id(1, current_command.serialize())
+
+
+func reconcile(_host_state: PlayerState):
+	pass
+	#if pos_error > 3.0:
+		#player.global_position = host_state.pos
+		#player.velocity = host_state.velocity # Crucial for your Verlet integration!
+		#
+		#var replay_tick = host_state.tick + 1
+		#while replay_tick <= NetManager.current_tick:
+			#var idx = get_circular_index(replay_tick)
+			## Re-simulate using the constant TICK_RATE delta
+			#player.execute_tick(NetManager.TICK_RATE, command_history_buffer[idx])
+			## Update the buffer so future reconciliations are accurate
+			#reconciliation_state_buffer[idx].set_state(player, replay_tick)
+			#replay_tick += 1
