@@ -68,16 +68,18 @@ func get_circular_index( a_tick: int) -> int:
 
 
 func update_remote_state(host_state: PlayerState):
-	if host_state.tick <= 0: 
-		return # Ignore init data
-	#print("remote host updated with tick: ", host_state.tick, "and pos: ", host_state.pos)
-	var _i = host_state.tick % interpolation_buffer_size
+	var incoming_tick = host_state.tick
+	if incoming_tick <= 0:
+		# -- ignore, chose -1 as intialization value
+		return
+	
+	var _i = incoming_tick % interpolation_buffer_size
 	interpolation_buffer[_i] = host_state
 	#var incoming_tick = host_state.tick
 
 	# -- Keep track of the tick?
-	#if incoming_tick > last_confirmed_tick:
-		#last_confirmed_tick = incoming_tick
+	if incoming_tick > last_confirmed_tick:
+		last_confirmed_tick = incoming_tick
 
 
 func _physics_process(delta):
@@ -101,56 +103,62 @@ func _physics_process(delta):
 			NetManager.send_input_to_host.rpc_id(1, current_command.serialize())
 
 
-func _process(_delta):
+var min_offset: float = 6.0    # Best case (100ms)
+var max_offset: float = 15.0   # Worst case (~250ms)
+var current_offset: float = 8.0 # Start in the middle
+var shortage_frames: int = 0   # How many frames have we lacked a point_b?
+
+func _process(delta):
 	if is_multiplayer_authority(): 
 		return
 
-	var render_tick = (NetManager.current_tick + NetManager.fract_tick) - 10.0
+	var render_tick = (NetManager.current_tick + NetManager.fract_tick) - current_offset
 	#print("Client render_tick: ", render_tick, " Buffer has: ", interpolation_buffer.map(func(d): return d.tick))
 	var point_a: PlayerState = null
 	var point_b: PlayerState = null
 
+	# ----------------------------------------------- first, going over whole buffer
 	# -- need two points on either side of our render interpolant
-	for data in interpolation_buffer:
-		if data.tick == -1:
-			# -- -1 is an initialization choice, so this is just skipping frames
-			# -- that never took data
-			continue
-		
-		if data.tick <= render_tick:
-			if point_a == null or data.tick > point_a.tick:
-				point_a = data
-		else: # data.tick > render_tick
-			if point_b == null or data.tick < point_b.tick:
-				point_b = data
-	
-	# ----------------------------------------------- OPTIMIZING
-	# -- walking backwards is more performant, but it's just stutter on 
-	# -- the player.global_position = point_a.pos... so it's never getting enough
-	# -- need two points on either side of our render_tick
-	#var head_idx = last_confirmed_tick % interpolation_buffer_size
-
-	# -- walk backwards starting from the latest received data
-	#for i in range(interpolation_buffer_size):
-		#var curr_idx = (head_idx - i + interpolation_buffer_size) % interpolation_buffer_size
-		#var data = interpolation_buffer[curr_idx]
-#
-		#if data.tick == -1: 
+	#for data in interpolation_buffer:
+		#if data.tick == -1:
+			## -- -1 is an initialization choice, so this is just skipping frames
+			## -- that never took data
 			#continue
-#
-		## -- 
+		#
 		#if data.tick <= render_tick:
-			#point_a = data
-			#break
-		#else:
-			#if point_b == null or data.tick < point_b.tick:
+			#if point_a == null or data.tick > point_a.tick:
 				#point_a = data
-	#
+		#else: # data.tick > render_tick
+			#if point_b == null or data.tick < point_b.tick:
+				#point_b = data
+	
+	# ----------------------------------------------- OPTIMIZING walking backwards
+	for i in range(interpolation_buffer_size):
+		var check_tick = last_confirmed_tick - i
+		var data = interpolation_buffer[check_tick % interpolation_buffer_size]
+		
+		if data == null or data.tick == -1:
+			continue
+
+		if data.tick <= render_tick:
+			point_a = data
+			# Since we are walking backwards, the very first tick <= render_tick 
+			# we find is guaranteed to be our best "point_a".
+			break 
+		else:
+			point_b = data # This was > render_tick, so it's a candidate for point_b
+
+	# # -----------------------------------------------
 	# -- interpolate position
 	if point_a and point_b:
+		# -- slowly lerp towards the min offset
+		current_offset = lerp(current_offset, min_offset, 0.1 * delta)
 		# -- this is just normalizing (0, 1) t
 		var t = (render_tick - point_a.tick) / float(point_b.tick - point_a.tick)
 		player.global_position = point_a.pos.lerp(point_b.pos, clamp(t, 0.0, 1.0))
 	elif point_a:
+		current_offset = min(current_offset + 0.2, max_offset)
+		# -- do something if there's a bunch of shortage frames maybe?
+		# shortage_frames += 1
 		# we don't have enough data to interpolate => stay at the most recent packet
 		player.global_position = point_a.pos
