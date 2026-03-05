@@ -13,31 +13,54 @@ signal item_ray_target_position_changed( pos: Vector2 )
 signal targeting_item_removed
 signal targeting_item_added
 
-@export var input_manager: InputManager # -- local source of input truth
+var input_manager: LocalPlayerController
 @export var player_ref: Player
 
-func _ready() -> void:
-	assert( input_manager and player_ref)
+
+# -- called from player
+#func use_item(used_item_pressed: bool):
+	#if used_item_pressed and is_instance_valid(item_interface):
+		#item_interface.use( )
+
+# -- called from player
+# -- this allows an item to have a process loop with the
+# -- networking tick rate ( delta time )
+func process_item_tick(delta: float, command: PlayerCommand):
+	if is_instance_valid(item_interface):
+		item_interface.tick_update(delta, command)
 
 
-func _physics_process(_delta: float) -> void:
-	if item_interface and is_instance_valid(item_interface):
-		if (input_manager.just_pressed_action("use_item") and item_interface.can_use()):
-			item_interface.use( )
-	else:
-		return
-
-
-var components_managed = ["raycast", "movement_override"]
-
-func pick_up( item_rsc: PackedScene,  fn: Callable):
+func pick_up(item_lookup: ItemsDb.ItemNames):
 	if item_interface:
 		item_interface.destroy()
-	
-	var item = item_rsc.instantiate()
+
+	var item = ItemsDb.get_item_from_lookup(item_lookup).instantiate()
 	item_interface = item.item_interface
-	
-	for component_name in components_managed:
+	# -- set authority to this peer id
+	var owner_id = get_parent().name.to_int()
+	item.set_multiplayer_authority( owner_id )
+	item.player_ref = player_ref 
+
+	if owner_id == multiplayer.get_unique_id():
+		item.input_manager = input_manager
+		# -- ray signaling and everything just happens locally
+		connect_local_signals(item)
+	else:
+		connect_remote_signals(item)
+
+	add_child(item)
+
+
+func connect_remote_signals(item):
+	connect_signals_based_on_component(item, ["movement_override"])
+
+
+func connect_local_signals(item):
+	connect_signals_based_on_component(item, ["raycast", "movement_override"])
+
+
+func connect_signals_based_on_component(item, arr_of_signal_names):
+	for component_name in arr_of_signal_names:
 		var comp: Node
 		var signals: Array[Signal]
 		var connections_fns: Array[Callable]
@@ -52,7 +75,6 @@ func pick_up( item_rsc: PackedScene,  fn: Callable):
 					targeting_item_added.emit()
 			"movement_override":
 				comp = get_component( item, func(c): return c is MovementOverrideComponent)
-				#print(comp)
 				if comp:
 					active_movement_override = comp
 					signals = [comp.movement_override_started, comp.movement_override_finished]
@@ -61,18 +83,6 @@ func pick_up( item_rsc: PackedScene,  fn: Callable):
 		if comp:
 			for i in range(signals.size()):
 				signals[i].connect( connections_fns[i] )
-
-	if is_moving_item() or is_spawning_item():
-		# NOTE TODO FIXME
-		if is_moving_item():
-			item.input_manager = input_manager
-			item.player_ref = player_ref
-		elif items_container:
-			item.items_container_ref = items_container
-		call_deferred("add_child", item)
-
-	# -- this is a callback from the pickup item handle to clean up after itself
-	fn.call()
 
 
 func get_component(item: Node2D, type_predicate_fn: Callable):
@@ -83,9 +93,10 @@ func get_component(item: Node2D, type_predicate_fn: Callable):
 func stop_using_item() -> void:
 	item_interface.stop()
 
-# ------------------------------------------ small utils
+
 func is_spawning_item() -> bool:
 	return item_interface.use_mode == item_interface.ItemUseMode.ITEM_SPAWNING
+
 
 func is_moving_item() -> bool:
 	return item_interface.use_mode == item_interface.ItemUseMode.PLAYER_MOVING

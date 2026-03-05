@@ -1,5 +1,8 @@
-#extends Item
 extends Node2D
+
+"""
+Multiplayer authority is decided by item manager at spawn
+"""
 
 @export var item_interface: ItemInterface
 @export var swing_power: float = 100 # -- coefficient for swinging manually
@@ -15,58 +18,68 @@ extends Node2D
 
 
 var target
-var input_manager: InputManager
+var input_manager: LocalPlayerController
 var player_ref: Player
 
 
 func _ready() -> void:
-	assert(input_manager and item_interface)
-	
-	#--------------------------------------- Raycast interface
-	$RaycastItemComponent.initialize_ray(grapple_max_distance,
-										 func(the_ray: RayCast2D):
-											the_ray.look_at(input_manager.aiming_pos()))
-	# -- pickup -> item_manager -> instanitates this, assigns it stuff
 	#----------------------------------- item interface / dependency injection
-	item_interface.can_use_fn = func(): return true # you can always use this
-	item_interface.used.connect( func():
-		if target:
-			stop()
-		else:
-			start()
-		)
-	item_interface.stopped.connect( stop )
+	item_interface.tick_update_fn = tick_update
+	item_interface.stopped.connect(on_item_stopped)
 	item_interface.destroyed.connect( func():
 		call_deferred("queue_free"))
+	
+	ray_component.initialize_ray( grapple_max_distance )
+	
+
+# -- NOTE
+# -- this needs to be replaced with something that scales better
+# -- and integrates into deterministic tick
+#@rpc("authority", "call_remote", "reliable")
+#func show_rope_on_remote(pos: Vector2):
+	#rope.show()
+	#rope.set_point_position(1, pos)
+#
+#
+#@rpc("authority", "call_remote", "reliable")
+#func hide_rope_on_remote():
+	#rope.hide()
 
 
-func start():
-	$MovementOverrideComponent.start()
-	launch()
+func tick_update(delta: float, cmd: PlayerCommand):
+	ray_component.tick_update(cmd)
+	
+	if cmd.item_use_pressed and !target:
+		var hit_pos = ray_component.get_intersection_pos()
+		if hit_pos:
+			# -- both host and client have to do this on the same tick
+			target = hit_pos 
+			rope.show()
+			#show_rope_on_remote.rpc(to_local(target))
+			$MovementOverrideComponent.start()
+	
+	if target:
+		handle_grapple(delta)
 
 
-func stop():
-	retract()
+func on_item_stopped():
+	target = null
+	rope.hide()
+	#hide_rope_on_remote.rpc()
 	$MovementOverrideComponent.finish()
 
 
-func _physics_process(delta: float) -> void:
+# -- client who has authority over this player calls this to everyone
+@rpc("authority", "call_local", "reliable")
+func _sync_destruction():
+	queue_free()
+
+
+# -- visuals can be decoupled from the deterministic tick
+func _physics_process(_delta: float) -> void:
 	if target:
-		handle_grapple(delta)
-		# -- inverting these to match intuion
-		var move_input: float = input_manager.movement_vector().y
-		rest_length += delta * move_input * grapple_change_rate
-		rest_length = clamp(rest_length, grapple_min_distance, grapple_max_distance)
-
-
-func launch():
-	target = ray_component.get_intersection_pos()
-	rope.show()
-
-
-func retract():
-	target = null
-	rope.hide()
+		rope.set_point_position(1, to_local(target))
+		rope.set_point_position(0, Vector2.ZERO)
 
 
 func handle_grapple(delta):
@@ -87,4 +100,4 @@ func handle_grapple(delta):
 		player_ref.velocity = player_ref.velocity.project(player_ref.velocity.normalized())
 		
 	player_ref.velocity *= (1.0 - (swing_damping * delta)) # -- Damping / Friction
-	rope.set_point_position(1, to_local(target))
+	#rope.set_point_position(1, to_local(target))

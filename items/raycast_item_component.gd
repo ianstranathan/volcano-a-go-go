@@ -10,24 +10,17 @@ signal target_position_changed( the_target_position: Vector2)
 @onready var ray = $RayCast2D
 
 
-var ray_dir_fn: Callable
-
-# -- NOTE
-# -- Maybe pass this all in one signal 
-func _physics_process(_delta: float) -> void:
-	if ray_dir_fn:
-		ray_dir_fn.call( ray )
-		#ray.look_at(input_manager.aiming_pos())
-		emit_signal("intersected_something", get_intersection_pos())
-		emit_signal("target_position_changed", global_target_pos())
+# -- this is just being piped through by parent
+func tick_update( cmd: PlayerCommand):
+	# -- 
+	ray.look_at(cmd.aiming_input)
+	#print("ray looking at: ", cmd.aiming_input)
+	emit_signal("intersected_something", get_intersection_pos())
+	emit_signal("target_position_changed", global_target_pos()) 
 
 
 func global_target_pos():
 	return ray.to_global(ray.target_position)
-
-
-#func get_ray_length():
-	#return ray.target_position.x
 
 
 func get_intersection_pos():
@@ -37,6 +30,5 @@ func get_intersection_pos():
 		return null
 
 
-func initialize_ray( ray_dist: float, _ray_dir_fn: Callable):
-	ray_dir_fn = _ray_dir_fn
+func initialize_ray( ray_dist: float):
 	ray.target_position = Vector2(ray_dist, 0.0)

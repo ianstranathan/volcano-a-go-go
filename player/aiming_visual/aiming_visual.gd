@@ -3,7 +3,6 @@ extends Node2D
 # -- TODO There's no need to have the targetVisual as a separate scene
 
 @export var targeted_visual: Sprite2D
-@export var item_manager: ItemManager
 
 """
 This is just a "dumb" aiming visual, it's just a visual callback to the
