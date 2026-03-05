@@ -56,31 +56,22 @@ func _physics_process(delta: float) -> void:
 			
 			# -- are we the machine running this NetManager's instance? (host or client)
 			if id == multiplayer.get_unique_id():
-				# -- then step my simulation immediately (prediction)
+				# -- then step the local player's tick immediately (prediction)
 				_player.player_controller.on_tick_generated(current_tick, TICK_RATE)
-			
+			# -- we need to run in lock step since packets can be lost
+			# -- or become out of sync
 			elif multiplayer.is_server():
 				host_process_remote_client(id, _player)
-		
-			if multiplayer.is_server() and (current_tick % update_remote_modulo == 0):
-				sync_player_state.rpc(
-						id, 
-						_player.player_controller.get_player_state( current_tick - 1 ).serialize()
-					)
-					#print("Host Broadcasting Tick: ", current_tick - 1, " for Player: ", id, " Pos: ", _player.global_position)
 			# -- host sends out RPC to give interpolation data to remote copies
 			# -- and reconciliation data for client's local version
-			#if multiplayer.is_server() and (current_tick % update_remote_modulo == 0):
-				#for id in player_instances_by_player_id:
-					#var _player = player_instances_by_player_id[id]
-					# -- remember that rpcs are automatically called to everyone
-					# -- but the caller assuming mirrored heirarchies
-					#print("Host sending tick: ", current_tick, " pos: ", _player.global_position)
-					#sync_player_state.rpc(
-						#id, 
-						#_player.player_controller.get_player_state( current_tick - 1 ).serialize()
-					#)
-		# -- this is used for smoothly moving remote copies
+			if multiplayer.is_server() and (current_tick % update_remote_modulo == 0):
+				sync_player_state.rpc(
+						id,
+						# -- current_tick - 1
+						_player.player_controller.get_player_state( current_tick ).serialize()
+					)
+					#print("Host Broadcasting Tick: ", current_tick - 1, " for Player: ", id, " Pos: ", _player.global_position)
+	# -- this is used for smoothly moving remote copies
 	fract_tick = _timer / TICK_RATE
 
 # Start hosting a server
@@ -215,17 +206,6 @@ func unregister_player(peer_id: int) -> void:
 	player_instances_by_player_id.erase(peer_id)
 
 
-# -- small optimization to not do an RPC if 
-#func process_authoritative_command(peer_id, cmd: PlayerCommand) -> void:
-	#player_instances_by_player_id[peer_id].apply_command(cmd)
-#
-
-#@rpc("authority", "reliable")
-#func sync_clock(server_tick: int):
-	## We add a bit of "buffer" for the travel time (latency)
-	## In a pro setup, you'd calculate RTT (Round Trip Time) here
-	#current_tick = server_tick + 2
-
 # ------------------------------------------ player state & command routing RPCs
 # -- this is coming out at like 20-30hz
 # -- this gives us a snapshot of the host's truth
@@ -246,55 +226,14 @@ func sync_player_state(id: int, byte_arr: PackedByteArray):
 		return
 	else:
 		if id == multiplayer.get_unique_id():
-			return 
-			# -- reconciliation
-			 #_player.player_controller.reconcile(host_version_pos,
-						  #host_version_velocity,
-						  #host_version_movement_state,
-						  #host_tick):                 
+			#print("Host version's tick: ", host_versions_state.tick)
+			_player.player_controller.reconcile( host_versions_state )               
 		else:
+			#print("Host version's tick: ", host_versions_state.tick)
 			# -- interpolation
-			# -- we just tell the controller to save this state, the interpolation
+			# -- we just tell the client to save this state, the interpolation
 			# -- happens on the local machine
 			_player.player_controller.update_remote_state( host_versions_state )
-			return
-
-# ------------------------------------------------------------------------------
-# -- this just routes a command to a player
-#@rpc("any_peer", "unreliable")
-#func send_input_to_host(byte_arr: PackedByteArray) -> void:
-	#if not multiplayer.is_server():
-		#return
-	#var sender_id = multiplayer.get_remote_sender_id()
-	#var cmd = PlayerCommand.deserialize(byte_arr)
-	#player_instances_by_player_id[sender_id].apply_command(cmd)
-
-# ------------------------------------------------------------------------------
-#func host_process_remote_client(id: int, _player: Player):
-	#var buffer = remote_input_buffers.get(id)
-	#if buffer == null: return
-#
-	#var cmd = buffer.get(current_tick)
-	#
-	#if cmd:
-		#_player.execute_tick(TICK_RATE, cmd)
-		#buffer.erase(current_tick) # This is O(1) and very fast
-	#else:
-		## FALLBACK logic
-		#var empty_cmd = PlayerCommand.new()
-		#_player.execute_tick(TICK_RATE, empty_cmd)
-		#
-	## --- SMART CLEANUP ---
-	## Only clean once every 60 ticks (approx 1 second)
-	#if current_tick % 60 == 0:
-		#_clean_old_buffer_data(buffer)
-
-
-#func _clean_old_buffer_data(buffer: Dictionary):
-	## We only do this occasionally to prevent memory leaks from lost packets
-	#for t in buffer.keys():
-		#if t < current_tick:
-			#buffer.erase(t)
 
 # ------------------------------------------------------------------------------
 # Outline of flow:
@@ -318,16 +257,12 @@ func host_process_remote_client(id: int, _player: Player):
 	var cmd = buffer[idx]
 	
 	if cmd.tick == current_tick:
-		#print("Host HIT: Looking for ", current_tick, " but buffer has ", cmd.tick)
+		# -- what a bug...
+		_player.player_controller.reconciliation_state_buffer[idx].set_state(_player, current_tick)
 		_player.execute_tick(TICK_RATE, cmd)
 	else:
-		#print("Host MISS: Looking for ", current_tick, " but buffer has ", cmd.tick)
-		#if current_tick % 60 == 0: # Print once a second so we don't spam
-			
-		# FALLBACK: The packet for this tick hasn't arrived yet
-		# We use an empty command or duplicate the previous one
+		print("reconciliation fallback used")
 		var fallback_cmd = PlayerCommand.new() 
-		# Option: fallback_cmd.move_input = _player.last_move_input
 		_player.execute_tick(TICK_RATE, fallback_cmd)
 
 
@@ -343,7 +278,7 @@ func send_input_to_host(byte_arr: PackedByteArray) -> void:
 		var idx = cmd.tick % INPUT_BUFFER_SIZE
 		remote_input_buffers[sender_id][idx] = cmd
 
-
+# -- see pickup.gd
 # -- only a remote copy living on the host's machine can trigger the pickup
 @rpc("authority", "call_local", "reliable")
 func sync_item_pickup(a_world_id:int, a_peer_id: int, item_lookup_enum: ItemsDb.ItemNames):
@@ -351,4 +286,5 @@ func sync_item_pickup(a_world_id:int, a_peer_id: int, item_lookup_enum: ItemsDb.
 	Events.item_picked_up.emit( a_world_id ) # -- what used to be a callback to delete the pickup
 	var _player = player_instances_by_player_id[ a_peer_id ]
 	if _player:
+		#print(multiplayer.get_unique_id())
 		_player.get_node("ItemManager").pick_up(item_lookup_enum)

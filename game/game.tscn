@@ -14,6 +14,7 @@ script = ExtResource("1_dxrkv")
 player_scene = ExtResource("2_4fuuu")
 players_container = NodePath("PlayersContainer")
 spawn_points = NodePath("SpawnPoints")
+metadata/_edit_group_ = true
 
 [node name="PlayersContainer" type="Node2D" parent="."]
 
@@ -87,6 +88,10 @@ script = ExtResource("5_dxrkv")
 
 [node name="PickupItem" parent="WorldItems" instance=ExtResource("6_dakft")]
 position = Vector2(-564, -153)
+_texture = ExtResource("7_y36n6")
+
+[node name="PickupItem2" parent="WorldItems" instance=ExtResource("6_dakft")]
+position = Vector2(366, -71)
 _texture = ExtResource("7_y36n6")
 
 [node name="WorldEffects" type="Node2D" parent="." node_paths=PackedStringArray("players_container")]

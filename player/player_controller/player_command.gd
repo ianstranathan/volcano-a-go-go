@@ -8,8 +8,7 @@ var jump_released := false
 var aiming_input: Vector2 = Vector2.ZERO
 var using_controller := false
 var carrying_item := false
-var item_use_pressed := false  # Action: Did I just click?
-#var item_use_released := false # Action: Did I just let go?
+var item_use_pressed := false
 var tick := 0
 
 

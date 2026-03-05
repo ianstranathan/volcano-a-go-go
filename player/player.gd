@@ -123,6 +123,9 @@ func _ready() -> void:
 	#-------------------------------------------------- Local and remote signals
 	#----------------------------- this controls items being able to move player
 	$ItemManager.item_moving_started.connect( func():
+			#print("on machine: ", multiplayer.get_unique_id())
+			#print(name, ": transitioning to item moveing state")
+			#print()
 			movement_state_transition_to( MovementStates.ITEM_MOVING))
 	$ItemManager.item_moving_stopped.connect( func():
 			coyote_timer.start())
@@ -220,6 +223,7 @@ func coyote_time_resolution() -> void:
 
 func execute_tick(delta: float, cmd: PlayerCommand):
 	apply_command(cmd)
+	$ItemManager.process_item_tick(delta, cmd)
 	
 	if !last_move_input:
 		last_move_input = move_input
@@ -727,8 +731,7 @@ func apply_command( c: PlayerCommand):
 	
 	# -- this is a bit fragile I think, we only have an input manager
 	# -- if we're multiplayer authority
-	
-	$ItemManager.use_item(c.item_use_pressed)
+	#$ItemManager.use_item(c.item_use_pressed)
 	#var aim_dir: Vector2 = Vector2.ZERO
 	#var using_controller := false
 	#var carrying_item := false
