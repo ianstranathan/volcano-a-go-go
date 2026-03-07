@@ -17,7 +17,7 @@ Multiplayer authority is decided by item manager at spawn
 @onready var rope := $Line2D
 
 
-var target
+var target_pos
 var input_manager: LocalPlayerController
 var player_ref: Player
 
@@ -29,43 +29,44 @@ func _ready() -> void:
 	item_interface.destroyed.connect( func():
 		call_deferred("queue_free"))
 	
-	ray_component.initialize_ray( grapple_max_distance )
+	if is_multiplayer_authority() or multiplayer.is_server():
+		ray_component.initialize_ray( grapple_max_distance )
 	
 
 # -- NOTE
 # -- this needs to be replaced with something that scales better
 # -- and integrates into deterministic tick
-#@rpc("authority", "call_remote", "reliable")
-#func show_rope_on_remote(pos: Vector2):
-	#rope.show()
-	#rope.set_point_position(1, pos)
-#
-#
-#@rpc("authority", "call_remote", "reliable")
-#func hide_rope_on_remote():
-	#rope.hide()
+@rpc("reliable")
+func set_target_on_interpolated(pos=null):
+	if !multiplayer.is_server():
+		target_pos = pos
+		if pos:
+			rope.show()
+		else:
+			rope.hide()
 
 
 func tick_update(delta: float, cmd: PlayerCommand):
 	ray_component.tick_update(cmd)
 	
-	if cmd.item_use_pressed and !target:
+	if cmd.item_use_pressed and !target_pos:
 		var hit_pos = ray_component.get_intersection_pos()
 		if hit_pos:
 			# -- both host and client have to do this on the same tick
-			target = hit_pos 
+			target_pos = hit_pos 
 			rope.show()
-			#show_rope_on_remote.rpc(to_local(target))
+			# -- send to everyone but yourself and the host
+			set_target_on_interpolated.rpc( target_pos )
 			$MovementOverrideComponent.start()
 	
-	if target:
+	if target_pos:
 		handle_grapple(delta)
 
 
 func on_item_stopped():
-	target = null
+	target_pos = null
 	rope.hide()
-	#hide_rope_on_remote.rpc()
+	set_target_on_interpolated.rpc()
 	$MovementOverrideComponent.finish()
 
 
@@ -77,13 +78,13 @@ func _sync_destruction():
 
 # -- visuals can be decoupled from the deterministic tick
 func _physics_process(_delta: float) -> void:
-	if target:
-		rope.set_point_position(1, to_local(target))
+	if target_pos:
+		rope.set_point_position(1, to_local(target_pos))
 		rope.set_point_position(0, Vector2.ZERO)
 
 
 func handle_grapple(delta):
-	var to_anchor = target - player_ref.global_position
+	var to_anchor = target_pos - player_ref.global_position
 	var current_dist = to_anchor.length()
 	var target_dir = to_anchor.normalized()
 	
@@ -100,4 +101,4 @@ func handle_grapple(delta):
 		player_ref.velocity = player_ref.velocity.project(player_ref.velocity.normalized())
 		
 	player_ref.velocity *= (1.0 - (swing_damping * delta)) # -- Damping / Friction
-	#rope.set_point_position(1, to_local(target))
+	#rope.set_point_position(1, to_local(target_pos))

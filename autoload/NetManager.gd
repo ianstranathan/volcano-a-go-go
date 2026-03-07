@@ -236,13 +236,8 @@ func sync_player_state(id: int, byte_arr: PackedByteArray):
 			_player.player_controller.update_remote_state( host_versions_state )
 
 # ------------------------------------------------------------------------------
-# Outline of flow:
-# local_player -> send_input_to_host ( -> host updates remote_input_buffers
-# then
-# in the hosts physics loop there is:
-#	elif multiplayer.is_server():
-		#host_process_remote_client(id, _player)
-# so, this is just applying the remote version of a player on the hosts machine
+
+# this is applying the remote version of a player on the hosts machine
 # if it has a corresponding packet
 func host_process_remote_client(id: int, _player: Player):
 	if not remote_input_buffers.has(id):
@@ -257,7 +252,6 @@ func host_process_remote_client(id: int, _player: Player):
 	var cmd = buffer[idx]
 	
 	if cmd.tick == current_tick:
-		# -- what a bug...
 		_player.player_controller.reconciliation_state_buffer[idx].set_state(_player, current_tick)
 		_player.execute_tick(TICK_RATE, cmd)
 	else:
