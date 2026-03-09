@@ -2,8 +2,8 @@ extends Control
 
 @export var slots_container: VBoxContainer
 @export var status_label: Label
-@export var ip_input: LineEdit
 @export var name_input: LineEdit
+@export var steam_checkbox: CheckBox
 @export var host_btn: Button
 @export var join_btn: Button
 @export var leave_btn: Button
@@ -14,41 +14,52 @@ var player_slots := {}  # peer_id -> slot node
 func _ready() -> void:
 	NetManager.peer_disconnected.connect(_on_player_left)
 	NetManager.player_info_updated.connect(_on_player_info_updated)
-	NetManager.connection_failed.connect(_on_connection_failed)
+	NetworkGateway.connection_failed.connect( _on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
+
+	# --------------------------------------------------- button connections
+	steam_checkbox.toggled.connect( func(b):
+		if b:
+			print(b)
+			NetworkGateway.switch_to_backend(NetworkGateway.BackendType.STEAM))
+	host_btn.pressed.connect(_on_host_pressed)
+	join_btn.pressed.connect(_on_join_pressed)
+	leave_btn.pressed.connect(_on_leave_pressed)
+	start_btn.pressed.connect(_on_start_pressed)
+
 
 func _on_host_pressed() -> void:
 	var player_name = name_input.text.strip_edges()
 	if player_name.is_empty():
 		player_name = "Player"
-	NetManager.host(player_name)
+	
+	NetworkGateway.host(player_name)
 	
 	status_label.text = "Hosting"
 	_update_ui_state()
 
-func _on_join_pressed() -> void:
-	var ip = ip_input.text.strip_edges()
-	if ip.is_empty():
-		status_label.text = "Enter an IP address"
-		return
-	
-	var player_name = name_input.text.strip_edges()
-	if player_name.is_empty():
-		player_name = "Player"
-	
-	NetManager.join(ip, player_name)
-	status_label.text = "Connecting to %s..." % ip
-	_update_ui_state()
 
+func _on_join_pressed() -> void:
+	var player_name = name_input.text.strip_edges()
+	# -- concat a random number or something
+	if player_name.is_empty(): 
+		player_name = "Player"
+	NetworkGateway.join(player_name)
+	status_label.text = NetworkGateway.get_join_text()
+	_update_ui_state()
+	
+#------------------------------------------------------------------------------
 func _on_leave_pressed() -> void:
-	NetManager.leave()
+	NetworkGateway.leave()
 	_clear_all_slots()
 	status_label.text = "Disconnected"
 	_update_ui_state()
 
+
 func _on_start_pressed() -> void:
 	if multiplayer.is_server():
 		_load_game.rpc()
+
 
 func _on_player_info_updated(peer_id: int, player_name: String, _spawn_index: int) -> void:
 	if peer_id in player_slots:
@@ -63,20 +74,24 @@ func _on_player_info_updated(peer_id: int, player_name: String, _spawn_index: in
 	if peer_id == multiplayer.get_unique_id() and not multiplayer.is_server():
 		status_label.text = "Connected"
 
+
 func _on_connection_failed() -> void:
 	status_label.text = "Connection failed"
 	_update_ui_state()
 
+
 func _on_server_disconnected() -> void:
 	# Server kicked us or disconnected
-	NetManager.leave()
+	NetworkGateway.leave()
 	_clear_all_slots()
 	status_label.text = "Disconnected from server"
 	_update_ui_state()
 
+
 func _on_player_left(id: int) -> void:
 	_remove_slot(id)
 	_update_ui_state()
+
 
 func _add_slot(peer_id: int) -> void:
 	if peer_id in player_slots:
@@ -86,24 +101,41 @@ func _add_slot(peer_id: int) -> void:
 	slots_container.add_child(slot)
 	player_slots[peer_id] = slot
 
+
 func _remove_slot(peer_id: int) -> void:
 	if peer_id not in player_slots:
 		return
-	
 	var slot = player_slots[peer_id]
 	slot.queue_free()
 	player_slots.erase(peer_id)
+
 
 func _clear_all_slots() -> void:
 	for slot in player_slots.values():
 		slot.queue_free()
 	player_slots.clear()
 
+
 func _create_slot(peer_id: int) -> PanelContainer:
 	var slot = PanelContainer.new()
 	var hbox = HBoxContainer.new()
 	slot.add_child(hbox)
 	
+	# -------------------------------------------------------------------------
+	# --- ADD AVATAR ---
+	#if NetworkGateway.backend_type == NetworkGateway.BackendType.STEAM:
+		#pass
+		#var avatar_rect = TextureRect.new()
+		#avatar_rect.custom_minimum_size = Vector2(40, 40)
+		#avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		#avatar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		#
+		#var tex = NetManager.get_steam_avatar(peer_id)
+		#if tex:
+			#avatar_rect.texture = tex
+		#hbox.add_child(avatar_rect)
+
+	# -------------------------------------------------------------------------
 	var name_label = Label.new()
 	var p_data = NetManager.player_data.get(peer_id)
 	var player_name = "Player %d" % peer_id # -- Default fallback
@@ -128,9 +160,9 @@ func _update_ui_state() -> void:
 	
 	host_btn.disabled = has_connection
 	join_btn.disabled = has_connection
-	ip_input.editable = not has_connection
 	leave_btn.disabled = not has_connection
 	start_btn.disabled = not is_host
+
 
 @rpc("authority", "call_local", "reliable")
 func _load_game() -> void:

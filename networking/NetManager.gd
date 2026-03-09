@@ -3,19 +3,14 @@ extends Node
 """
 """
 
-# Signals for connection events
+# ------------------------------------------------------------ signals for lobby
 signal peer_connected(id: int)
 signal peer_disconnected(id: int)
-signal connection_failed
-#signal player_info_updated(id: int, player_name: String, spawn_index:int)
 signal player_info_updated(id: int, player_name: String, spawn_index: int)
 
-const PORT := 8910
-const MAX_CLIENTS := 3 # Host + 3 clients = 4 total players
-
-
-var player_instances_by_player_id  := {} # dictionary: id_num : player_name
-var player_data := {} # id : { "name": string, "index": int, "color": Color }
+# -----------------------------------------------------------------
+var player_instances_by_player_id  := {}
+var player_data := {} 
 const INPUT_BUFFER_SIZE = 60 # Store 1 second of inputs
 # id : Array[PlayerCommand]
 var remote_input_buffers := {}
@@ -28,17 +23,19 @@ var fract_tick: float = 0.0   # -- decimal remainder of the tick
 var update_remote_modulo : int = 2 # -- e.g. 60hz -> 30hz
 var clock_synced := false
 
-#---------------------------------------------------------------------
+
+# -----------------------------------------------------------------
+var local_player_name: String = "Unknown Player"
 const KEY_NAME = "name"
 const KEY_INDEX = "index"
 const KEY_COLOR = "color"
 
-func create_player_entry(p_name: String, p_index: int) -> Dictionary:
-	return {
-		KEY_NAME: p_name,
-		KEY_INDEX: p_index,
-		KEY_COLOR: Color.WHITE # Default
-	}
+
+func _ready() -> void:
+	multiplayer.peer_connected.connect(_on_peer_connected)
+	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
+	multiplayer.connected_to_server.connect(_on_client_connected_to_server)
+
 
 # -- this is driving everything
 func _physics_process(delta: float) -> void:
@@ -74,90 +71,54 @@ func _physics_process(delta: float) -> void:
 	# -- this is used for smoothly moving remote copies
 	fract_tick = _timer / TICK_RATE
 
-# Start hosting a server
-func host(player_name: String) -> void:
-	var peer := ENetMultiplayerPeer.new()
-	if peer.create_server(PORT, MAX_CLIENTS) != OK:
-		connection_failed.emit()
-		return
-	multiplayer.multiplayer_peer = peer
-	player_data[1] = create_player_entry(player_name, 0)
-	# Manually emit for host since peer_connected doesn't fire for yourself
-	player_info_updated.emit(1, player_name, 0)
+
+func create_player_entry(p_name: String, p_index: int) -> Dictionary:
+	return {
+		KEY_NAME: p_name,
+		KEY_INDEX: p_index,
+		KEY_COLOR: Color.WHITE # Default
+	}
 
 
-# Join an existing server
-func join(ip: String, player_name: String) -> void:
-	var peer := ENetMultiplayerPeer.new()
-	if peer.create_client(ip, PORT) != OK:
-		connection_failed.emit()
-		return
-	multiplayer.multiplayer_peer = peer
-	#player_names_by_player_id [multiplayer.get_unique_id()] = player_name
-	player_data[multiplayer.get_unique_id()] = create_player_entry(player_name, -1)
+
+func _on_client_connected_to_server() -> void:
+	var my_id = multiplayer.get_unique_id()
+	player_data[my_id] = create_player_entry(local_player_name, -1)
+	_update_player_name.rpc_id(1, local_player_name)
 
 
 func leave() -> void:
-	multiplayer.multiplayer_peer = null
 	player_data.clear()
 
-
-func _ready() -> void:
-	# -- this is actually a wrapper around the signal for design purposes
-	# -- (From general / tutorial high level multiplayer article on Godot's doc website)
-	# -- From docs: peer_connected( id: int)   : emitted with the new id on each
-	#                                            other peer
-	#               peer_disconected( id: int) : emitted on every remaining
-	#                                            peer when one disconnects
-	multiplayer.peer_connected.connect(_on_peer_connected)
-	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-	multiplayer.connected_to_server.connect(_on_client_connected_to_server)
-
-	# -- there are more signals:
-	# connection_failed()
-	# server_disconnected()
 
 func setup_remote_buffer(id: int):
 	var buffer: Array[PlayerCommand] = []
 	buffer.resize(INPUT_BUFFER_SIZE)
-	# Pre-fill with empty commands to avoid null checks
+	# -- prefill with empty commands to avoid null checks
 	for i in range(INPUT_BUFFER_SIZE):
 		buffer[i] = PlayerCommand.new()
 	remote_input_buffers[id] = buffer
-	#print(remote_input_buffers)
+
 
 # Called on server when a new peer connects
 func _on_peer_connected(new_player_id: int) -> void:
-	# -- this is what it would be doing normally
+	# -- tell whoever is listening (i.e. a lobby)
 	peer_connected.emit( new_player_id )
 
-	# -- this is so it fits our "Listen Server" architecture,
-	# -- where one player acts as both a player and the host
 	if multiplayer.is_server():		
 		# -- Send the new peer all the already existing players
-		for peer_id in player_data :
-			setup_remote_buffer( peer_id )
-			var d = player_data[peer_id]
-			#_register_player.rpc_id(new_player_id,
-						  			#peer_id,
-						  			#player_names_by_player_id [peer_id])
-			_register_player.rpc_id(new_player_id, peer_id, d[KEY_NAME], d[KEY_INDEX])
+		for id in player_data :
+			setup_remote_buffer( id )
+			var d = player_data[ id ]
+			_register_player.rpc_id(new_player_id, id, d[KEY_NAME], d[KEY_INDEX])
 
 
-func _on_peer_disconnected(peer_id: int) -> void:
-	peer_disconnected.emit(peer_id)
-	player_data.erase(peer_id)
+func _on_peer_disconnected(id: int) -> void:
+	# -- tell whoever is listening (i.e. some way to catch the player leaving)
+	peer_disconnected.emit(id)
+	player_data.erase(id)
 
 
-func _on_client_connected_to_server() -> void:
-	# -- client locally sends its associated name to the server / host
-	# -- 1 is always host
-	var my_id = multiplayer.get_unique_id()
-	_update_player_name.rpc_id(1, player_data[my_id][KEY_NAME])
-	#_update_player_name.rpc_id(1, player_names_by_player_id [multiplayer.get_unique_id()])
-
-
-# RPC: A Client -> To Server: updates client display name
 @rpc("any_peer", "reliable")
 func _update_player_name(player_name: String) -> void:
 	# -- only do this on the host
@@ -169,10 +130,8 @@ func _update_player_name(player_name: String) -> void:
 	# -- we accept the client's truth for its name (player_name)
 	# -- we don't trust the client's truth for its id => get_remote_sender_id
 	var sender_id = multiplayer.get_remote_sender_id()
-	
 	var spawn_index = player_data.size() 
 	player_data[sender_id] = create_player_entry(player_name, spawn_index)
-
 	# Broadcast updated name to all clients
 	#var total_players = player_names_by_player_id.size()
 	#var spawn_index = (total_players - 1)
@@ -185,15 +144,6 @@ func _register_player(id: int, p_name: String, s_index: int) -> void:
 	# Everyone saves the server's dictated data
 	player_data[id] = create_player_entry(p_name, s_index)
 	player_info_updated.emit(id, p_name, s_index)
-#@rpc("authority", "call_local", "reliable")
-#func _register_player(id: int, player_name: String) -> void:
-	#player_names_by_player_id [id] = player_name
-	#player_info_updated.emit(id, player_name)
-
-
-@rpc("authority", "call_local", "reliable")
-func load_game_scene(scene_path: String) -> void:
-	get_tree().change_scene_to_file(scene_path)
 
 
 # -- let the game actually tell you the lookup reference
@@ -236,9 +186,14 @@ func sync_player_state(id: int, byte_arr: PackedByteArray):
 			_player.player_controller.update_remote_state( host_versions_state )
 
 # ------------------------------------------------------------------------------
-
-# this is applying the remote version of a player on the hosts machine
-# if it has a corresponding packet
+# Outline of flow:
+# local_player -> send_input_to_host ( -> host updates remote_input_buffers
+# then
+# in the hosts physics loop there is:
+#	elif multiplayer.is_server():
+#		host_process_remote_client(id, _player)
+# so, this is just applying the remote version of a player on the hosts machine
+# if it has a corresponding ticked packet
 func host_process_remote_client(id: int, _player: Player):
 	if not remote_input_buffers.has(id):
 		setup_remote_buffer(id)
@@ -252,6 +207,7 @@ func host_process_remote_client(id: int, _player: Player):
 	var cmd = buffer[idx]
 	
 	if cmd.tick == current_tick:
+		# -- what a bug...
 		_player.player_controller.reconciliation_state_buffer[idx].set_state(_player, current_tick)
 		_player.execute_tick(TICK_RATE, cmd)
 	else:
