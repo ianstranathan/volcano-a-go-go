@@ -30,6 +30,10 @@ func _ready():
 	# -- for every id in the NetManager's player_names
 	#for peer_id in NetManager.player_names_by_player_id:
 		#spawn_player(peer_id)
+	await get_tree().create_timer(0.1).timeout
+	
+	print("Spawning Game with ", NetManager.player_data.size(), " players.")
+	
 	for id in NetManager.player_data:
 		var d = NetManager.player_data[id]
 		spawn_player(id, d[NetManager.KEY_NAME], d[NetManager.KEY_INDEX])

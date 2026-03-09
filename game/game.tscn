@@ -90,10 +90,6 @@ script = ExtResource("5_dxrkv")
 position = Vector2(-564, -153)
 _texture = ExtResource("7_y36n6")
 
-[node name="PickupItem2" parent="WorldItems" instance=ExtResource("6_dakft")]
-position = Vector2(366, -71)
-_texture = ExtResource("7_y36n6")
-
 [node name="WorldEffects" type="Node2D" parent="." node_paths=PackedStringArray("players_container")]
 script = ExtResource("8_y36n6")
 players_container = NodePath("../PlayersContainer")
