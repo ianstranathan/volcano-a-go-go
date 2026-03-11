@@ -23,7 +23,7 @@ var fract_tick: float = 0.0   # -- decimal remainder of the tick
 var update_remote_modulo : int = 2 # -- e.g. 60hz -> 30hz
 var clock_synced := false
 
-
+var tick_scheduler := TickScheduler.new()
 # -----------------------------------------------------------------
 var local_player_name: String = "Unknown Player"
 const KEY_NAME = "name"
@@ -47,6 +47,7 @@ func _physics_process(delta: float) -> void:
 		current_tick += 1
 		_timer -= TICK_RATE
 		
+		tick_scheduler.tick(current_tick)
 		# -- deterministic simulation rate
 		for id in player_instances_by_player_id:
 			var _player = player_instances_by_player_id[id]
@@ -78,7 +79,6 @@ func create_player_entry(p_name: String, p_index: int) -> Dictionary:
 		KEY_INDEX: p_index,
 		KEY_COLOR: Color.WHITE # Default
 	}
-
 
 
 func _on_client_connected_to_server() -> void:

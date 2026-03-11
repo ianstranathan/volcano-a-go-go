@@ -62,12 +62,20 @@ var last_wall_normal: Vector2 = Vector2.ZERO
 
 # -------------------------------------------------- Buffer Timers
 # -- wait times are set in inspector
-@onready var coyote_timer: Timer = $BufferTimersContainer/CoyoteTimeTimer
-@onready var jump_buffer_timer: Timer = $BufferTimersContainer/JumpBufferTimer
-@onready var wall_jump_coyote_timer: Timer = $BufferTimersContainer/WallJumpCoyoteTimeTimer
-@onready var ledge_grab_buffer_timer: Timer = $BufferTimersContainer/LedgeGrabBufferTimer
-@onready var side_somersault_timer: Timer = $BufferTimersContainer/SideSomersaultTimer
-#@onready var disable_horizontal_movement_timer: Timer = $BufferTimersContainer/LedgeGrabBufferTimer
+#@onready var coyote_timer: Timer = $BufferTimersContainer/CoyoteTimeTimer
+#@onready var jump_buffer_timer: Timer = $BufferTimersContainer/JumpBufferTimer
+#@onready var wall_jump_coyote_timer: Timer = $BufferTimersContainer/WallJumpCoyoteTimeTimer
+#@onready var ledge_grab_buffer_timer: Timer = $BufferTimersContainer/LedgeGrabBufferTimer
+#@onready var side_somersault_timer: Timer = $BufferTimersContainer/SideSomersaultTimer
+
+var coyote_timer: TickTimer            = TickTimer.new(0.15)
+var jump_buffer_timer: TickTimer       = TickTimer.new(0.15)
+var wall_jump_coyote_timer: TickTimer  = TickTimer.new(0.25)
+var ledge_grab_buffer_timer: TickTimer = TickTimer.new(0.30)
+var side_somersault_timer: TickTimer   = TickTimer.new(0.25)
+
+
+
 ## The number of frames where you can't move horizontally after wall jump 
 var manual_wall_jump_frame_counter: int = 0
 @export var num_frame_you_cant_move_after_wall_jump = 6.0
@@ -206,6 +214,8 @@ func do_jump(jump_type):
 
 
 func coyote_time_resolution() -> void:
+	if is_multiplayer_authority():
+		print("coyote timeout")
 	# the transition should only happen if we're coming from a certain set
 	# of states, otherwise we'll jump in coyote time but be in falling state
 	match movement_state:
@@ -261,45 +271,6 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 			velocity.y = 0
 
 	last_move_input = move_input
-
-
-#func _physics_process(delta: float) -> void:
-	#if !last_move_input:
-		#last_move_input = move_input
-	#
-	## -- climbing check
-	#if should_start_climbing():
-		#start_climbing()
-	#
-	## -- manual wall jumping frame management:
-	#if manual_wall_jump_frame_counter > 0:
-		#manual_wall_jump_frame_counter -= 1
-	#
-	## -- call the movement state function matching the movement_state variable
-	#call(MovementStates.keys()[movement_state].to_lower() + "_state_fn", delta)
-	#
-	#
-	##tmp_burn_handle() # TODO # -- temporary burn visual feedback
-	#
-	#if current_platform: # -- account for relative velocities
-		#move_and_collide(current_platform.get_velocity() * delta)
-	#
-	## -- velocity verlet update
-	#global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * g))
-	#
-	#if velocity.y < TERMINAL_FALL_SPEED:
-		#velocity.y += get_g() * delta
-#
-	#var collision = move_and_collide(Vector2.ZERO)
-	#
-	#if collision:
-		## -- projection of ground normal is mostly vertical
-		#is_on_ground = collision.get_normal().dot(Vector2.UP) > 0.7
-		#if is_on_ground:
-			#current_platform_check( collision )
-			#velocity.y = 0
-#
-	#last_move_input = move_input
 
 
 func current_platform_check(coll: KinematicCollision2D):

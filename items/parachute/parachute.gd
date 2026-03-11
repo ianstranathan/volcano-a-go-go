@@ -7,7 +7,7 @@ extends Node2D
 
 @export var item_interface: ItemInterface
 @export var accl_curve: Curve
-var input_manager: InputManager
+var input_manager: LocalPlayerController
 var player_ref: Player
 
 enum ParachuteTypes {
@@ -18,36 +18,32 @@ enum ParachuteTypes {
 var parachute_type: ParachuteTypes = ParachuteTypes.NONE
 var gust_area: WindGustLift
 var offset: Vector2
+
+var try_timer: TickTimer    = TickTimer.new(0.1)
+var deploy_timer: TickTimer = TickTimer.new(1.5)
+
 func _ready() -> void:
-	# ------------------------------------------- offset calculation
+	# ------------------------------------------------------- offset calculation
 	# -- half the sprite size, use my utils
 	var sprite_offset_contribution = Vector2(0., (($Sprite2D.texture.get_size() * $Sprite2D.scale) / 2.0).y)
-	assert( player_ref )
+	
 	# -- half the players capsule size
 	var to_top_of_player = Vector2(0., player_ref.get_node("CollisionShape2D").shape.height / 2.0)
 	offset = sprite_offset_contribution + to_top_of_player
 	
-	# ------------------------------------------ player touched_ground
-	#player_ref.touched_ground.connect( func():
-		#if parachute_type != ParachuteTypes.NONE:
-			#stop())
+	position = -offset
 	
-	#----------------------------------- item interface / dependency injection
+	#------------------------------------- item interface / dependency injection
 	item_interface.can_use_fn = func(): return true # you can always try this
-	item_interface.used.connect( func():
-		if parachute_type != ParachuteTypes.NONE:
-			stop()
-		else:
-			try_parachute()
-	)
+	item_interface.tick_update_fn = tick_update
 	item_interface.stopped.connect( stop )
-	item_interface.destroyed.connect( func(): call_deferred("queue_free"))
+	item_interface.destroyed.connect( _sync_destruction)
 	
 	#-------------------------------------- initialize
 	turn_off_coll_and_sprite( true )
 	
 	# ------------------------------------- signals
-	$TryTimer.timeout.connect( func():
+	try_timer.timeout.connect( func():
 		# if the area2d hasn't overlapped with something, turn stuff off
 		if parachute_type == ParachuteTypes.NONE:
 			turn_off_coll_and_sprite( true ))
@@ -74,9 +70,12 @@ func turn_off_coll_and_sprite(b: bool, try_just_coll: bool = false):
 func stop():
 	#print("STOPPED")
 	parachute_type = ParachuteTypes.NONE
+	
+	show_parachute_on_interpolated_remote.rpc(false)
+	
 	turn_off_coll_and_sprite(true)
 	$MovementOverrideComponent.finish()
-	$TryTimer.stop()
+	try_timer.stop()
 
 
 func start(_type: ParachuteTypes):
@@ -85,12 +84,19 @@ func start(_type: ParachuteTypes):
 	parachute_type = _type             #
 	$MovementOverrideComponent.start() # 
 	$Sprite2D.visible = true           #
-	$TryTimer.stop()                   # stop to prevent timeout callback
+	
+	show_parachute_on_interpolated_remote.rpc(true)
+	
+	try_timer.stop()                   # stop to prevent timeout callback
 	turn_off_coll_and_sprite( false )  # 
 
 
-func _physics_process(delta: float) -> void:
-	#print(ParachuteTypes.find_key(parachute_type))
+func tick_update(delta: float, cmd: PlayerCommand):
+	if cmd.item_use_pressed:
+		if parachute_type != ParachuteTypes.NONE:
+			stop()
+		else:
+			try_parachute()
 	match parachute_type:
 		ParachuteTypes.NONE:
 			return
@@ -99,8 +105,6 @@ func _physics_process(delta: float) -> void:
 		ParachuteTypes.PARACHUTING:
 			player_ref.velocity.y -= 0.98 * player_ref.get_g() * delta
 
-	global_position = player_ref.global_position - offset
-
 
 func try_parachute():
 	# if player is falling, change to parachuting
@@ -108,5 +112,19 @@ func try_parachute():
 		start( ParachuteTypes.PARACHUTING )
 	else:
 		turn_off_coll_and_sprite( false, true ) # -- allow area2d to change state
-		$TryTimer.start() # if the area2d doesn't change state after X time
+		try_timer.start() # if the area2d doesn't change state after X time
 						  # stop needlessly checking
+
+
+@rpc("reliable")
+func show_parachute_on_interpolated_remote(b: bool, _offset: Vector2):
+	if !offset:
+		offset = _offset
+		position = -offset
+	if !multiplayer.is_server():
+		$Sprite2D.visible = b
+
+
+@rpc("authority", "call_local", "reliable")
+func _sync_destruction():
+	call_deferred("queue_free")

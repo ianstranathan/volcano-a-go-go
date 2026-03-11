@@ -187,7 +187,7 @@ func reconcile(host_state: PlayerState):
 	var stored_state = reconciliation_state_buffer[index]
 
 	if stored_state.tick != host_state.tick:
-		print("Reconcile check: Stored: ", stored_state.tick, " Host: ", host_state.tick)
+		#print("Reconcile check: Stored: ", stored_state.tick, " Host: ", host_state.tick)
 		return
 		
 	# -- reconciliation tolerances
@@ -200,7 +200,7 @@ func reconcile(host_state: PlayerState):
 	)
 	
 	if needs_reconciled:
-		print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
+		#print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
 		# -- player back to the host's authoritative state
 		player.global_position = host_state.pos
 		player.rotation = host_state.rot
@@ -231,6 +231,5 @@ func _unhandled_input(event: InputEvent):
 	if !multiplayer.is_server():
 		if event is InputEventKey and event.pressed:
 			if event.keycode == KEY_K:
-				# Shift 50px locally (THEFT!)
 				player.global_position.x += 50.0
 				print("MANUAL DESYNC CREATED")

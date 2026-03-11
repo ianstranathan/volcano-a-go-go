@@ -1,6 +1,11 @@
 
 extends Node
 
+
+"""
+TODO
+- await seems brittle
+"""
 signal connection_failed
 
 enum BackendType
@@ -19,7 +24,6 @@ func _ready():
 func leave() -> void:
 	if active_backend:
 		active_backend.close_connection()
-	# -- The global "off" switch
 	multiplayer.multiplayer_peer = null 
 
 
