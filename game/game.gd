@@ -20,6 +20,10 @@ will only have authority from that peer
 @export var player_scene: PackedScene
 @export var players_container: Node2D
 @export var spawn_points: Node2D
+@export var pickup_items_container: Node2D
+@export var spawned_items_container: Node2D
+
+
 func _ready():
 	assert(spawn_points)
 	assert(players_container)
@@ -71,7 +75,7 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	a_player.set_multiplayer_authority(peer_id)
 	
 	a_player.color = rand_player_color( peer_id )
-	a_player.items_container = $WorldItems
+	a_player.items_container = spawned_items_container
 	if peer_id == multiplayer.get_unique_id():
 		$Camera.target_initialize(a_player)
 	players_container.add_child(a_player)

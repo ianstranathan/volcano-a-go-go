@@ -214,8 +214,6 @@ func do_jump(jump_type):
 
 
 func coyote_time_resolution() -> void:
-	if is_multiplayer_authority():
-		print("coyote timeout")
 	# the transition should only happen if we're coming from a certain set
 	# of states, otherwise we'll jump in coyote time but be in falling state
 	match movement_state:
@@ -416,8 +414,9 @@ func start_climbing() -> void:
 	movement_state_transition_to(MovementStates.CLIMBING)
 
 
-var climb_move_override: Callable = (func(): 
-	velocity = velocity.move_toward(move_input * climb_speed * move_speed_modifier, MOV_ACCL))
+var climb_move_override: Callable = (func():
+	var _inverted_y_move_input = Vector2(move_input.x, -move_input.y)
+	velocity = velocity.move_toward(_inverted_y_move_input * climb_speed * move_speed_modifier, MOV_ACCL))
 
 
 func climbing_state_fn(_delta):

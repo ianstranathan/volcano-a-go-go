@@ -11,9 +11,10 @@ signal target_position_changed( the_target_position: Vector2)
 
 
 # -- this is just being piped through by parent
-func tick_update( cmd: PlayerCommand):
+func tick_update( cmd: PlayerCommand, locked=false):
 	# -- 
-	ray.look_at(cmd.aiming_input)
+	if !locked:
+		ray.look_at(cmd.aiming_input)
 	#print("ray looking at: ", cmd.aiming_input)
 	emit_signal("intersected_something", get_intersection_pos())
 	emit_signal("target_position_changed", global_target_pos()) 

@@ -18,7 +18,7 @@ Multiplayer authority is decided by item manager at spawn
 
 
 var target_pos
-var input_manager: LocalPlayerController
+#var input_manager: LocalPlayerController
 var player_ref: Player
 
 
@@ -49,15 +49,18 @@ func set_target_on_interpolated(pos=null):
 func tick_update(delta: float, cmd: PlayerCommand):
 	ray_component.tick_update(cmd)
 	
-	if cmd.item_use_pressed and !target_pos:
-		var hit_pos = ray_component.get_intersection_pos()
-		if hit_pos:
-			# -- both host and client have to do this on the same tick
-			target_pos = hit_pos 
-			rope.show()
-			# -- send to everyone but yourself and the host
-			set_target_on_interpolated.rpc( target_pos )
-			$MovementOverrideComponent.start()
+	if cmd.item_use_pressed:
+		if !target_pos:
+			var hit_pos = ray_component.get_intersection_pos()
+			if hit_pos:
+				# -- both host and client have to do this on the same tick
+				target_pos = hit_pos 
+				rope.show()
+				# -- send to everyone but yourself and the host
+				set_target_on_interpolated.rpc( target_pos )
+				$MovementOverrideComponent.start()
+		else:
+			on_item_stopped()
 	
 	if target_pos:
 		handle_grapple(delta)
@@ -102,3 +105,7 @@ func handle_grapple(delta):
 		
 	player_ref.velocity *= (1.0 - (swing_damping * delta)) # -- Damping / Friction
 	#rope.set_point_position(1, to_local(target_pos))
+
+
+func set_player_ref(p: Player) -> void:
+	player_ref = p

@@ -30,7 +30,7 @@ accl_curve = SubResource("Curve_l5lux")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 material = SubResource("ShaderMaterial_fysdi")
-scale = Vector2(1.5, 1.5)
+scale = Vector2(1.2, 1.2)
 texture = ExtResource("2_4hgu8")
 
 [node name="Area2D" type="Area2D" parent="."]

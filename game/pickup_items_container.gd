@@ -5,8 +5,8 @@ This is a deterministic way I'm syncing item pickups across network
 Whatever procedural generation happens, we just increment the world id
 and assign it to the pickup instance
 """
-var pickup_items: Array = [] # -- this should probably be pooled so that we can add in items later
-var free_indices: Array[int] = []
+var pickup_items: Array = []       # -- consider pooling instead of queueing free
+var free_indices: Array[int] = []  # -- instead of resizing, check if there are free indices first
 var curr_world_id: int = 0
 
 func _ready() -> void:
@@ -24,4 +24,3 @@ func _ready() -> void:
 		#print(multiplayer.get_unique_id())
 		free_indices.append( a_world_id )
 		pickup_items[ a_world_id ].queue_free())
-		

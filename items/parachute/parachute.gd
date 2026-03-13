@@ -7,7 +7,7 @@ extends Node2D
 
 @export var item_interface: ItemInterface
 @export var accl_curve: Curve
-var input_manager: LocalPlayerController
+#var input_manager: LocalPlayerController
 var player_ref: Player
 
 enum ParachuteTypes {
@@ -34,7 +34,7 @@ func _ready() -> void:
 	position = -offset
 	
 	#------------------------------------- item interface / dependency injection
-	item_interface.can_use_fn = func(): return true # you can always try this
+	#item_interface.can_use_fn = func(): return true # you can always try this
 	item_interface.tick_update_fn = tick_update
 	item_interface.stopped.connect( stop )
 	item_interface.destroyed.connect( _sync_destruction)
@@ -116,13 +116,17 @@ func try_parachute():
 						  # stop needlessly checking
 
 
+func set_player_ref(p: Player) -> void:
+	player_ref = p
+
+
 @rpc("reliable")
 func show_parachute_on_interpolated_remote(b: bool, _offset: Vector2):
 	if !offset:
 		offset = _offset
 		position = -offset
-	if !multiplayer.is_server():
-		$Sprite2D.visible = b
+	#if !multiplayer.is_server():
+	$Sprite2D.visible = b
 
 
 @rpc("authority", "call_local", "reliable")

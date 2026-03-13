@@ -39,10 +39,12 @@ func pick_up(item_lookup: ItemsDb.ItemNames):
 	# -- set authority to this peer id
 	var owner_id = get_parent().name.to_int()
 	item.set_multiplayer_authority( owner_id )
-	item.player_ref = player_ref 
-
+	#item.player_ref = player_ref 
+	if item.has_method("set_player_ref"):
+		item.set_player_ref(player_ref)
+		
 	if owner_id == multiplayer.get_unique_id():
-		item.input_manager = input_manager
+		#item.input_manager = input_manager
 		# -- ray signaling and everything just happens locally
 		connect_local_signals(item)
 	else:
