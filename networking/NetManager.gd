@@ -228,9 +228,10 @@ func send_input_to_host(byte_arr: PackedByteArray) -> void:
 		var idx = cmd.tick % INPUT_BUFFER_SIZE
 		remote_input_buffers[sender_id][idx] = cmd
 
+
 # -- see pickup.gd
 # -- only a remote copy living on the host's machine can trigger the pickup
-@rpc("authority", "call_local", "reliable")
+@rpc("authority", "reliable")
 func sync_item_pickup(a_world_id:int, a_peer_id: int, item_lookup_enum: ItemsDb.ItemNames):
 	# -- we want to tell the other players that this pickup exists
 	Events.item_picked_up.emit( a_world_id ) # -- what used to be a callback to delete the pickup

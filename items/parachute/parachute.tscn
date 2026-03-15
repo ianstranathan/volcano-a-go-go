@@ -13,7 +13,7 @@ use_mode = 2
 metadata/_custom_type_script = "uid://du6dcuy4lm2fk"
 
 [sub_resource type="Curve" id="Curve_l5lux"]
-_data = [Vector2(0.00440529, 0), 0.0, 0.0, 0, 0, Vector2(0.568282, 0.6067416), 2.814413, 2.814413, 0, 0, Vector2(0.99559474, 1), 0.0, 0.0, 0, 0]
+_data = [Vector2(0.00440529, 0), 0.0, 0.0, 0, 0, Vector2(0.45652175, 0.5842697), 3.1424718, 3.1424718, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
 point_count = 3
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fysdi"]
@@ -34,6 +34,8 @@ scale = Vector2(1.2, 1.2)
 texture = ExtResource("2_4hgu8")
 
 [node name="Area2D" type="Area2D" parent="."]
+collision_layer = 128
+collision_mask = 128
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("CircleShape2D_u8r2o")

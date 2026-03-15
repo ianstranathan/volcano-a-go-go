@@ -92,7 +92,6 @@ func on_tick_generated(tick: int, delta: float):
 	# -- this is being called from NetManager, so no need to make a function call
 	# -- or accessor back to NetManager
 	var _index = get_circular_index(tick)
-
 	# -- save command and state
 	var current_command = command_history_buffer[_index]
 	current_command.tick = tick                       # -- timestamp the command

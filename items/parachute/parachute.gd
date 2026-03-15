@@ -16,13 +16,15 @@ enum ParachuteTypes {
 	PARACHUTING
 }
 var parachute_type: ParachuteTypes = ParachuteTypes.NONE
-var gust_area: WindGustLift
 var offset: Vector2
 
 var try_timer: TickTimer    = TickTimer.new(0.1)
 var deploy_timer: TickTimer = TickTimer.new(1.5)
 
 func _ready() -> void:
+	# -- we're limiting the collision masks to exclude everything that isn't a
+	# -- a wind area and something that can pop this
+
 	# ------------------------------------------------------- offset calculation
 	# -- half the sprite size, use my utils
 	var sprite_offset_contribution = Vector2(0., (($Sprite2D.texture.get_size() * $Sprite2D.scale) / 2.0).y)
@@ -37,7 +39,7 @@ func _ready() -> void:
 	#item_interface.can_use_fn = func(): return true # you can always try this
 	item_interface.tick_update_fn = tick_update
 	item_interface.stopped.connect( stop )
-	item_interface.destroyed.connect( _sync_destruction)
+	#item_interface.destroyed.connect( _sync_destruction)
 	
 	#-------------------------------------- initialize
 	turn_off_coll_and_sprite( true )
@@ -49,13 +51,12 @@ func _ready() -> void:
 			turn_off_coll_and_sprite( true ))
 	$Area2D.area_entered.connect( func(area):
 		if !$Area2D/CollisionShape2D.disabled and area is WindGustLift:
-			gust_area = area
 			start( ParachuteTypes.GUSTING ))
 	$Area2D.area_exited.connect( func(area): 
 		if (area is WindGustLift and 
 			parachute_type == ParachuteTypes.GUSTING and 
 			!$Area2D/CollisionShape2D.disabled):
-			player_ref.velocity.y *= 0.25
+			player_ref.velocity.y *= 0.05
 			parachute_type = ParachuteTypes.PARACHUTING)
 
 
@@ -71,7 +72,8 @@ func stop():
 	#print("STOPPED")
 	parachute_type = ParachuteTypes.NONE
 	
-	show_parachute_on_interpolated_remote.rpc(false)
+	if is_multiplayer_authority():
+		show_parachute_on_interpolated_remote.rpc(false, offset)
 	
 	turn_off_coll_and_sprite(true)
 	$MovementOverrideComponent.finish()
@@ -79,18 +81,19 @@ func stop():
 
 
 func start(_type: ParachuteTypes):
+	gust_interpolant = 0.0
 	$DeploymentTimer.start()           # to sample accl, gust curves
-	player_ref.velocity.y = 0.         # 
 	parachute_type = _type             #
 	$MovementOverrideComponent.start() # 
 	$Sprite2D.visible = true           #
-	
-	show_parachute_on_interpolated_remote.rpc(true)
+	player_ref.velocity = Vector2.ZERO
+	if is_multiplayer_authority():
+		show_parachute_on_interpolated_remote.rpc(true, offset)
 	
 	try_timer.stop()                   # stop to prevent timeout callback
 	turn_off_coll_and_sprite( false )  # 
 
-
+var gust_interpolant = 0.0
 func tick_update(delta: float, cmd: PlayerCommand):
 	if cmd.item_use_pressed:
 		if parachute_type != ParachuteTypes.NONE:
@@ -101,9 +104,14 @@ func tick_update(delta: float, cmd: PlayerCommand):
 		ParachuteTypes.NONE:
 			return
 		ParachuteTypes.GUSTING:
-			player_ref.velocity.y -= 1.2 * player_ref.get_g() * delta
+			
+			if gust_interpolant <= 1.0:
+				gust_interpolant += delta
+				player_ref.velocity.y -= 4000 * delta * accl_curve.sample(gust_interpolant)
+				gust_interpolant = clamp(gust_interpolant, 0., 1.)
+			pass
 		ParachuteTypes.PARACHUTING:
-			player_ref.velocity.y -= 0.98 * player_ref.get_g() * delta
+			player_ref.velocity.y -= 0.97 * player_ref.get_g() * delta
 
 
 func try_parachute():
@@ -122,13 +130,14 @@ func set_player_ref(p: Player) -> void:
 
 @rpc("reliable")
 func show_parachute_on_interpolated_remote(b: bool, _offset: Vector2):
-	if !offset:
-		offset = _offset
-		position = -offset
-	#if !multiplayer.is_server():
-	$Sprite2D.visible = b
+	if !multiplayer.is_server():
+		# -- initialize the offset if it doesn't exist on interpolated remote
+		if !offset:
+			offset = _offset
+			position = -offset
+		$Sprite2D.visible = b
 
 
-@rpc("authority", "call_local", "reliable")
-func _sync_destruction():
-	call_deferred("queue_free")
+#@rpc("authority", "call_local", "reliable")
+#func _sync_destruction():
+	#call_deferred("queue_free")

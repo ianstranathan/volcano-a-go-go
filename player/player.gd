@@ -142,7 +142,6 @@ func _ready() -> void:
 		input_manager = $PlayerController.get_child(0)
 		assert($PlayerController.get_children().size() == 1)
 		assert(input_manager is LocalPlayerController)
-		$ItemManager.input_manager = input_manager
 		var aiming_visual  = load("res://player/aiming_visual/aiming_visual.tscn").instantiate()
 		add_child(aiming_visual)
 		# -------------------------------------------- this controls aiming line
@@ -527,7 +526,11 @@ func wall_sliding_state_fn(_delta) -> void:
 # -- probably move this elsewhere
 func item_moving_state_fn(_delta) -> void:
 	if $ItemManager.active_movement_override.allows_horizontal_movement():
-		move()
+		if !move_input.is_zero_approx():
+			velocity.x = move_toward(velocity.x, move_input.x * move_speed * move_speed_modifier, MOV_ACCL / 3.0)
+		else:
+			velocity.x = move_toward(velocity.x, 0.0, DECL / 12.0)
+
 	if $ItemManager.active_movement_override.allows_jump() and !jump_buffer_timer.is_stopped():
 			$ItemManager.stop_using_item()
 			velocity.y += jump_speed * jump_speed_modifier
@@ -639,6 +642,14 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						Effects.EffectNames.LANDING_SMOKE, 
 						global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
 						false)
+			#MovementStates.WALL_SLIDING:
+				#match new_movement_state:
+					#MovementStates.JUMPING:
+						#Events.world_effect.emit(
+							#name.to_int(), 
+							#Effects.EffectNames.WALL_JUMP, 
+							#global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
+							#true if last_wall_normal.x < 0 else false)
 		# ----------------------------------
 		set_debug_label( new_movement_state )
 		movement_state = new_movement_state
@@ -687,6 +698,10 @@ func get_g() -> float:
 func can_parachute() -> bool:
 	return (movement_state == MovementStates.FALLING or movement_state == MovementStates.JUMPING)
 
+
+func can_pick_up_item():
+	return $ItemManager.can_pick_up()
+	
 
 # ------------------------------------------------------------------------------
 func apply_command( c: PlayerCommand):

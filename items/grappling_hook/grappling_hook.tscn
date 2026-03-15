@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://1yqyqa8jm5k" path="res://items/raycast_item_component.tscn" id="5_bnf5e"]
 [ext_resource type="Script" uid="uid://dmm17nhn1wysy" path="res://items/item_components/movement_override_component.gd" id="6_g5xqo"]
 
-[sub_resource type="Resource" id="Resource_2q40j"]
+[sub_resource type="Resource" id="Resource_g5xqo"]
 script = ExtResource("2_cj714")
 use_mode = 2
 metadata/_custom_type_script = "uid://du6dcuy4lm2fk"
@@ -18,7 +18,7 @@ shader_parameter/tex = ExtResource("4_5rvkf")
 
 [node name="GrapplingHook" type="Node2D"]
 script = ExtResource("1_wx7rf")
-item_interface = SubResource("Resource_2q40j")
+item_interface = SubResource("Resource_g5xqo")
 
 [node name="RayCast2D" type="RayCast2D" parent="."]
 target_position = Vector2(50, 0)

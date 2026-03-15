@@ -13,14 +13,8 @@ signal item_ray_target_position_changed( pos: Vector2 )
 signal targeting_item_removed
 signal targeting_item_added
 
-var input_manager: LocalPlayerController
 @export var player_ref: Player
 
-
-# -- called from player
-#func use_item(used_item_pressed: bool):
-	#if used_item_pressed and is_instance_valid(item_interface):
-		#item_interface.use( )
 
 # -- called from player
 # -- this allows an item to have a process loop with the
@@ -31,11 +25,11 @@ func process_item_tick(delta: float, command: PlayerCommand):
 
 
 func pick_up(item_lookup: ItemsDb.ItemNames):
-	if item_interface:
-		item_interface.destroy()
-
+	if !can_pick_up():
+		return
 	var item = ItemsDb.get_item_from_lookup(item_lookup).instantiate()
 	item_interface = item.item_interface
+	item_interface.item_depleted.connect( remove_item )
 	# -- set authority to this peer id
 	var owner_id = get_parent().name.to_int()
 	item.set_multiplayer_authority( owner_id )
@@ -44,13 +38,11 @@ func pick_up(item_lookup: ItemsDb.ItemNames):
 		item.set_player_ref(player_ref)
 		
 	if owner_id == multiplayer.get_unique_id():
-		#item.input_manager = input_manager
-		# -- ray signaling and everything just happens locally
 		connect_local_signals(item)
 	else:
 		connect_remote_signals(item)
 
-	add_child(item)
+	call_deferred("add_child", item)
 
 
 func connect_remote_signals(item):
@@ -102,3 +94,20 @@ func is_spawning_item() -> bool:
 
 func is_moving_item() -> bool:
 	return item_interface.use_mode == item_interface.ItemUseMode.PLAYER_MOVING
+
+
+func can_pick_up():
+	print("printing in can pick up: ", item_interface)
+	print("with authority: ", multiplayer.get_unique_id())
+	return (item_interface == null)
+
+
+@rpc("authority", "call_local")
+func remove_item():
+	assert( get_children().size() == 1)
+	item_interface = null
+	print("printing in remove_item: ",item_interface)
+	print("with authority: ", multiplayer.get_unique_id())
+	print("++++++++++++++++")
+	get_child(0).queue_free()
+	

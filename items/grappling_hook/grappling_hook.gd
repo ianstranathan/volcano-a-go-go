@@ -74,9 +74,9 @@ func on_item_stopped():
 
 
 # -- client who has authority over this player calls this to everyone
-@rpc("authority", "call_local", "reliable")
-func _sync_destruction():
-	call_deferred("queue_free")
+#@rpc("authority", "call_local", "reliable")
+#func _sync_destruction():
+	#call_deferred("queue_free")
 
 
 # -- visuals can be decoupled from the deterministic tick

@@ -78,7 +78,6 @@ coll_extents = Vector2(200, 50)
 
 [node name="WindGustLift" parent="WorldGeometry" instance=ExtResource("5_j8tme")]
 position = Vector2(-1039, -441)
-base_gust_strength = 3000.0
 
 [node name="SpawnPoints" type="Node2D" parent="."]
 
@@ -112,6 +111,11 @@ _texture = ExtResource("8_l8g03")
 
 [node name="PickupItem4" parent="PickupItems" instance=ExtResource("6_dakft")]
 position = Vector2(349, -87)
+item_lookup = 1
+_texture = ExtResource("8_l8g03")
+
+[node name="PickupItem6" parent="PickupItems" instance=ExtResource("6_dakft")]
+position = Vector2(-469, 1)
 item_lookup = 1
 _texture = ExtResource("8_l8g03")
 
