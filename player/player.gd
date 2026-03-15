@@ -39,8 +39,7 @@ class_name Player
 @export var ledge_climb_duration := 0.6
 var ledge_grab_climb_target_pos
 var ledge_grab_start_pos
-var already_is_ledge_climbing := false
-var ledge_climb_tween: Tween
+var is_ledge_climbing := false
 var ledge_climb_progress := 0.0
 
 @onready var g: float = jump_gravity
@@ -482,8 +481,9 @@ func falling_state_fn(_delta) -> void:
 		# -- we stop gravity and falling velocity, save the climbing pos
 		velocity = Vector2.ZERO
 		g = 0
-		ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
-		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
+		start_ledge_climb()
+		#ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
+		#movement_state_transition_to(MovementStates.LEDGE_GRABBING)
 	
 	if !wall_jump_coyote_timer.is_stopped():
 		check_for_jump()
@@ -520,8 +520,7 @@ func wall_sliding_state_fn(_delta) -> void:
 	elif is_ledge_grabbing():
 		velocity = Vector2.ZERO
 		g = 0
-		ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
-		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
+		start_ledge_climb()
 
 # -- probably move this elsewhere
 func item_moving_state_fn(_delta) -> void:
@@ -542,8 +541,8 @@ func item_moving_state_fn(_delta) -> void:
 		$ItemManager.stop_using_item()
 		velocity = Vector2.ZERO
 		g = 0
-		ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
-		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
+		start_ledge_climb()
+
 	# -- does this allow me to remove fall check in parachute?
 	if $ItemManager.active_movement_override.stops_on_floor() and my_is_on_floor():
 		$ItemManager.stop_using_item()
@@ -554,42 +553,23 @@ func item_moving_state_fn(_delta) -> void:
 
 
 func start_ledge_climb():
-	ledge_grab_start_pos = global_position
-	# -- put into state fn
-	already_is_ledge_climbing = true
-	# -- kill any leftover tween
-	# -- how to flush all tweens on game reset state?
-	if ledge_climb_tween and ledge_climb_tween.is_valid():
-		ledge_climb_tween.kill()
-
-	ledge_climb_tween = create_tween()
-	ledge_climb_tween.set_trans(Tween.TRANS_SINE)
-	ledge_climb_tween.set_ease(Tween.EASE_OUT)
-
-	# -- we're just smoothly moving 0 to 1
-	ledge_climb_tween.tween_property(self, "ledge_climb_progress", 1.0, ledge_climb_duration)
-	ledge_climb_tween.finished.connect( func():
-		#if !ledge_grab_climb_target_pos:
-			#movement_state_transition_to( MovementStates.FALLING)
-		#else:
-			#global_position = ledge_grab_climb_target_pos
+	is_ledge_climbing = false # -- the actual motion hasn't started yet
+	ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
+	if ledge_grab_climb_target_pos:
+		ledge_climb_progress = 0.0
+		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
+	else:
 		movement_state_transition_to( MovementStates.FALLING)
-		reset_ledge_grab_vars()
-		)
-
-func reset_ledge_grab_vars():
-	ledge_climb_progress = 0.0
-	already_is_ledge_climbing = false
-	ledge_grab_start_pos = null
-	ledge_grab_climb_target_pos = null
 
 
 func ledge_grabbing_state_fn(delta) -> void:
 	check_for_jump()
 	assert(ledge_grab_climb_target_pos)
-	if !already_is_ledge_climbing and move_input.y > 0.6:
-		start_ledge_climb() # if OK, starts tween which we're sampling below
-	if ledge_grab_start_pos:
+	if move_input.y > 0.6 and !is_ledge_climbing:
+		is_ledge_climbing = true
+		ledge_grab_start_pos = global_position
+	if is_ledge_climbing:
+		ledge_climb_progress += delta
 		# -- target position is being lerped from @start climbing pos to @ climb target pos
 		# -- the tween is just an easing function [0, 1]
 		var target_pos : Vector2 = ledge_grab_start_pos.lerp(
@@ -598,9 +578,8 @@ func ledge_grabbing_state_fn(delta) -> void:
 		)
 		velocity = (target_pos - global_position) / delta
 		velocity = velocity.clamp( -Vector2(move_speed * move_speed_modifier, move_speed * move_speed_modifier),  Vector2(move_speed * move_speed_modifier, move_speed * move_speed_modifier))
-
-	if move_input.y < -0.6:
-		reset_ledge_grab_vars()
+	
+	if ledge_climb_progress >= 1.0 or move_input.y < -0.6:
 		ledge_grab_buffer_timer.start()
 		movement_state_transition_to( MovementStates.FALLING)
 

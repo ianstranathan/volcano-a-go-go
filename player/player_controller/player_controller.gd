@@ -186,7 +186,7 @@ func reconcile(host_state: PlayerState):
 	var stored_state = reconciliation_state_buffer[index]
 
 	if stored_state.tick != host_state.tick:
-		#print("Reconcile check: Stored: ", stored_state.tick, " Host: ", host_state.tick)
+		print("Reconcile check: Stored: ", stored_state.tick, " Host: ", host_state.tick)
 		return
 		
 	# -- reconciliation tolerances
