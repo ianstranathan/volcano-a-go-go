@@ -32,6 +32,9 @@ var interpolation_buffer_size: int = 20
 # -- 
 var last_confirmed_tick: int = -1
 
+var recent_cmds: Array[PlayerCommand] = []
+var recent_cmd_range := 5 # -- we're sending 5 commands or 105 bytes to host every tick
+
 # -- NOTE
 # -- This requires the spawning logic to give authority to a node before
 # -- that node enters the scene tree
@@ -48,13 +51,18 @@ func _ready() -> void:
 	reconciliation_state_buffer.resize( input_and_state_buffer_size )
 	interpolation_buffer.resize( interpolation_buffer_size )
 	
+	recent_cmds.resize(recent_cmd_range)
 	# -- initialize the circular buffers
 	for i in range(input_and_state_buffer_size):
 		command_history_buffer[i] = PlayerCommand.new()
 		reconciliation_state_buffer[i] = PlayerState.new()
+		
+		# -- size recent cmd buffer
+		if i < recent_cmd_range:
+			recent_cmds[i] = PlayerCommand.new()
 		if i < interpolation_buffer_size:
 			interpolation_buffer[i] = PlayerState.new()
-	
+		
 	# -- 
 	add_child(controller)
 
@@ -105,16 +113,22 @@ func on_tick_generated(tick: int, delta: float):
 
 	# -- no need to rpc if this is the host (host is the truth afterall)
 	if !multiplayer.is_server():
+		for i in range(recent_cmd_range):
+			# -- get last 5 commands from existing command history
+			var check_tick = tick - i
+			if check_tick > 0: # -- obviously we're only going to do this if it's a valid tick
+				var _idx = check_tick % recent_cmd_range
+				recent_cmds[_idx] = command_history_buffer[get_circular_index(check_tick)]
 		#print("Client sending state for: ", current_command.tick)
 		# -- send the command to the host for it to move its remote copies
 		# -- and tell the other players that this player moved
-		NetManager.send_input_to_host.rpc_id(1, current_command.serialize())
+		#NetManager.send_input_to_host.rpc_id(1, current_command.serialize())
+		NetManager.send_input_to_host.rpc_id(1, PlayerCommand.serialize_list_of_commands(recent_cmds))
 
 
-
-var min_offset: float = 6.0    # Best case (100ms)
-var max_offset: float = 15.0   # Worst case (~250ms)
-var current_offset: float = 8.0 # Start in the middle
+var min_offset: float = 6.0    # 100ms
+var max_offset: float = 15.0   # ~250ms
+var current_offset: float = 10.0 
 var shortage_frames: int = 0   # How many frames have we lacked a point_b?
 
 func _process(delta):

@@ -574,7 +574,7 @@ func ledge_grabbing_state_fn(delta) -> void:
 		# -- the tween is just an easing function [0, 1]
 		var target_pos : Vector2 = ledge_grab_start_pos.lerp(
 			ledge_grab_climb_target_pos,
-			ledge_climb_progress
+			ledge_climb_progress * ledge_climb_progress # -- x^2 easing
 		)
 		velocity = (target_pos - global_position) / delta
 		velocity = velocity.clamp( -Vector2(move_speed * move_speed_modifier, move_speed * move_speed_modifier),  Vector2(move_speed * move_speed_modifier, move_speed * move_speed_modifier))

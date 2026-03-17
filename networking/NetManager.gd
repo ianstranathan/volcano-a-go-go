@@ -59,7 +59,9 @@ func _physics_process(delta: float) -> void:
 		current_tick += 1
 		_timer -= TICK_RATE
 		
+		# -- this is the way we're implementing deterministic timers with our tick
 		tick_scheduler.tick(current_tick)
+		
 		for id in player_instances_by_player_id:
 			var _player = player_instances_by_player_id[id]
 			
@@ -176,6 +178,7 @@ func sync_player_state(id: int, byte_arr: PackedByteArray):
 	var host_versions_state = PlayerState.deserialize( byte_arr )
 	#update_tick_speed_multiplier( id, host_versions_state.tick)
 	if !multiplayer.is_server() and !clock_synced:
+	#if id == multiplayer.get_unique_id() and !multiplayer.is_server() and !clock_synced:
 		# Check if the incoming tick is actually valid data
 		if host_versions_state.tick > 0:
 			clock_synced = true
@@ -237,18 +240,33 @@ func host_process_remote_client(id: int, _player: Player):
 		_player.execute_tick(TICK_RATE, fallback_cmd)
 
 
+#@rpc("any_peer", "unreliable")
+#func send_input_to_host(byte_arr: PackedByteArray) -> void:
+	#if not multiplayer.is_server():
+		#return
+	#var sender_id = multiplayer.get_remote_sender_id()
+	#var cmd = PlayerCommand.deserialize(byte_arr)
+	#
+	## -- safety check
+	#if remote_input_buffers.has(sender_id):
+		#var idx = cmd.tick % INPUT_BUFFER_SIZE
+		#remote_input_buffers[sender_id][idx] = cmd
+
 @rpc("any_peer", "unreliable")
 func send_input_to_host(byte_arr: PackedByteArray) -> void:
-	if not multiplayer.is_server():
+	if not multiplayer.is_server(): 
 		return
 	var sender_id = multiplayer.get_remote_sender_id()
-	var cmd = PlayerCommand.deserialize(byte_arr)
-	
-	# -- safety check
-	if remote_input_buffers.has(sender_id):
-		var idx = cmd.tick % INPUT_BUFFER_SIZE
-		remote_input_buffers[sender_id][idx] = cmd
+	var incoming_cmds = PlayerCommand.deserialize_list_of_commands(byte_arr) 
 
+	if remote_input_buffers.has(sender_id):
+		var buffer = remote_input_buffers[sender_id]
+		for cmd in incoming_cmds:
+			var idx = cmd.tick % INPUT_BUFFER_SIZE
+			# -- overwrite if the data is actually newer than what is 
+			# -- currently in that buffer slot.
+			if buffer[idx].tick < cmd.tick:
+				buffer[idx] = cmd
 
 # -- see pickup.gd
 # -- only a remote copy living on the host's machine can trigger the pickup

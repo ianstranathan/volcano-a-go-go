@@ -11,6 +11,7 @@ var carrying_item := false
 var item_use_pressed := false
 var tick := 0
 
+static var size_of_a_command: int = 21
 
 func serialize() -> PackedByteArray:
 	# -- 16 bytes
@@ -60,3 +61,27 @@ static func deserialize(byte_arr: PackedByteArray) -> PlayerCommand:
 	cmd.tick = spb.get_u32()
 	
 	return cmd
+
+
+static func serialize_list_of_commands(commands: Array[PlayerCommand]) -> PackedByteArray:
+	var spb = StreamPeerBuffer.new()
+	# -- num commands
+	spb.put_u8(commands.size())
+	for cmd in commands:
+		spb.put_data(cmd.serialize())
+	return spb.data_array
+
+
+static func deserialize_list_of_commands(byte_arr: PackedByteArray) -> Array[PlayerCommand]:
+	var cmds: Array[PlayerCommand] = []
+	var spb = StreamPeerBuffer.new()
+	spb.data_array = byte_arr
+	var count = spb.get_u8()
+	for i in range(count):
+		# -- 21 byte slices
+		# -- so, first byte is always the num of commands that we need to step over
+		var offset_into_arr = 1 + (i * size_of_a_command)
+		var end_of_byte_arr = 1 + ((i + 1) * size_of_a_command)
+		var sub_arr = byte_arr.slice(offset_into_arr, end_of_byte_arr)
+		cmds.append(PlayerCommand.deserialize(sub_arr))
+	return cmds
