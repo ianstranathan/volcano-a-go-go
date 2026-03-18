@@ -36,7 +36,7 @@ func _ready() -> void:
 # -- NOTE
 # -- this needs to be replaced with something that scales better
 # -- and integrates into deterministic tick
-@rpc("reliable")
+@rpc("any_peer", "reliable")
 func set_target_on_interpolated(pos=null):
 	if !multiplayer.is_server():
 		target_pos = pos

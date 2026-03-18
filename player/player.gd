@@ -418,6 +418,7 @@ var climb_move_override: Callable = (func():
 
 
 func climbing_state_fn(_delta):
+	$ItemManager.stop_using_item()
 	check_for_jump() # -- will change to jump state
 	move( climb_move_override )
 	if !can_climb:
@@ -679,6 +680,7 @@ func can_parachute() -> bool:
 
 
 func can_pick_up_item():
+	print("player checking item can_pick_up: ")
 	return $ItemManager.can_pick_up()
 	
 

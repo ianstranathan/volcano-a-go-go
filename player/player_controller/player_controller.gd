@@ -81,9 +81,7 @@ func update_remote_state(host_state: PlayerState):
 	if incoming_tick <= 0:
 		# -- ignore, chose -1 as intialization value
 		return
-	var _i = incoming_tick % interpolation_buffer_size
-	interpolation_buffer[_i] = host_state
-	#var incoming_tick = host_state.tick
+	interpolation_buffer[incoming_tick % interpolation_buffer_size] = host_state
 
 	# -- Keep track of the tick?
 	if incoming_tick > last_confirmed_tick:
@@ -128,7 +126,7 @@ func on_tick_generated(tick: int, delta: float):
 
 var min_offset: float = 6.0    # 100ms
 var max_offset: float = 15.0   # ~250ms
-var current_offset: float = 10.0 
+var current_offset: float = 6.0 
 var shortage_frames: int = 0   # How many frames have we lacked a point_b?
 
 func _process(delta):
@@ -154,19 +152,23 @@ func _process(delta):
 		#else: # data.tick > render_tick
 			#if point_b == null or data.tick < point_b.tick:
 				#point_b = data
-	
+	 
 	# ----------------------------------------------- OPTIMIZING walking backwards
 	for i in range(interpolation_buffer_size):
 		var check_tick = last_confirmed_tick - i
 		var data = interpolation_buffer[check_tick % interpolation_buffer_size]
 		
+		# -- skipping over missed frames
 		if data == null or data.tick == -1:
 			continue
-
+		
 		if data.tick <= render_tick:
 			point_a = data
 			# Since we are walking backwards, the very first tick <= render_tick 
 			# we find is guaranteed to be the right one
+			#var next_data = interpolation_buffer[(check_tick + 1) % interpolation_buffer_size]
+			#if next_data != null and next_data.tick > render_tick:
+				#point_b = next_data
 			break 
 		else:
 			point_b = data # This was > render_tick, so it's a candidate for point_b
@@ -189,15 +191,13 @@ func _process(delta):
 		player.global_position = point_a.pos
 
 
-
-
 # -- where should we put these consts?
 const POS_TOLERANCE: float = 3.0 # in pixels
 const ROT_TOLERANCE: float = 0.06 # in radians (i.e. about 3.5 degrees)
 
 func reconcile(host_state: PlayerState):
-	var index = get_circular_index(host_state.tick)
-	var stored_state = reconciliation_state_buffer[index]
+	#var index = get_circular_index(host_state.tick)
+	var stored_state = reconciliation_state_buffer[get_circular_index(host_state.tick)]
 
 	if stored_state.tick != host_state.tick:
 		print("Reconcile check: Stored: ", stored_state.tick, " Host: ", host_state.tick)

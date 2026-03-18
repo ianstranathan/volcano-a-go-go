@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://dmm17nhn1wysy" path="res://items/item_components/movement_override_component.gd" id="6_g5xqo"]
 
 [sub_resource type="Resource" id="Resource_g5xqo"]
+resource_local_to_scene = true
 script = ExtResource("2_cj714")
 use_mode = 2
 metadata/_custom_type_script = "uid://du6dcuy4lm2fk"

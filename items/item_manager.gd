@@ -25,8 +25,6 @@ func process_item_tick(delta: float, command: PlayerCommand):
 
 
 func pick_up(item_lookup: ItemsDb.ItemNames):
-	if !can_pick_up():
-		return
 	var item = ItemsDb.get_item_from_lookup(item_lookup).instantiate()
 	item_interface = item.item_interface
 	item_interface.item_depleted.connect( remove_item )
@@ -85,7 +83,8 @@ func get_component(item: Node2D, type_predicate_fn: Callable):
 
 
 func stop_using_item() -> void:
-	item_interface.stop()
+	if is_instance_valid(item_interface):
+		item_interface.stop()
 
 
 func is_spawning_item() -> bool:
@@ -97,17 +96,23 @@ func is_moving_item() -> bool:
 
 
 func can_pick_up():
-	print("printing in can pick up: ", item_interface)
-	print("with authority: ", multiplayer.get_unique_id())
+	#print("can_pick_up:: id: ", multiplayer.get_unique_id(),
+		  #", item_interface=", 
+		  #item_interface, ", ret: ", item_interface == null)
 	return (item_interface == null)
 
 
 @rpc("authority", "call_local")
-func remove_item():
+func remove_item() -> void:
 	assert( get_children().size() == 1)
 	item_interface = null
-	print("printing in remove_item: ",item_interface)
-	print("with authority: ", multiplayer.get_unique_id())
-	print("++++++++++++++++")
+	#print("remove_item:: id: ", multiplayer.get_unique_id(),
+		  #", item_interface=", item_interface)
 	get_child(0).queue_free()
-	
+
+#E 0:00:07:085   item_manager.gd:30 @ pick_up(): Signal 'item_depleted' is already connected to given callable 'Node2D(ItemManager)::remove_item (rpc)' in that object.
+  #<C++ Error>   Method/function failed. Returning: ERR_INVALID_PARAMETER
+  #<C++ Source>  core/object/object.cpp:1538 @ connect()
+  #<Stack Trace> item_manager.gd:30 @ pick_up()
+				#NetManager.gd:274 @ sync_item_pickup()
+				#pickup_item.gd:103 @ <anonymous lambda>()

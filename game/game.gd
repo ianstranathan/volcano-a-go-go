@@ -23,6 +23,10 @@ will only have authority from that peer
 @export var pickup_items_container: Node2D
 @export var spawned_items_container: Node2D
 
+# ------------------------------------------------------------------------------
+# -- NOTE
+# -- Should probably do Game.execut_tick, rather than all the stuff in NetManager
+# ------------------------------------------------------------------------------
 
 func _ready():
 	assert(spawn_points)
@@ -69,6 +73,10 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	# -- it's added to scene tree
 	# -- otherwise the controller logic breaks (remote vs local)
 	NetManager.register_player_instance(peer_id, a_player)
+	
+	# -- 
+	NetManager.lava_ref = $Lava
+	
 	
 	# -- Initialize player stuff: 
 	# -- item_container, multiplayer authority, color, camera

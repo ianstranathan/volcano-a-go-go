@@ -70,9 +70,14 @@ func scale_to_level():
 		-lava_world_y_offset / half_y)
 
 
-func _physics_process(delta: float) -> void:
+func execute_tick(delta):
 	t += delta
 	lava_view.material.set_shader_parameter("t", t)
+
+
+#func _physics_process(delta: float) -> void:
+	#t += delta
+	#lava_view.material.set_shader_parameter("t", t)
 
 
 @onready var half_y: float = level_params.level_dimensions.y / 2.0

@@ -56,7 +56,7 @@ func _ready() -> void:
 		if (area is WindGustLift and 
 			parachute_type == ParachuteTypes.GUSTING and 
 			!$Area2D/CollisionShape2D.disabled):
-			player_ref.velocity.y *= 0.05
+			player_ref.velocity.y *= 0.1
 			parachute_type = ParachuteTypes.PARACHUTING)
 
 

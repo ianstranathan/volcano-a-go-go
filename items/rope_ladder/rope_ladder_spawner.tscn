@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://1yqyqa8jm5k" path="res://items/raycast_item_component.tscn" id="4_ywkm6"]
 
 [sub_resource type="Resource" id="Resource_xkx28"]
+resource_local_to_scene = true
 script = ExtResource("3_ywkm6")
 use_mode = 1
 metadata/_custom_type_script = "uid://du6dcuy4lm2fk"

@@ -15,6 +15,9 @@ const INPUT_BUFFER_SIZE = 60 # Store 1 second of inputs
 # id : Array[PlayerCommand]
 var remote_input_buffers := {}
 
+# ---------------------------------------------------------- other stuff to tick
+var lava_ref: Node2D
+
 # ----------------------------------------------------------------- ticking vars
 var current_tick: int = 0     # -- each machines tick number for state reconcile
 var _timer: float = 0.0       # -- just counting up delta for tick increment
@@ -22,9 +25,17 @@ const TICK_RATE := 1.0 / 60.0 # -- tick rate have to be deterministic
 var fract_tick: float = 0.0   # -- decimal remainder of the tick
 var update_remote_modulo : int = 2 # -- e.g. 60hz -> 30hz
 var clock_synced := false
-const ideal_tick_lead := 5
-var tick_speed_multiplier := 1.0
+const ideal_tick_lead := 10
 
+# -------------------------------------------------------------- tick multiplier
+const min_num_future_commands := 2
+const max_num_future_commands := 15
+# -- for normalizing t in  time_multiplier()
+const future_command_range = float(max_num_future_commands - min_num_future_commands)
+var curr_num_future_commands := 8
+
+
+# -----------------------------------------------------------------
 var tick_scheduler := TickScheduler.new()
 # -----------------------------------------------------------------
 var local_player_name: String = "Unknown Player"
@@ -54,7 +65,7 @@ func _physics_process(delta: float) -> void:
 	# -- @Alex, this looks like it's doing a thing and then undoing
 	# -- but we need to account for CPU fluxuations, and can't depend on the
 	# -- implied 60hz, it has to be deterministic
-	_timer += delta
+	_timer += delta # * tick_multiplier()
 	while _timer >= TICK_RATE:
 		current_tick += 1
 		_timer -= TICK_RATE
@@ -62,6 +73,9 @@ func _physics_process(delta: float) -> void:
 		# -- this is the way we're implementing deterministic timers with our tick
 		tick_scheduler.tick(current_tick)
 		
+		if lava_ref:
+			lava_ref.execute_tick(TICK_RATE)
+			
 		for id in player_instances_by_player_id:
 			var _player = player_instances_by_player_id[id]
 			
@@ -183,7 +197,7 @@ func sync_player_state(id: int, byte_arr: PackedByteArray):
 		if host_versions_state.tick > 0:
 			clock_synced = true
 			# -- small buffer so packets arrive in time.
-			current_tick = host_versions_state.tick + 5.0
+			current_tick = host_versions_state.tick + ideal_tick_lead
 			return
 	
 	var _player = player_instances_by_player_id.get(id)
@@ -201,24 +215,22 @@ func sync_player_state(id: int, byte_arr: PackedByteArray):
 			_player.player_controller.update_remote_state( host_versions_state )
 
 
-#func update_tick_speed_multiplier( id: int, host_state_tick: int ):
-	#if id == multiplayer.get_unique_id() and !multiplayer.is_server():
-		#var diff = current_tick - host_state_tick
-		## If we are vastly out of sync (more than 1 sec), just snap
-		#if abs(diff) > 60:
-			#current_tick = host_state_tick + ideal_tick_lead
-			#tick_speed_multiplier = 1.0
-		#else:
-			## If we are too far ahead, slow down slightly (95% speed)
-			#if diff > ideal_tick_lead + 2:
-				#tick_speed_multiplier = 0.95
-			## If we are falling behind, speed up slightly (105% speed)
-			#elif diff < ideal_tick_lead - 2:
-				#tick_speed_multiplier = 1.05
-			#else:
-				#tick_speed_multiplier = 1.0
+func tick_multiplier() -> float:
+	# curr_num_future_commands is mutated in host_process_remote_client
+	var n = clamp(curr_num_future_commands, min_num_future_commands, max_num_future_commands)
+	var t = float( max_num_future_commands - n ) / future_command_range
+	# -- so, t is 0 when curr_num_future_commands == max_num_future_commands
+	# -- and 1 when curr_num_future_commands == min_num_future_commands
+	# -- so it's actually backwards:
+	#2 is too few (Slow down the simulation of this player (95% speed) to let more packets arrive),
+	#15 is too many (Speed up (105%) to catch up to the player's real-time position.
+	return lerp(1.05, 0.95, t)
+
+
 # ------------------------------------------------------------------------------
 
+# -- the client has to live in the "future" because of round trip time / jitter etc
+# -- the host needs a way of getting data and then calling them at the approritate tick
 func host_process_remote_client(id: int, _player: Player):
 	if not remote_input_buffers.has(id):
 		setup_remote_buffer(id)
@@ -229,6 +241,7 @@ func host_process_remote_client(id: int, _player: Player):
 		return
 
 	var idx = current_tick % INPUT_BUFFER_SIZE
+	curr_num_future_commands = INPUT_BUFFER_SIZE - idx
 	var cmd = buffer[idx]
 	
 	if cmd.tick == current_tick:
@@ -270,11 +283,11 @@ func send_input_to_host(byte_arr: PackedByteArray) -> void:
 
 # -- see pickup.gd
 # -- only a remote copy living on the host's machine can trigger the pickup
-@rpc("authority", "reliable")
+@rpc("authority", "call_local", "reliable")
 func sync_item_pickup(a_world_id:int, a_peer_id: int, item_lookup_enum: ItemsDb.ItemNames):
 	# -- we want to tell the other players that this pickup exists
 	Events.item_picked_up.emit( a_world_id ) # -- what used to be a callback to delete the pickup
 	var _player = player_instances_by_player_id[ a_peer_id ]
 	if _player:
-		#print(multiplayer.get_unique_id())
+		#print("Picking up from id: ", multiplayer.get_unique_id())
 		_player.get_node("ItemManager").pick_up(item_lookup_enum)
