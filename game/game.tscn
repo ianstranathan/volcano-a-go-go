@@ -1,19 +1,28 @@
-[gd_scene load_steps=9 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=16 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
 [ext_resource type="PackedScene" uid="uid://boqw66q2xy4sh" path="res://camera/camera.tscn" id="2_vasa2"]
-[ext_resource type="Script" uid="uid://b6pvhklc66hme" path="res://game/world_items.gd" id="5_dxrkv"]
-[ext_resource type="PackedScene" uid="uid://csxlguu7f4gt6" path="res://items/pickup_item/pickup_item.tscn" id="6_dakft"]
+[ext_resource type="Script" uid="uid://b6pvhklc66hme" path="res://game/pickup_items_container.gd" id="5_dxrkv"]
+[ext_resource type="PackedScene" uid="uid://camohv0etu6x2" path="res://wind/wind_gust_lift/wind_gust_lift.tscn" id="5_j8tme"]
+[ext_resource type="PackedScene" uid="uid://cj0wl1cex0hqf" path="res://movement_areas/slowing_zone/slowing_zone.tscn" id="6_b686c"]
+[ext_resource type="PackedScene" uid="uid://csxlguu7f4gt6" path="res://items/pickup_item/pickup_item.tscn" id="7_3vho3"]
 [ext_resource type="PackedScene" uid="uid://4d5kvc0vxnc1" path="res://placeholders/palceholder_platform/placeholder_platform.tscn" id="7_u5opy"]
-[ext_resource type="Texture2D" uid="uid://c4oflmcqxtgy3" path="res://assets/grapple.svg" id="7_y36n6"]
+[ext_resource type="Texture2D" uid="uid://c4oflmcqxtgy3" path="res://assets/grapple.svg" id="8_qf6n1"]
 [ext_resource type="Script" uid="uid://dae2c8i45te8f" path="res://game/world_effects.gd" id="8_y36n6"]
+[ext_resource type="Texture2D" uid="uid://s7qk4ylbme1f" path="res://assets/parachute.svg" id="9_qf6n1"]
+[ext_resource type="Texture2D" uid="uid://5bw8tr2frxw4" path="res://assets/rope-coil.svg" id="10_vsp63"]
+[ext_resource type="Script" uid="uid://c1o22ooao6lq" path="res://game/spawned_items.gd" id="11_3vho3"]
+[ext_resource type="PackedScene" uid="uid://cpjyffnbewh41" path="res://networking/networking_stats_overlay/networking_stats_overlay.tscn" id="13_vsp63"]
+[ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "pickup_items_container", "spawned_items_container")]
 script = ExtResource("1_dxrkv")
 player_scene = ExtResource("2_4fuuu")
 players_container = NodePath("PlayersContainer")
 spawn_points = NodePath("SpawnPoints")
+pickup_items_container = NodePath("PickupItems")
+spawned_items_container = NodePath("SpawnedItems")
 metadata/_edit_group_ = true
 
 [node name="PlayersContainer" type="Node2D" parent="."]
@@ -70,6 +79,13 @@ coll_extents = Vector2(300, 50)
 position = Vector2(-336, -968)
 coll_extents = Vector2(200, 50)
 
+[node name="WindGustLift" parent="WorldGeometry" instance=ExtResource("5_j8tme")]
+position = Vector2(-1039, -441)
+
+[node name="SlowingZone" parent="WorldGeometry" instance=ExtResource("6_b686c")]
+position = Vector2(1044, 0)
+psuedo_scale = 4.0
+
 [node name="SpawnPoints" type="Node2D" parent="."]
 
 [node name="Marker2D" type="Marker2D" parent="SpawnPoints"]
@@ -83,13 +99,39 @@ position = Vector2(176, -195)
 [node name="Marker2D4" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(-286, 0)
 
-[node name="WorldItems" type="Node2D" parent="."]
+[node name="PickupItems" type="Node2D" parent="."]
 script = ExtResource("5_dxrkv")
 
-[node name="PickupItem" parent="WorldItems" instance=ExtResource("6_dakft")]
-position = Vector2(-564, -153)
-_texture = ExtResource("7_y36n6")
+[node name="PickupItem" parent="PickupItems" instance=ExtResource("7_3vho3")]
+position = Vector2(-429, 0)
+_texture = ExtResource("8_qf6n1")
+
+[node name="PickupItem2" parent="PickupItems" instance=ExtResource("7_3vho3")]
+position = Vector2(376, -68)
+item_lookup = 1
+_texture = ExtResource("9_qf6n1")
+
+[node name="PickupItem3" parent="PickupItems" instance=ExtResource("7_3vho3")]
+position = Vector2(180, -212)
+item_lookup = 2
+_texture = ExtResource("10_vsp63")
+type = 1
+
+[node name="PickupItem4" parent="PickupItems" instance=ExtResource("7_3vho3")]
+position = Vector2(188, 0)
+item_lookup = 2
+_texture = ExtResource("10_vsp63")
+type = 1
 
 [node name="WorldEffects" type="Node2D" parent="." node_paths=PackedStringArray("players_container")]
 script = ExtResource("8_y36n6")
 players_container = NodePath("../PlayersContainer")
+
+[node name="SpawnedItems" type="Node2D" parent="."]
+script = ExtResource("11_3vho3")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="NetworkingStatsOverlay" parent="CanvasLayer" instance=ExtResource("13_vsp63")]
+
+[node name="Lava" parent="." instance=ExtResource("15_hb504")]

@@ -41,6 +41,7 @@ void fragment()
 
     // Push rim to silhouette
     float rimMask = smoothstep(0.6, 1.0, r2);
+	rimMask += 0.5 * sin(4. * TIME);
     fresnel *= rimMask;
 
     // ---------- Fake refraction ----------

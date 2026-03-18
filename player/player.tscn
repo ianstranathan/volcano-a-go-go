@@ -129,32 +129,6 @@ script = ExtResource("8_rgyib")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ClimbingInterface"]
 shape = SubResource("CapsuleShape2D_ugqs2")
 
-[node name="BufferTimersContainer" type="Node2D" parent="."]
-
-[node name="JumpBufferTimer" type="Timer" parent="BufferTimersContainer"]
-process_callback = 0
-wait_time = 0.15
-one_shot = true
-
-[node name="CoyoteTimeTimer" type="Timer" parent="BufferTimersContainer"]
-process_callback = 0
-wait_time = 0.15
-one_shot = true
-
-[node name="WallJumpCoyoteTimeTimer" type="Timer" parent="BufferTimersContainer"]
-process_callback = 0
-wait_time = 0.25
-one_shot = true
-
-[node name="LedgeGrabBufferTimer" type="Timer" parent="BufferTimersContainer"]
-process_callback = 0
-wait_time = 0.3
-one_shot = true
-
-[node name="SideSomersaultTimer" type="Timer" parent="BufferTimersContainer"]
-wait_time = 0.2
-one_shot = true
-
 [node name="PlayerController" type="Node2D" parent="."]
 script = ExtResource("7_rgyib")
 metadata/_custom_type_script = "uid://cyisxpb4cr1db"

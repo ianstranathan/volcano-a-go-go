@@ -13,14 +13,8 @@ signal item_ray_target_position_changed( pos: Vector2 )
 signal targeting_item_removed
 signal targeting_item_added
 
-var input_manager: LocalPlayerController
 @export var player_ref: Player
 
-
-# -- called from player
-#func use_item(used_item_pressed: bool):
-	#if used_item_pressed and is_instance_valid(item_interface):
-		#item_interface.use( )
 
 # -- called from player
 # -- this allows an item to have a process loop with the
@@ -31,24 +25,22 @@ func process_item_tick(delta: float, command: PlayerCommand):
 
 
 func pick_up(item_lookup: ItemsDb.ItemNames):
-	if item_interface:
-		item_interface.destroy()
-
 	var item = ItemsDb.get_item_from_lookup(item_lookup).instantiate()
 	item_interface = item.item_interface
+	item_interface.item_depleted.connect( remove_item )
 	# -- set authority to this peer id
 	var owner_id = get_parent().name.to_int()
 	item.set_multiplayer_authority( owner_id )
-	item.player_ref = player_ref 
-
+	#item.player_ref = player_ref 
+	if item.has_method("set_player_ref"):
+		item.set_player_ref(player_ref)
+		
 	if owner_id == multiplayer.get_unique_id():
-		item.input_manager = input_manager
-		# -- ray signaling and everything just happens locally
 		connect_local_signals(item)
 	else:
 		connect_remote_signals(item)
 
-	add_child(item)
+	call_deferred("add_child", item)
 
 
 func connect_remote_signals(item):
@@ -91,7 +83,8 @@ func get_component(item: Node2D, type_predicate_fn: Callable):
 
 
 func stop_using_item() -> void:
-	item_interface.stop()
+	if is_instance_valid(item_interface):
+		item_interface.stop()
 
 
 func is_spawning_item() -> bool:
@@ -100,3 +93,26 @@ func is_spawning_item() -> bool:
 
 func is_moving_item() -> bool:
 	return item_interface.use_mode == item_interface.ItemUseMode.PLAYER_MOVING
+
+
+func can_pick_up():
+	#print("can_pick_up:: id: ", multiplayer.get_unique_id(),
+		  #", item_interface=", 
+		  #item_interface, ", ret: ", item_interface == null)
+	return (item_interface == null)
+
+
+@rpc("authority", "call_local")
+func remove_item() -> void:
+	assert( get_children().size() == 1)
+	item_interface = null
+	#print("remove_item:: id: ", multiplayer.get_unique_id(),
+		  #", item_interface=", item_interface)
+	get_child(0).queue_free()
+
+#E 0:00:07:085   item_manager.gd:30 @ pick_up(): Signal 'item_depleted' is already connected to given callable 'Node2D(ItemManager)::remove_item (rpc)' in that object.
+  #<C++ Error>   Method/function failed. Returning: ERR_INVALID_PARAMETER
+  #<C++ Source>  core/object/object.cpp:1538 @ connect()
+  #<Stack Trace> item_manager.gd:30 @ pick_up()
+				#NetManager.gd:274 @ sync_item_pickup()
+				#pickup_item.gd:103 @ <anonymous lambda>()

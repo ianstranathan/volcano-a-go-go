@@ -39,8 +39,7 @@ class_name Player
 @export var ledge_climb_duration := 0.6
 var ledge_grab_climb_target_pos
 var ledge_grab_start_pos
-var already_is_ledge_climbing := false
-var ledge_climb_tween: Tween
+var is_ledge_climbing := false
 var ledge_climb_progress := 0.0
 
 @onready var g: float = jump_gravity
@@ -62,12 +61,20 @@ var last_wall_normal: Vector2 = Vector2.ZERO
 
 # -------------------------------------------------- Buffer Timers
 # -- wait times are set in inspector
-@onready var coyote_timer: Timer = $BufferTimersContainer/CoyoteTimeTimer
-@onready var jump_buffer_timer: Timer = $BufferTimersContainer/JumpBufferTimer
-@onready var wall_jump_coyote_timer: Timer = $BufferTimersContainer/WallJumpCoyoteTimeTimer
-@onready var ledge_grab_buffer_timer: Timer = $BufferTimersContainer/LedgeGrabBufferTimer
-@onready var side_somersault_timer: Timer = $BufferTimersContainer/SideSomersaultTimer
-#@onready var disable_horizontal_movement_timer: Timer = $BufferTimersContainer/LedgeGrabBufferTimer
+#@onready var coyote_timer: Timer = $BufferTimersContainer/CoyoteTimeTimer
+#@onready var jump_buffer_timer: Timer = $BufferTimersContainer/JumpBufferTimer
+#@onready var wall_jump_coyote_timer: Timer = $BufferTimersContainer/WallJumpCoyoteTimeTimer
+#@onready var ledge_grab_buffer_timer: Timer = $BufferTimersContainer/LedgeGrabBufferTimer
+#@onready var side_somersault_timer: Timer = $BufferTimersContainer/SideSomersaultTimer
+
+var coyote_timer: TickTimer            = TickTimer.new(0.15)
+var jump_buffer_timer: TickTimer       = TickTimer.new(0.15)
+var wall_jump_coyote_timer: TickTimer  = TickTimer.new(0.25)
+var ledge_grab_buffer_timer: TickTimer = TickTimer.new(0.30)
+var side_somersault_timer: TickTimer   = TickTimer.new(0.25)
+
+
+
 ## The number of frames where you can't move horizontally after wall jump 
 var manual_wall_jump_frame_counter: int = 0
 @export var num_frame_you_cant_move_after_wall_jump = 6.0
@@ -134,7 +141,6 @@ func _ready() -> void:
 		input_manager = $PlayerController.get_child(0)
 		assert($PlayerController.get_children().size() == 1)
 		assert(input_manager is LocalPlayerController)
-		$ItemManager.input_manager = input_manager
 		var aiming_visual  = load("res://player/aiming_visual/aiming_visual.tscn").instantiate()
 		add_child(aiming_visual)
 		# -------------------------------------------- this controls aiming line
@@ -261,45 +267,6 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 			velocity.y = 0
 
 	last_move_input = move_input
-
-
-#func _physics_process(delta: float) -> void:
-	#if !last_move_input:
-		#last_move_input = move_input
-	#
-	## -- climbing check
-	#if should_start_climbing():
-		#start_climbing()
-	#
-	## -- manual wall jumping frame management:
-	#if manual_wall_jump_frame_counter > 0:
-		#manual_wall_jump_frame_counter -= 1
-	#
-	## -- call the movement state function matching the movement_state variable
-	#call(MovementStates.keys()[movement_state].to_lower() + "_state_fn", delta)
-	#
-	#
-	##tmp_burn_handle() # TODO # -- temporary burn visual feedback
-	#
-	#if current_platform: # -- account for relative velocities
-		#move_and_collide(current_platform.get_velocity() * delta)
-	#
-	## -- velocity verlet update
-	#global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * g))
-	#
-	#if velocity.y < TERMINAL_FALL_SPEED:
-		#velocity.y += get_g() * delta
-#
-	#var collision = move_and_collide(Vector2.ZERO)
-	#
-	#if collision:
-		## -- projection of ground normal is mostly vertical
-		#is_on_ground = collision.get_normal().dot(Vector2.UP) > 0.7
-		#if is_on_ground:
-			#current_platform_check( collision )
-			#velocity.y = 0
-#
-	#last_move_input = move_input
 
 
 func current_platform_check(coll: KinematicCollision2D):
@@ -445,11 +412,13 @@ func start_climbing() -> void:
 	movement_state_transition_to(MovementStates.CLIMBING)
 
 
-var climb_move_override: Callable = (func(): 
-	velocity = velocity.move_toward(move_input * climb_speed * move_speed_modifier, MOV_ACCL))
+var climb_move_override: Callable = (func():
+	var _inverted_y_move_input = Vector2(move_input.x, -move_input.y)
+	velocity = velocity.move_toward(_inverted_y_move_input * climb_speed * move_speed_modifier, MOV_ACCL))
 
 
 func climbing_state_fn(_delta):
+	$ItemManager.stop_using_item()
 	check_for_jump() # -- will change to jump state
 	move( climb_move_override )
 	if !can_climb:
@@ -513,8 +482,9 @@ func falling_state_fn(_delta) -> void:
 		# -- we stop gravity and falling velocity, save the climbing pos
 		velocity = Vector2.ZERO
 		g = 0
-		ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
-		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
+		start_ledge_climb()
+		#ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
+		#movement_state_transition_to(MovementStates.LEDGE_GRABBING)
 	
 	if !wall_jump_coyote_timer.is_stopped():
 		check_for_jump()
@@ -551,13 +521,16 @@ func wall_sliding_state_fn(_delta) -> void:
 	elif is_ledge_grabbing():
 		velocity = Vector2.ZERO
 		g = 0
-		ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
-		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
+		start_ledge_climb()
 
 # -- probably move this elsewhere
 func item_moving_state_fn(_delta) -> void:
 	if $ItemManager.active_movement_override.allows_horizontal_movement():
-		move()
+		if !move_input.is_zero_approx():
+			velocity.x = move_toward(velocity.x, move_input.x * move_speed * move_speed_modifier, MOV_ACCL / 3.0)
+		else:
+			velocity.x = move_toward(velocity.x, 0.0, DECL / 12.0)
+
 	if $ItemManager.active_movement_override.allows_jump() and !jump_buffer_timer.is_stopped():
 			$ItemManager.stop_using_item()
 			velocity.y += jump_speed * jump_speed_modifier
@@ -569,8 +542,8 @@ func item_moving_state_fn(_delta) -> void:
 		$ItemManager.stop_using_item()
 		velocity = Vector2.ZERO
 		g = 0
-		ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
-		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
+		start_ledge_climb()
+
 	# -- does this allow me to remove fall check in parachute?
 	if $ItemManager.active_movement_override.stops_on_floor() and my_is_on_floor():
 		$ItemManager.stop_using_item()
@@ -581,53 +554,33 @@ func item_moving_state_fn(_delta) -> void:
 
 
 func start_ledge_climb():
-	ledge_grab_start_pos = global_position
-	# -- put into state fn
-	already_is_ledge_climbing = true
-	# -- kill any leftover tween
-	# -- how to flush all tweens on game reset state?
-	if ledge_climb_tween and ledge_climb_tween.is_valid():
-		ledge_climb_tween.kill()
-
-	ledge_climb_tween = create_tween()
-	ledge_climb_tween.set_trans(Tween.TRANS_SINE)
-	ledge_climb_tween.set_ease(Tween.EASE_OUT)
-
-	# -- we're just smoothly moving 0 to 1
-	ledge_climb_tween.tween_property(self, "ledge_climb_progress", 1.0, ledge_climb_duration)
-	ledge_climb_tween.finished.connect( func():
-		#if !ledge_grab_climb_target_pos:
-			#movement_state_transition_to( MovementStates.FALLING)
-		#else:
-			#global_position = ledge_grab_climb_target_pos
+	is_ledge_climbing = false # -- the actual motion hasn't started yet
+	ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
+	if ledge_grab_climb_target_pos:
+		ledge_climb_progress = 0.0
+		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
+	else:
 		movement_state_transition_to( MovementStates.FALLING)
-		reset_ledge_grab_vars()
-		)
-
-func reset_ledge_grab_vars():
-	ledge_climb_progress = 0.0
-	already_is_ledge_climbing = false
-	ledge_grab_start_pos = null
-	ledge_grab_climb_target_pos = null
 
 
 func ledge_grabbing_state_fn(delta) -> void:
 	check_for_jump()
 	assert(ledge_grab_climb_target_pos)
-	if !already_is_ledge_climbing and move_input.y > 0.6:
-		start_ledge_climb() # if OK, starts tween which we're sampling below
-	if ledge_grab_start_pos:
+	if move_input.y > 0.6 and !is_ledge_climbing:
+		is_ledge_climbing = true
+		ledge_grab_start_pos = global_position
+	if is_ledge_climbing:
+		ledge_climb_progress += delta
 		# -- target position is being lerped from @start climbing pos to @ climb target pos
 		# -- the tween is just an easing function [0, 1]
 		var target_pos : Vector2 = ledge_grab_start_pos.lerp(
 			ledge_grab_climb_target_pos,
-			ledge_climb_progress
+			ledge_climb_progress * ledge_climb_progress # -- x^2 easing
 		)
 		velocity = (target_pos - global_position) / delta
 		velocity = velocity.clamp( -Vector2(move_speed * move_speed_modifier, move_speed * move_speed_modifier),  Vector2(move_speed * move_speed_modifier, move_speed * move_speed_modifier))
-
-	if move_input.y < -0.6:
-		reset_ledge_grab_vars()
+	
+	if ledge_climb_progress >= 1.0 or move_input.y < -0.6:
 		ledge_grab_buffer_timer.start()
 		movement_state_transition_to( MovementStates.FALLING)
 
@@ -669,6 +622,14 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						Effects.EffectNames.LANDING_SMOKE, 
 						global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
 						false)
+			#MovementStates.WALL_SLIDING:
+				#match new_movement_state:
+					#MovementStates.JUMPING:
+						#Events.world_effect.emit(
+							#name.to_int(), 
+							#Effects.EffectNames.WALL_JUMP, 
+							#global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
+							#true if last_wall_normal.x < 0 else false)
 		# ----------------------------------
 		set_debug_label( new_movement_state )
 		movement_state = new_movement_state
@@ -717,6 +678,11 @@ func get_g() -> float:
 func can_parachute() -> bool:
 	return (movement_state == MovementStates.FALLING or movement_state == MovementStates.JUMPING)
 
+
+func can_pick_up_item():
+	print("player checking item can_pick_up: ")
+	return $ItemManager.can_pick_up()
+	
 
 # ------------------------------------------------------------------------------
 func apply_command( c: PlayerCommand):

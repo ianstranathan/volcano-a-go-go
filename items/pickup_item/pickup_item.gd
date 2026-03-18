@@ -98,6 +98,7 @@ func _ready() -> void:
 				return
 			# -- only the host's local version of the client
 			# -- can interact with a pickup
-			if body is Player:
+			if body is Player and body.can_pick_up_item():
+				$Area2D.set_deferred("monitoring", false)
 				NetManager.sync_item_pickup.rpc( world_id, body.name.to_int(), item_lookup )
 		)

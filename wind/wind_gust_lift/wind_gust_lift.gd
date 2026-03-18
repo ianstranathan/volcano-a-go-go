@@ -3,11 +3,7 @@ extends Area2D
 
 class_name WindGustLift
 
-# TODO
-# there should probably be variable stregnths of gust
-# naturally, these should be visually reflected and passed via item manager
-@export var base_gust_strength: float = 3000
-@export var strength_curve: Curve
+
 @export var coll_extents: Vector2 = Vector2(50, 50):
 	set(value):
 		coll_extents = value
@@ -17,10 +13,6 @@ class_name WindGustLift
 
 @export var coll_shape: CollisionShape2D
 @export var sprite: Sprite2D
-
-
-func get_wind_strength( t: float):
-	return strength_curve.sample(t) * base_gust_strength
 
 
 func _update_collision_shape():

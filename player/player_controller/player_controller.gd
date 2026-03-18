@@ -32,6 +32,9 @@ var interpolation_buffer_size: int = 20
 # -- 
 var last_confirmed_tick: int = -1
 
+var recent_cmds: Array[PlayerCommand] = []
+var recent_cmd_range := 5 # -- we're sending 5 commands or 105 bytes to host every tick
+
 # -- NOTE
 # -- This requires the spawning logic to give authority to a node before
 # -- that node enters the scene tree
@@ -48,13 +51,18 @@ func _ready() -> void:
 	reconciliation_state_buffer.resize( input_and_state_buffer_size )
 	interpolation_buffer.resize( interpolation_buffer_size )
 	
+	recent_cmds.resize(recent_cmd_range)
 	# -- initialize the circular buffers
 	for i in range(input_and_state_buffer_size):
 		command_history_buffer[i] = PlayerCommand.new()
 		reconciliation_state_buffer[i] = PlayerState.new()
+		
+		# -- size recent cmd buffer
+		if i < recent_cmd_range:
+			recent_cmds[i] = PlayerCommand.new()
 		if i < interpolation_buffer_size:
 			interpolation_buffer[i] = PlayerState.new()
-	
+		
 	# -- 
 	add_child(controller)
 
@@ -73,9 +81,7 @@ func update_remote_state(host_state: PlayerState):
 	if incoming_tick <= 0:
 		# -- ignore, chose -1 as intialization value
 		return
-	var _i = incoming_tick % interpolation_buffer_size
-	interpolation_buffer[_i] = host_state
-	#var incoming_tick = host_state.tick
+	interpolation_buffer[incoming_tick % interpolation_buffer_size] = host_state
 
 	# -- Keep track of the tick?
 	if incoming_tick > last_confirmed_tick:
@@ -92,7 +98,6 @@ func on_tick_generated(tick: int, delta: float):
 	# -- this is being called from NetManager, so no need to make a function call
 	# -- or accessor back to NetManager
 	var _index = get_circular_index(tick)
-
 	# -- save command and state
 	var current_command = command_history_buffer[_index]
 	current_command.tick = tick                       # -- timestamp the command
@@ -106,16 +111,22 @@ func on_tick_generated(tick: int, delta: float):
 
 	# -- no need to rpc if this is the host (host is the truth afterall)
 	if !multiplayer.is_server():
+		for i in range(recent_cmd_range):
+			# -- get last 5 commands from existing command history
+			var check_tick = tick - i
+			if check_tick > 0: # -- obviously we're only going to do this if it's a valid tick
+				var _idx = check_tick % recent_cmd_range
+				recent_cmds[_idx] = command_history_buffer[get_circular_index(check_tick)]
 		#print("Client sending state for: ", current_command.tick)
 		# -- send the command to the host for it to move its remote copies
 		# -- and tell the other players that this player moved
-		NetManager.send_input_to_host.rpc_id(1, current_command.serialize())
+		#NetManager.send_input_to_host.rpc_id(1, current_command.serialize())
+		NetManager.send_input_to_host.rpc_id(1, PlayerCommand.serialize_list_of_commands(recent_cmds))
 
 
-
-var min_offset: float = 6.0    # Best case (100ms)
-var max_offset: float = 15.0   # Worst case (~250ms)
-var current_offset: float = 8.0 # Start in the middle
+var min_offset: float = 6.0    # 100ms
+var max_offset: float = 15.0   # ~250ms
+var current_offset: float = 6.0 
 var shortage_frames: int = 0   # How many frames have we lacked a point_b?
 
 func _process(delta):
@@ -141,19 +152,23 @@ func _process(delta):
 		#else: # data.tick > render_tick
 			#if point_b == null or data.tick < point_b.tick:
 				#point_b = data
-	
+	 
 	# ----------------------------------------------- OPTIMIZING walking backwards
 	for i in range(interpolation_buffer_size):
 		var check_tick = last_confirmed_tick - i
 		var data = interpolation_buffer[check_tick % interpolation_buffer_size]
 		
+		# -- skipping over missed frames
 		if data == null or data.tick == -1:
 			continue
-
+		
 		if data.tick <= render_tick:
 			point_a = data
 			# Since we are walking backwards, the very first tick <= render_tick 
 			# we find is guaranteed to be the right one
+			#var next_data = interpolation_buffer[(check_tick + 1) % interpolation_buffer_size]
+			#if next_data != null and next_data.tick > render_tick:
+				#point_b = next_data
 			break 
 		else:
 			point_b = data # This was > render_tick, so it's a candidate for point_b
@@ -176,15 +191,13 @@ func _process(delta):
 		player.global_position = point_a.pos
 
 
-
-
 # -- where should we put these consts?
 const POS_TOLERANCE: float = 3.0 # in pixels
 const ROT_TOLERANCE: float = 0.06 # in radians (i.e. about 3.5 degrees)
 
 func reconcile(host_state: PlayerState):
-	var index = get_circular_index(host_state.tick)
-	var stored_state = reconciliation_state_buffer[index]
+	#var index = get_circular_index(host_state.tick)
+	var stored_state = reconciliation_state_buffer[get_circular_index(host_state.tick)]
 
 	if stored_state.tick != host_state.tick:
 		print("Reconcile check: Stored: ", stored_state.tick, " Host: ", host_state.tick)
@@ -200,7 +213,7 @@ func reconcile(host_state: PlayerState):
 	)
 	
 	if needs_reconciled:
-		print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
+		#print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
 		# -- player back to the host's authoritative state
 		player.global_position = host_state.pos
 		player.rotation = host_state.rot
@@ -231,6 +244,5 @@ func _unhandled_input(event: InputEvent):
 	if !multiplayer.is_server():
 		if event is InputEventKey and event.pressed:
 			if event.keycode == KEY_K:
-				# Shift 50px locally (THEFT!)
 				player.global_position.x += 50.0
 				print("MANUAL DESYNC CREATED")

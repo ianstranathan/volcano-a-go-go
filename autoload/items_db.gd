@@ -2,17 +2,22 @@
 extends Node
 
 # ItemDatabase.gd (Autoload)
+
 enum ItemNames{
 	GRAPPLING_HOOK,
 	PARACHUTE,
-	ROPE
+	ROPE,
+	ROPE_LADDER
 }
+
 
 var items = {
 	ItemNames.GRAPPLING_HOOK: preload("res://items/grappling_hook/grappling_hook.tscn"),
 	ItemNames.PARACHUTE:      preload("res://items/parachute/parachute.tscn"),
 	ItemNames.ROPE:           preload("res://items/rope_ladder/rope_ladder_spawner.tscn"),
+	ItemNames.ROPE_LADDER:    preload("res://items/rope_ladder/rope_ladder.tscn")
 }
+
 
 var item_pickup_textures = {
 	ItemNames.GRAPPLING_HOOK: preload("res://assets/grapple.svg"),

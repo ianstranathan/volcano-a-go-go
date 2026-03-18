@@ -3,12 +3,13 @@ extends Node2D
 var target: Vector2
 var rope_length: float
 
+
+# -- TODO 
 # -- do a little shader animation
-# -- TODO put this on a component
+# -- 1. put this on a component
 var climbing_data = {"slippery": false}
 
 func _ready() -> void:
-
 	assert( target ) # -- must have a target from spawner
 	$Line2D.set_point_position(1, to_local(target))
 	
@@ -19,4 +20,3 @@ func _ready() -> void:
 	$Area2D/CollisionShape2D.shape = shape
 	$Area2D/CollisionShape2D.shape.size = Vector2(1.3 * $Line2D.width, floor(abs(line_height)))
 	$Area2D/CollisionShape2D.position.y = line_height / 2.
-	
