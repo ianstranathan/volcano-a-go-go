@@ -30,6 +30,7 @@ var interpolation_buffer: Array[PlayerState] = []
 var interpolation_buffer_size: int = 20
 
 # -- 
+var last_command_executed: PlayerCommand = PlayerCommand.new()
 var last_confirmed_tick: int = -1
 
 var recent_cmds: Array[PlayerCommand] = []
@@ -98,23 +99,21 @@ func on_tick_generated(tick: int, delta: float):
 	# -- this is being called from NetManager, so no need to make a function call
 	# -- or accessor back to NetManager
 	var _index = get_circular_index(tick)
-	# -- save command and state
+	# ----------------------------------------------------- record cmd and state
 	var current_command = command_history_buffer[_index]
 	current_command.tick = tick                       # -- timestamp the command
 	controller.update_command(current_command, delta) # -- update the command
 
-	# -- save current state before applying it (slice of command and associated state)
+	player.execute_tick(delta, current_command) # -- client prediction
+	last_command_executed = current_command
 	reconciliation_state_buffer[_index].set_state( player, tick )
-
-	# -- immediately move the local player, i.e. prediction
-	player.execute_tick(delta, current_command)
 
 	# -- no need to rpc if this is the host (host is the truth afterall)
 	if !multiplayer.is_server():
 		for i in range(recent_cmd_range):
 			# -- get last 5 commands from existing command history
-			var check_tick = tick - i
-			if check_tick > 0: # -- obviously we're only going to do this if it's a valid tick
+			var check_tick = tick - i # i is zero we're at tick, i is -5, we're 5 cmds back
+			if check_tick > 0: # -- only do this if it's a valid tick
 				var _idx = check_tick % recent_cmd_range
 				recent_cmds[_idx] = command_history_buffer[get_circular_index(check_tick)]
 		#print("Client sending state for: ", current_command.tick)
@@ -213,36 +212,26 @@ func reconcile(host_state: PlayerState):
 	)
 	
 	if needs_reconciled:
-		#print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
-		# -- player back to the host's authoritative state
+		print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
 		player.global_position = host_state.pos
 		player.rotation = host_state.rot
 		player.velocity = host_state.vel
 		player.movement_state = host_state.movement_state
+		#var host_idx = get_circular_index(host_state.tick)
+		stored_state.set_state(player, host_state.tick)
 		
-		
-		# -- re-run every input from the confirmed tick + 1 
-		# all the way up to our current "future" tick.
+		# -- re-run every input from the next command after
+		# -- diverged tick in the past from the host
+		# -- all the way up to present
 		var replay_tick = host_state.tick + 1
 		
 		while replay_tick <= NetManager.current_tick:
 			var r_idx = get_circular_index(replay_tick)
 			var cmd = command_history_buffer[r_idx]
 			
-			# Re-simulate the physics for this tick
-			# We pass a 'true' flag if you want to skip sounds/GFX during replay
+			# -- add a flag so sounds and other stuff don't play while reconciling
 			player.execute_tick(NetManager.TICK_RATE, cmd)
-			
-			# UPDATE the buffer with the new, corrected prediction
+			# -- correct this record
 			reconciliation_state_buffer[r_idx].set_state(player, replay_tick)
 			#print("reconciling")
 			replay_tick += 1
-
-
-# --------------------------------------------------- Testing reconcile
-func _unhandled_input(event: InputEvent):
-	if !multiplayer.is_server():
-		if event is InputEventKey and event.pressed:
-			if event.keycode == KEY_K:
-				player.global_position.x += 50.0
-				print("MANUAL DESYNC CREATED")

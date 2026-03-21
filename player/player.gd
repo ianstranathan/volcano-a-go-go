@@ -85,10 +85,14 @@ var is_on_ground := true # -- our "truth" about being on the ground (e.g. slight
 
 #@export var lava_ref: Node2D
 
-# ---------------------------------------------------- multiplayer specific var
+# ----------------------------------------------------- multiplayer specific var
 var input_manager: LocalPlayerController
 @onready var player_controller = $PlayerController
 # ----------------------------------------------------
+
+
+# --------------------------------------------------- state sprite effects stuff
+var last_tocuhing_surface_state: MovementStates
 
 enum MovementStates
 {
@@ -113,7 +117,6 @@ enum MovementStates
 var color: Color = Color(1., 1., 1., 1.);
 
 func _ready() -> void:
-	
 	#---------------------------------------------------------------------------
 	$Sprite2D.material.set_shader_parameter("src_col", color)
 	$Sprite2D.material.set_shader_parameter("dummy_burn_timer", 5.0)
@@ -202,11 +205,11 @@ func do_jump(jump_type):
 			velocity = Vector2(-last_wall_normal.x * (jump_speed / 1.6),
 								(jump_speed / 1.5))
 			velocity *= jump_speed_modifier
-			Events.world_effect.emit(
-							name.to_int(), 
-							Effects.EffectNames.WALL_JUMP, 
-							global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
-							true if last_wall_normal.x < 0 else false)
+			#Events.world_effect.emit(
+							#name.to_int(), 
+							#Effects.EffectNames.WALL_JUMP, 
+							#global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
+							#true if last_wall_normal.x < 0 else false)
 			
 	movement_state_transition_to(MovementStates.JUMPING)
 
@@ -246,32 +249,41 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	call(MovementStates.keys()[movement_state].to_lower() + "_state_fn", delta)
 	
 	
-	#tmp_burn_handle() # TODO # -- temporary burn visual feedback
-	
-	if current_platform: # -- account for relative velocities
-		move_and_collide(current_platform.get_velocity() * delta)
+	#tmp_burn_handle() # TODO # -- temporary burn visual feedbac	
 	
 	# -- velocity verlet update
-	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * g))
+	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
 	
 	if velocity.y < TERMINAL_FALL_SPEED:
 		velocity.y += get_g() * delta
 
 	var collision = move_and_collide(Vector2.ZERO)
 	
+	#if current_platform: # -- account for relative velocities
+		#print("we're in here")
+		#velocity += current_platform.get_velocity() * delta
+		#move_and_collide(current_platform.get_velocity() * delta)
+	
+	#if collision:
+		## -- projection of ground normal is mostly vertical
+		#is_on_ground = collision.get_normal().dot(Vector2.UP) > 0.7
+		#if is_on_ground:
+			#current_platform_check( collision )
+			#velocity.y = 0
 	if collision:
-		# -- projection of ground normal is mostly vertical
-		is_on_ground = collision.get_normal().dot(Vector2.UP) > 0.7
+		var normal = collision.get_normal()
+		is_on_ground = normal.dot(Vector2.UP) > 0.7
 		if is_on_ground:
 			current_platform_check( collision )
-			velocity.y = 0
+			if velocity.y > 0:
+				velocity.y = 0
 
 	last_move_input = move_input
 
-
+# -- TODO
 func current_platform_check(coll: KinematicCollision2D):
 	var collider = coll.get_collider()
-	if collider is MoveablePlatform:
+	if collider and collider.is_in_group("lava-bodies"):
 		current_platform = collider
 
 
@@ -616,21 +628,30 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						play_landing_effect = true
 					MovementStates.WALL_SLIDING:
 						velocity = velocity.clamp(Vector2(0., 50), Vector2(0., 150))
+					MovementStates.JUMPING:
+						if last_tocuhing_surface_state == MovementStates.WALL_SLIDING:
+							Events.world_effect.emit(
+									name.to_int(), 
+									Effects.EffectNames.WALL_JUMP, 
+									global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
+									true if last_wall_normal.x < 0 else false)
 				if play_landing_effect:
 					Events.world_effect.emit(
 						name.to_int(), 
 						Effects.EffectNames.LANDING_SMOKE, 
 						global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
 						false)
-			#MovementStates.WALL_SLIDING:
-				#match new_movement_state:
-					#MovementStates.JUMPING:
-						#Events.world_effect.emit(
-							#name.to_int(), 
-							#Effects.EffectNames.WALL_JUMP, 
-							#global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
-							#true if last_wall_normal.x < 0 else false)
+			MovementStates.WALL_SLIDING:
+				match new_movement_state:
+					MovementStates.JUMPING:
+						Events.world_effect.emit(
+							name.to_int(), 
+							Effects.EffectNames.WALL_JUMP, 
+							global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
+							true if last_wall_normal.x < 0 else false)
 		# ----------------------------------
+		if new_movement_state in [MovementStates.IDLE, MovementStates.WALKING, MovementStates.WALL_SLIDING]:
+			last_tocuhing_surface_state = new_movement_state
 		set_debug_label( new_movement_state )
 		movement_state = new_movement_state
 

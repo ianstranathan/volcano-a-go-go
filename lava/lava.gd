@@ -1,5 +1,6 @@
 extends Node2D
 
+class_name TheLava
 # -- this should just be a thin interface between CPU and GPU
 # -- 1
 # --   it has a analytic function (a sinusoid) that it manages

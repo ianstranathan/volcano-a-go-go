@@ -16,7 +16,7 @@ const INPUT_BUFFER_SIZE = 120 # Store 1 second of inputs
 var remote_input_buffers := {}
 
 # ---------------------------------------------------------- other stuff to tick
-var lava_ref: Node2D
+var game_world: Node2D
 
 # ----------------------------------------------------------------- ticking vars
 var current_tick: int = 0     # -- each machines tick number for state reconcile
@@ -25,7 +25,7 @@ const TICK_RATE := 1.0 / 60.0 # -- tick rate have to be deterministic
 var fract_tick: float = 0.0   # -- decimal remainder of the tick
 var update_remote_modulo : int = 2 # -- e.g. 60hz -> 30hz
 var clock_synced := false
-const ideal_tick_lead := 10
+const ideal_tick_lead := 12
 
 # -------------------------------------------------------------- tick multiplier
 const min_num_future_commands := 2
@@ -37,6 +37,7 @@ var curr_num_future_commands := 8
 
 # -----------------------------------------------------------------
 var tick_scheduler := TickScheduler.new()
+
 # -----------------------------------------------------------------
 var local_player_name: String = "Unknown Player"
 const KEY_NAME = "name"
@@ -46,6 +47,11 @@ const KEY_COLOR = "color"
 
 # ---------------------------------------------------------- Debug UI
 var last_host_tick: int = 0
+var average_offset: float = ideal_tick_lead
+var tick_error: int = 0
+const OFFSET_LERP_WEIGHT := 0.05
+const MAX_CLOCK_ADJUST := 0.02
+
 
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
@@ -65,7 +71,7 @@ func _physics_process(delta: float) -> void:
 	# -- @Alex, this looks like it's doing a thing and then undoing
 	# -- but we need to account for CPU fluxuations, and can't depend on the
 	# -- implied 60hz, it has to be deterministic
-	_timer += delta # * tick_multiplier()
+	_timer += delta * tick_multiplier()
 	while _timer >= TICK_RATE:
 		current_tick += 1
 		_timer -= TICK_RATE
@@ -73,8 +79,9 @@ func _physics_process(delta: float) -> void:
 		# -- this is the way we're implementing deterministic timers with our tick
 		tick_scheduler.tick(current_tick)
 		
-		if lava_ref:
-			lava_ref.execute_tick(TICK_RATE)
+		# -- this needs to go in game.execute_tick
+		if game_world:
+			game_world.execute_tick(TICK_RATE)
 			
 		for id in player_instances_by_player_id:
 			var _player = player_instances_by_player_id[id]
@@ -187,6 +194,13 @@ func unregister_player(peer_id: int) -> void:
 # -- this is coming out at like 20-30hz
 # -- this gives us a snapshot of the host's truth
 # -- and we either reconcile or we interpolate
+# -- ~~~~~~~~~
+# -- Additionally, since we have a tick from host (host_versions_state.tick)
+# -- we can measure a tick difference and slow or speed up accordingly
+# -- current_tick - host_tick > ideal_lead ==> we're drifting into the future
+# -- ==> we need to slow down
+# -- current_tick - host_tick < ideal_lead ==> we need to speed up
+
 @rpc("authority", "unreliable") 
 func sync_player_state(id: int, byte_arr: PackedByteArray):
 	var host_versions_state = PlayerState.deserialize( byte_arr )
@@ -196,35 +210,60 @@ func sync_player_state(id: int, byte_arr: PackedByteArray):
 		# Check if the incoming tick is actually valid data
 		if host_versions_state.tick > 0:
 			clock_synced = true
-			# -- small buffer so packets arrive in time.
-			current_tick = host_versions_state.tick + ideal_tick_lead
+			average_offset = ideal_tick_lead
+			last_host_tick = host_versions_state.tick
+			current_tick = host_versions_state.tick + ideal_tick_lead # -- RTT buffer
 			return
-	
+	# ------------------------------------------ tracking tick offset per client
+	if !multiplayer.is_server() and id == multiplayer.get_unique_id():
+		# -- moving average
+		last_host_tick = host_versions_state.tick
+		var current_offset = current_tick - host_versions_state.tick
+		average_offset = lerp(average_offset, float(current_offset), OFFSET_LERP_WEIGHT)
+
+	# ----------------------------------------- interpolation and reconciliation
 	var _player = player_instances_by_player_id.get(id)
 	if !_player:
 		return
 	else:
 		if id == multiplayer.get_unique_id():
-			#print("Host version's tick: ", host_versions_state.tick)
 			_player.player_controller.reconcile( host_versions_state )               
 		else:
-			#print("Host version's tick: ", host_versions_state.tick)
-			# -- interpolation
 			# -- we just tell the client to save this state, the interpolation
 			# -- happens on the local machine
 			_player.player_controller.update_remote_state( host_versions_state )
 
-
+# -- Why discrete steps instead of a continuous lerp or something:
+# -- Discrete steps act as a low-pass filter. They ignore the "vibration" of the network and only
+# -- react when there is a sustained, significant trend of drifting too far away
 func tick_multiplier() -> float:
-	# curr_num_future_commands is mutated in host_process_remote_client
-	var n = clamp(curr_num_future_commands, min_num_future_commands, max_num_future_commands)
-	var t = float( max_num_future_commands - n ) / future_command_range
-	# -- so, t is 0 when curr_num_future_commands == max_num_future_commands
-	# -- and 1 when curr_num_future_commands == min_num_future_commands
-	# -- so it's actually backwards:
-	#2 is too few (Slow down the simulation of this player (95% speed) to let more packets arrive),
-	#15 is too many (Speed up (105%) to catch up to the player's real-time position.
-	return lerp(1.05, 0.95, t)
+	if multiplayer.is_server() or !clock_synced:
+		return 1.0
+	tick_error = average_offset - ideal_tick_lead
+	# -- dead zone
+	if abs(tick_error) < 0.5:
+		return 1.0
+	# -- average_offset is lerping toward current_offset
+	# -- from above:
+	# var current_offset = current_tick - host_versions_state.tick
+	# average_offset = lerp(average_offset, float(current_offset), OFFSET_LERP_WEIGHT)
+	
+	var adjustment = clamp(tick_error * 0.01, -MAX_CLOCK_ADJUST, MAX_CLOCK_ADJUST)
+	# -- 1. - adjust => account for sign
+	# -- tick_error < 0 => that we're less than ideal tick lead and need to speed up
+	# -- tick_error > 0 => that we're greater than ideal tick lead and need to slow down
+	return 1.0 - adjustment
+
+#func tick_multiplier() -> float:
+	## curr_num_future_commands is mutated in host_process_remote_client
+	#var n = clamp(curr_num_future_commands, min_num_future_commands, max_num_future_commands)
+	#var t = float( max_num_future_commands - n ) / future_command_range
+	## -- so, t is 0 when curr_num_future_commands == max_num_future_commands
+	## -- and 1 when curr_num_future_commands == min_num_future_commands
+	## -- so it's actually backwards:
+	##2 is too few (Slow down the simulation of this player (95% speed) to let more packets arrive),
+	##15 is too many (Speed up (105%) to catch up to the player's real-time position.
+	#return lerp(1.05, 0.95, t)
 
 
 # ------------------------------------------------------------------------------
@@ -241,16 +280,16 @@ func host_process_remote_client(id: int, _player: Player):
 		return
 
 	var idx = current_tick % INPUT_BUFFER_SIZE
-	curr_num_future_commands = INPUT_BUFFER_SIZE - idx
 	var cmd = buffer[idx]
 	
-	if cmd.tick == current_tick:
-		_player.player_controller.reconciliation_state_buffer[idx].set_state(_player, current_tick)
+	if cmd.tick == current_tick: # -- reconciliation
 		_player.execute_tick(TICK_RATE, cmd)
-	else:
-		print("reconciliation fallback used")
-		var fallback_cmd = PlayerCommand.new() 
-		_player.execute_tick(TICK_RATE, fallback_cmd)
+		_player.player_controller.reconciliation_state_buffer[idx].set_state(_player, current_tick)
+	else: # -- extraploation
+		_player.execute_tick(TICK_RATE, _player.player_controller.last_command_executed)
+		
+		#_player.player_controller.reconciliation_state_buffer[idx].set_state(_player, current_tick)
+		
 
 
 #@rpc("any_peer", "unreliable")
