@@ -21,7 +21,7 @@ state variables agree to within a certain margin)
 var controller: Node2D
 
 # -- so we're keeping 60 ticks, or 1 second a 60hz physics sim
-var input_and_state_buffer_size: int = 60
+var input_and_state_buffer_size: int = 120
 var command_history_buffer: Array[PlayerCommand] = []
 var reconciliation_state_buffer: Array[PlayerState] = []
 

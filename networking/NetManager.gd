@@ -11,7 +11,7 @@ signal player_info_updated(id: int, player_name: String, spawn_index: int)
 # -----------------------------------------------------------------
 var player_instances_by_player_id  := {}
 var player_data := {} 
-const INPUT_BUFFER_SIZE = 60 # Store 1 second of inputs
+const INPUT_BUFFER_SIZE = 120 # Store 1 second of inputs
 # id : Array[PlayerCommand]
 var remote_input_buffers := {}
 
