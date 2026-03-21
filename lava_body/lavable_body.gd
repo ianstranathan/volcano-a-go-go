@@ -21,7 +21,7 @@ var is_in_lava: bool = false
 @onready var lava_level_offset = $CollisionShape2D.shape.size.y / 2.
 
 
-func _physics_process(delta: float) -> void:
+func execute_tick(delta: float) -> void:
 	super(delta)
 	if is_in_lava:
 		var y = lava_ref.lava_fn( global_position.x) - lava_level_offset

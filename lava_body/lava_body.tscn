@@ -12,8 +12,9 @@ resource_local_to_scene = true
 shader = ExtResource("2_yn4me")
 shader_parameter/source_col = Color(0.49411765, 0.7921569, 0.85490197, 1)
 
-[node name="AnimatableBody2D" type="AnimatableBody2D"]
+[node name="LavaBody" type="AnimatableBody2D"]
 script = ExtResource("1_dg4h2")
+lava_dist_threshold = null
 is_falling = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

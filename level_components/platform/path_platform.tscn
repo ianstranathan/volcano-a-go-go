@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="1_5d5mg"]
 [ext_resource type="Script" uid="uid://bj7wwlg5cnxnt" path="res://level_components/platform/path_platform.gd" id="1_plfat"]
-[ext_resource type="Script" uid="uid://db32ny6nchbwn" path="res://platforms/moveable_platform.gd" id="2_wptnq"]
+[ext_resource type="Script" uid="uid://db32ny6nchbwn" path="res://delete_buffer/moveable_platform.gd" id="2_wptnq"]
 
 [sub_resource type="Curve2D" id="Curve2D_imf0a"]
 _data = {
