@@ -14,7 +14,6 @@ Authority is per node not per peer/ machine
 So, a player assigned to a peer id:
 	a_player.set_multiplayer_authority(id)
 will only have authority from that peer
-
 """
 
 @export var player_scene: PackedScene
@@ -23,9 +22,8 @@ will only have authority from that peer
 @export var pickup_items_container: Node2D
 @export var spawned_items_container: Node2D
 
-# ------------------------------------------------------------------------------
-# -- NOTE
-# -- Should probably do Game.execut_tick, rather than all the stuff in NetManager
+	
+#var tickables : Array = []
 # ------------------------------------------------------------------------------
 
 func _ready():
@@ -45,6 +43,16 @@ func _ready():
 	for id in NetManager.player_data:
 		var d = NetManager.player_data[id]
 		spawn_player(id, d[NetManager.KEY_NAME], d[NetManager.KEY_INDEX])
+	
+	NetManager.game_world = self
+	
+	# --------------- TEST
+	$WorldGeometry/FallingPlatform.lava_ref = $WorldGeometry/Lava
+	
+func execute_tick( delta: float ):
+	for child in $WorldGeometry.get_children():
+		if child.has_method("execute_tick"):
+			child.execute_tick( delta )
 
 
 func _on_player_info_received(peer_id: int, _name: String, spawn_index: int):
@@ -73,9 +81,6 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	# -- it's added to scene tree
 	# -- otherwise the controller logic breaks (remote vs local)
 	NetManager.register_player_instance(peer_id, a_player)
-	
-	# -- 
-	NetManager.lava_ref = $Lava
 	
 	
 	# -- Initialize player stuff: 
