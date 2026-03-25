@@ -32,6 +32,7 @@ NetManager="*res://networking/NetManager.gd"
 
 window/size/initial_position_type=3
 window/size/resizable=false
+window/stretch/mode="canvas_items"
 
 [input]
 

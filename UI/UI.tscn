@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://btg4x06vjsk5q"]
+[gd_scene load_steps=3 format=3 uid="uid://btg4x06vjsk5q"]
 
 [ext_resource type="Script" uid="uid://ctyi08d6b1xq2" path="res://UI/UI.gd" id="1_6dd3c"]
+[ext_resource type="PackedScene" uid="uid://ceborxxuc334h" path="res://UI/HotBar/hotbar_ui.tscn" id="2_dhe1o"]
 
 [node name="Ui" type="Control"]
 layout_mode = 3
@@ -11,16 +12,73 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_6dd3c")
 
-[node name="PanelContainer" type="PanelContainer" parent="."]
+[node name="HudMargin" type="MarginContainer" parent="."]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -25.5
-offset_right = 25.5
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
-[node name="Label" type="Label" parent="PanelContainer"]
+[node name="HudLayout" type="VBoxContainer" parent="HudMargin"]
 layout_mode = 2
-text = "HELLO"
+
+[node name="TopArea" type="HBoxContainer" parent="HudMargin/HudLayout"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="TopLeft" type="VBoxContainer" parent="HudMargin/HudLayout/TopArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="TopCenter" type="VBoxContainer" parent="HudMargin/HudLayout/TopArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TopRight" type="VBoxContainer" parent="HudMargin/HudLayout/TopArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="MiddleArea" type="HBoxContainer" parent="HudMargin/HudLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MidLeft" type="VBoxContainer" parent="HudMargin/HudLayout/MiddleArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="MidCenter" type="VBoxContainer" parent="HudMargin/HudLayout/MiddleArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MidRight" type="VBoxContainer" parent="HudMargin/HudLayout/MiddleArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="BottomArea" type="HBoxContainer" parent="HudMargin/HudLayout"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+
+[node name="BottomLeft" type="VBoxContainer" parent="HudMargin/HudLayout/BottomArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="BottomCenter" type="VBoxContainer" parent="HudMargin/HudLayout/BottomArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CenterContainer" type="CenterContainer" parent="HudMargin/HudLayout/BottomArea/BottomCenter"]
+layout_mode = 2
+
+[node name="HotbarUi" parent="HudMargin/HudLayout/BottomArea/BottomCenter/CenterContainer" instance=ExtResource("2_dhe1o")]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="BottomRight" type="VBoxContainer" parent="HudMargin/HudLayout/BottomArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
