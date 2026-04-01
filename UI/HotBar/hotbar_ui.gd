@@ -9,9 +9,9 @@ class_name HotbarUi
 @onready var special_slot: HotbarSlot = $HotBarWindow/SpecialSlot
 
 func _ready() -> void:
-	set_hotbar_display([], -1, null)
+	set_inventory_display([], -1, null)
 
-func set_hotbar_display(standard_items: Array, selected_index: int, special_item) -> void:
+func set_inventory_display(standard_items: Array, selected_index: int, special_item) -> void:
 	for i in range(standard_slots.size()):
 		var icon: Texture2D = null
 

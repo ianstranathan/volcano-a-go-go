@@ -6,6 +6,13 @@ var item_interface: ItemInterface
 var active_movement_override: MovementOverrideComponent
 var items_container
 
+#Iventory Variables
+const INV_SIZE := 5;
+var inventory_items: Array = []
+var selected_slot_index: int = 0
+var special_item = null
+
+signal inventory_changed(standard_items: Array, selected_index: int, special_item)
 signal item_moving_started()
 signal item_moving_stopped()
 signal item_targeted_something( pos_or_null )
@@ -15,7 +22,9 @@ signal targeting_item_added
 
 @export var player_ref: Player
 
-
+func _ready():
+	inventory_items.resize(INV_SIZE)
+	
 # -- called from player
 # -- this allows an item to have a process loop with the
 # -- networking tick rate ( delta time )
@@ -24,13 +33,41 @@ func process_item_tick(delta: float, command: PlayerCommand):
 		item_interface.tick_update(delta, command)
 
 
-func pick_up(item_lookup: ItemsDb.ItemNames):
+func pick_up(item_lookup: ItemsDb.ItemNames) -> void:
+	#try to add to inventory
+	var stored_slot := store_picked_up_item(item_lookup)
+	#if inventory was full dont pick up item
+	if stored_slot == -1:
+		return
+	#if we already have an item equip dont auto equip
+	if item_interface != null:
+		return
+	#select and equip item if empty handed
+	selected_slot_index = stored_slot
+	equip_item()
+	emit_inventory_changed()
+	
+func equip_item() -> void:
+	#unequip currently equipped item if there is one
+	if item_interface != null and get_child_count() > 0:
+		item_interface = null
+		get_child(0).queue_free()
+		
+	#equipped selected item
+	var item_lookup = inventory_items[selected_slot_index]
+	
+	#needed to select an empty slot
+	if item_lookup == null:
+		return
+
 	var item = ItemsDb.get_item_from_lookup(item_lookup).instantiate()
 	item_interface = item.item_interface
-	item_interface.item_depleted.connect( remove_item )
+
+	if not item_interface.item_depleted.is_connected(remove_item):
+		item_interface.item_depleted.connect(remove_item)
 	# -- set authority to this peer id
 	var owner_id = get_parent().name.to_int()
-	item.set_multiplayer_authority( owner_id )
+	item.set_multiplayer_authority(owner_id)
 	#item.player_ref = player_ref 
 	if item.has_method("set_player_ref"):
 		item.set_player_ref(player_ref)
@@ -39,10 +76,31 @@ func pick_up(item_lookup: ItemsDb.ItemNames):
 		connect_local_signals(item)
 	else:
 		connect_remote_signals(item)
+		
+	call_deferred("add_child", item)	
+	
+func store_picked_up_item(item_lookup: ItemsDb.ItemNames) -> int:
+	for i in range(inventory_items.size()):
+		if inventory_items[i] != null:
+			continue
 
-	call_deferred("add_child", item)
+		inventory_items[i] = item_lookup
+		emit_inventory_changed()
+		return i
 
+	return -1
+	
+func select_inventory_slot(slot_index: int) -> void:
+	if slot_index < 0 or slot_index >= inventory_items.size():
+		return
 
+	if selected_slot_index == slot_index:
+		return
+
+	selected_slot_index = slot_index
+	equip_item()
+	emit_inventory_changed()	
+	
 func connect_remote_signals(item):
 	connect_signals_based_on_component(item, ["movement_override"])
 
@@ -96,11 +154,11 @@ func is_moving_item() -> bool:
 
 
 func can_pick_up():
-	#print("can_pick_up:: id: ", multiplayer.get_unique_id(),
-		  #", item_interface=", 
-		  #item_interface, ", ret: ", item_interface == null)
-	return (item_interface == null)
+	return inventory_items.has(null) #can pick up if any slots are null
 
+func emit_inventory_changed() -> void:
+	inventory_changed.emit(inventory_items.duplicate(), selected_slot_index, special_item)
+	
 
 @rpc("authority", "call_local")
 func remove_item() -> void:
@@ -109,6 +167,10 @@ func remove_item() -> void:
 	#print("remove_item:: id: ", multiplayer.get_unique_id(),
 		  #", item_interface=", item_interface)
 	get_child(0).queue_free()
+	
+	#we probably want to refactor this. this assumed the selected item is the one that is depleted
+	inventory_items[selected_slot_index] = null
+	emit_inventory_changed()
 
 #E 0:00:07:085   item_manager.gd:30 @ pick_up(): Signal 'item_depleted' is already connected to given callable 'Node2D(ItemManager)::remove_item (rpc)' in that object.
   #<C++ Error>   Method/function failed. Returning: ERR_INVALID_PARAMETER

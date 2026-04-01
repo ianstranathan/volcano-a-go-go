@@ -3,6 +3,7 @@ class_name LocalPlayerController
 
 signal input_source_type_changed
 signal aim_input_detected
+signal inventory_slot_selected(slot_index: int)
  
 var pending_command := PlayerCommand.new()
 
@@ -26,6 +27,8 @@ func update_command(player_command_ref: PlayerCommand, _delta):
 
 
 func _input(event: InputEvent) -> void:
+	
+	inventory_slot_input(event)
 	# -------------------------------------- change controller types
 	if (current_input_source == InputSourceType.CONTROLLER and
 		(event is InputEventKey or event is InputEventMouse)):
@@ -115,3 +118,12 @@ func is_using_keyboard_and_mouse() -> bool:
 
 func is_using_controller() -> bool:
 	return current_input_source == InputSourceType.CONTROLLER
+
+func inventory_slot_input(event: InputEvent) -> void:
+	if not event.is_pressed() or event.is_echo():
+		return
+
+	for i in range(5):
+		if event.is_action_pressed("inventory_slot_" + str(i + 1)): #ai's way of avoiding nested if statement/ switch - fragile
+			inventory_slot_selected.emit(i)
+			return

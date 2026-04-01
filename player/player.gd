@@ -155,7 +155,7 @@ func _ready() -> void:
 			aiming_visual.stop_aiming( ))
 		$ItemManager.targeting_item_added.connect( func():
 			aiming_visual.start_aiming( ))
-
+		input_manager.inventory_slot_selected.connect(_on_inventory_slot_selected)
 	coyote_timer.timeout.connect( coyote_time_resolution)
 
 
@@ -683,7 +683,8 @@ func can_pick_up_item():
 	print("player checking item can_pick_up: ")
 	return $ItemManager.can_pick_up()
 	
-
+func _on_inventory_slot_selected(slot_index: int) -> void:
+	$ItemManager.select_inventory_slot(slot_index)
 # ------------------------------------------------------------------------------
 func apply_command( c: PlayerCommand):
 	move_input = c.move_input
