@@ -1,0 +1,36 @@
+[gd_scene load_steps=5 format=3 uid="uid://c04hhdbm4x1"]
+
+[ext_resource type="Script" uid="uid://c4mgpvuhf3eqy" path="res://UI/track_ui_minimap/track_ui_minimap.gd" id="1_3x0di"]
+[ext_resource type="Texture2D" uid="uid://blfgm3idfq4a3" path="res://assets/volcano_icon_4.png" id="1_41wdq"]
+[ext_resource type="Shader" uid="uid://bwflqyjtlvbgi" path="res://UI/track_ui_minimap/track_ui_minimap.gdshader" id="1_oq6jo"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_3x0di"]
+shader = ExtResource("1_oq6jo")
+shader_parameter/positions = PackedVector2Array(0, 1100, 1900, 200, 0, 1000, 0, 400)
+shader_parameter/player_cols = PackedVector3Array(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0)
+shader_parameter/level_dims = Vector2(4000, 3000)
+
+[node name="TrackUiMinimap" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3x0di")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_3x0di")
+custom_minimum_size = Vector2(256, 256)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -128.0
+offset_top = -128.0
+grow_horizontal = 0
+grow_vertical = 0
+texture = ExtResource("1_41wdq")
+expand_mode = 1

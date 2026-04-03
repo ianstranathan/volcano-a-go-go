@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c3y337vualo4a"
-path="res://.godot/imported/UI_volcano_outline.png-d2866100e859876fc89e0f5f03cb8a2c.ctex"
+uid="uid://8ki878wdrhab"
+path="res://.godot/imported/UI_volcano_white.png-384e2ad7da0e9d16b2c7925d1af9af18.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://UI/UI_volcano_outline.png"
-dest_files=["res://.godot/imported/UI_volcano_outline.png-d2866100e859876fc89e0f5f03cb8a2c.ctex"]
+source_file="res://assets/UI_volcano_white.png"
+dest_files=["res://.godot/imported/UI_volcano_white.png-384e2ad7da0e9d16b2c7925d1af9af18.ctex"]
 
 [params]
 

@@ -22,7 +22,11 @@ will only have authority from that peer
 @export var pickup_items_container: Node2D
 @export var spawned_items_container: Node2D
 
-	
+
+var player_data_dict:Dictionary = {} # -- id to player_data
+
+# -- TODO
+
 #var tickables : Array = []
 # ------------------------------------------------------------------------------
 
@@ -46,6 +50,9 @@ func _ready():
 	
 	NetManager.game_world = self
 	
+	# ------------------------------------------------------- UI hookups
+	$CanvasLayer/LeaderIconBar.game_ref = self
+	
 	# --------------- TEST
 	$WorldGeometry/FallingPlatform.lava_ref = $WorldGeometry/Lava
 	
@@ -53,7 +60,9 @@ func execute_tick( delta: float ):
 	for child in $WorldGeometry.get_children():
 		if child.has_method("execute_tick"):
 			child.execute_tick( delta )
-
+	
+	# -- replace this with UI.execute_tick
+	$CanvasLayer/LeaderIconBar.execute_tick( delta )
 
 func _on_player_info_received(peer_id: int, _name: String, spawn_index: int):
 	spawn_player(peer_id, _name, spawn_index)
@@ -87,7 +96,21 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	# -- item_container, multiplayer authority, color, camera
 	a_player.set_multiplayer_authority(peer_id)
 	
-	a_player.color = rand_player_color( peer_id )
+	# --------------------------------------------- replace player color with UI
+	var _col = rand_player_color( peer_id )
+	a_player.color = _col
+	
+	# --------------------------------------------- set up data struct for UI
+	var a_player_data = PlayerData.new()
+	#a_player_data.is_local_player = a_player.is_multiplayer_authority()
+	a_player_data.id = peer_id
+	a_player_data.display_name = _name
+	a_player_data.turban_color = _col
+	
+	a_player_data.skin_tone = rand_skin_tone( peer_id )
+	player_data_dict[peer_id] = a_player_data
+	
+	# ---------------------------------------------
 	a_player.items_container = spawned_items_container
 	if peer_id == multiplayer.get_unique_id():
 		$Camera.target_initialize(a_player)
@@ -96,11 +119,33 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	# -- we need the players to spawn before running this
 	$WorldEffects.initialize_recurring_player_vfx()
 
-var rng = RandomNumberGenerator.new()
+
+# ------------------------------------------------------------------------ Utils
+
+
+func get_placement():
+	"""
+	used in UI to decide relative heights of players
+	"""
+	var ret = $PlayersContainer.get_children()
+	ret.sort_custom( func(a: Player, b: Player):
+		if abs(a.global_position.y - b.global_position.y) < 1:
+			# Use ID as a tie-breaker so the order stays fixed
+			return int(a.name) < int(b.name) 
+		return (a.global_position.y < b.global_position.y))
+	return ret.map( func(c): return int( c.name ))
+
+
+@onready var rng = RandomNumberGenerator.new()
 
 func rand_player_color( seed_val: int) -> Color:
-	rng.seed = seed_val
+	rng.seed = seed_val + 100
 	var r = rng.randf()
 	var g = rng.randf()
 	var b = rng.randf()
 	return Color(r, g, b)
+
+
+func rand_skin_tone( seed_val: int) -> int:
+	rng.seed = seed_val
+	return rng.randi_range(0, 4)

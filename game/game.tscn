@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=17 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -13,7 +13,9 @@
 [ext_resource type="Texture2D" uid="uid://s7qk4ylbme1f" path="res://assets/parachute.svg" id="9_qf6n1"]
 [ext_resource type="Script" uid="uid://c1o22ooao6lq" path="res://game/spawned_items.gd" id="11_3vho3"]
 [ext_resource type="PackedScene" uid="uid://cpjyffnbewh41" path="res://networking/networking_stats_overlay/networking_stats_overlay.tscn" id="13_vsp63"]
+[ext_resource type="PackedScene" uid="uid://sk0genylx2rr" path="res://UI/leader_icon_bar/leader_icon_bar.tscn" id="15_ee6o4"]
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
+[ext_resource type="PackedScene" uid="uid://c04hhdbm4x1" path="res://UI/track_ui_minimap/track_ui_minimap.tscn" id="16_ee6o4"]
 
 [node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "pickup_items_container", "spawned_items_container")]
 script = ExtResource("1_dxrkv")
@@ -129,3 +131,7 @@ script = ExtResource("11_3vho3")
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="NetworkingStatsOverlay" parent="CanvasLayer" instance=ExtResource("13_vsp63")]
+
+[node name="LeaderIconBar" parent="CanvasLayer" instance=ExtResource("15_ee6o4")]
+
+[node name="TrackUiMinimap" parent="CanvasLayer" instance=ExtResource("16_ee6o4")]
