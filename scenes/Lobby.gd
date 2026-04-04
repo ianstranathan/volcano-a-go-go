@@ -15,6 +15,9 @@ func _ready() -> void:
 	NetManager.peer_disconnected.connect(_on_player_left)
 	NetManager.player_info_updated.connect(_on_player_info_updated)
 	NetworkGateway.connection_failed.connect( _on_connection_failed)
+	# -- avatar signal
+	NetworkGateway.avatar_received.connect( on_avatar_received )
+	#NetworkGateway.steam_avatar_ready.connect( )
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 
 	# --------------------------------------------------- button connections
@@ -31,7 +34,7 @@ func _ready() -> void:
 func _on_host_pressed() -> void:
 	var player_name = name_input.text.strip_edges()
 	if player_name.is_empty():
-		player_name = "Player"
+		player_name = "Boss Man Host"
 	
 	NetworkGateway.host(player_name)
 	
@@ -116,25 +119,35 @@ func _clear_all_slots() -> void:
 	player_slots.clear()
 
 
+func on_avatar_received(peer_id: int, tex: ImageTexture):
+	# Use a callable with 'call_deferred' to ensure the SceneTree is updated
+	apply_avatar.call_deferred(peer_id, tex)
+
+
+func apply_avatar(peer_id: int, tex: ImageTexture):
+	if id_to_avatar_tex_rect.size() == 0:
+		return
+	id_to_avatar_tex_rect[ peer_id ].texture = tex
+
+
+var id_to_avatar_tex_rect: Dictionary = {}
+
 func _create_slot(peer_id: int) -> PanelContainer:
 	var slot = PanelContainer.new()
 	var hbox = HBoxContainer.new()
+
 	slot.add_child(hbox)
 	
 	# -------------------------------------------------------------------------
-	# --- ADD AVATAR ---
-	#if NetworkGateway.backend_type == NetworkGateway.BackendType.STEAM:
-		#pass
-		#var avatar_rect = TextureRect.new()
-		#avatar_rect.custom_minimum_size = Vector2(40, 40)
-		#avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		#avatar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		#
-		#var tex = NetManager.get_steam_avatar(peer_id)
-		#if tex:
-			#avatar_rect.texture = tex
-		#hbox.add_child(avatar_rect)
+	NetworkGateway.get_avatar( peer_id ) # -- callback eventually to on_avatar_received
+	var avatar_rect = TextureRect.new()
+	id_to_avatar_tex_rect[ peer_id ] = avatar_rect # -- to reference in callback
+	avatar_rect.name = "Avatar_" + str(peer_id) 
+	avatar_rect.custom_minimum_size = Vector2(40, 40)
+	avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	avatar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
+	hbox.add_child(avatar_rect) # -- filled in signal callback
 	# -------------------------------------------------------------------------
 	var name_label = Label.new()
 	var p_data = NetManager.player_data.get(peer_id)
@@ -153,6 +166,7 @@ func _create_slot(peer_id: int) -> PanelContainer:
 		hbox.add_child(kick_btn)
 	
 	return slot
+
 
 func _update_ui_state() -> void:
 	var has_connection = multiplayer.multiplayer_peer != null

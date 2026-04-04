@@ -7,6 +7,7 @@ TODO
 - await seems brittle
 """
 signal connection_failed
+signal avatar_received(peer_id, image_texture)
 
 enum BackendType
 { 
@@ -20,6 +21,7 @@ var active_backend: Node
 # -- close_connection, join, host
 func _ready():
 	switch_to_backend(backend_type)
+
 
 func leave() -> void:
 	if active_backend:
@@ -43,6 +45,11 @@ func switch_to_backend(type: BackendType):
 		# -- or _on_lobby_match_list or _on_lobby_created in Steam backend
 		# -- tell lobby accordingly
 		connection_failed.emit())
+
+	# -- avatar signal hookup
+	active_backend.avatar_ready.connect( func(peer_id: int, image_texture: ImageTexture):
+		avatar_received.emit(peer_id, image_texture))
+	
 	add_child(active_backend)
 	
 	# Check if we need to wait for the node to enter the tree
@@ -81,3 +88,7 @@ func using_steam() -> bool:
 
 func using_enet() -> bool:
 	return !using_steam()
+
+
+func get_avatar( id:int ) -> void:
+	active_backend.request_avatar( id )

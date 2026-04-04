@@ -106,7 +106,7 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	a_player_data.id = peer_id
 	a_player_data.display_name = _name
 	a_player_data.turban_color = _col
-	
+	 
 	a_player_data.skin_tone = rand_skin_tone( peer_id )
 	player_data_dict[peer_id] = a_player_data
 	
@@ -121,13 +121,13 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 
 
 # ------------------------------------------------------------------------ Utils
-
-
 func get_placement():
 	"""
-	used in UI to decide relative heights of players
+	Used in UI to decide relative heights of players
+	sorts players by global_position.y and returns an array of their ids
 	"""
 	var ret = $PlayersContainer.get_children()
+	# -- sort_custom sorts in place
 	ret.sort_custom( func(a: Player, b: Player):
 		if abs(a.global_position.y - b.global_position.y) < 1:
 			# Use ID as a tie-breaker so the order stays fixed

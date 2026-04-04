@@ -1,11 +1,26 @@
 extends Node
+"""
+So much fiddly BS
+
+steam id doesn't map for peer id 1
+
+steam compresses its images, strips out a row of pixels or soemthing
+(was returning a 64x63....)
+which forces byte arithmetic to make an avatar
+"""
 
 signal connection_failed
+signal avatar_ready(steam_id, texture)
 
 var current_lobby_id # -- Steam.createLobby returns a lobby_id
 var LOBBY_KEY = "Volcano-Go-Go"
 
 var peer: SteamMultiplayerPeer = SteamMultiplayerPeer.new()
+# steam multiplayer api: 
+# get_steam_id_for_peer_id
+# get_peer_id_for_steam_id
+
+
 const APP_ID = "480" # SpaceWar
 
 const PORT := 8910
@@ -27,10 +42,12 @@ func _ready() -> void:
 	OS.set_environment("SteamAppId", APP_ID)
 	var init = Steam.steamInitEx()
 	print("Steam Init: ", init)
-	
-	# Steam Specific Signals
 	Steam.lobby_created.connect(_on_lobby_created)
 	Steam.lobby_match_list.connect(_on_lobby_match_list)
+	
+	# Docs:Emits signal in response to function Steam.getLargeFriendAvatar(), 
+	# Steam.getMediumFriendAvatar(), or Steam.getSmallFriendAvatar().
+	Steam.avatar_loaded.connect(on_avatar_loaded)
 
 
 func _on_lobby_created(connect_result: int, lobby_id: int) -> void:
@@ -70,5 +87,64 @@ func _on_lobby_match_list(lobbies: Array) -> void:
 func _process(_delta: float) -> void:
 	Steam.run_callbacks()
 
+
 func host() -> void:
 	Steam.createLobby(Steam.LOBBY_TYPE_PUBLIC, MAX_CLIENTS + 1)
+
+
+var avatar_img_cache:       Dictionary = {} # -- steam id to img
+var avatar_request_handles: Dictionary = {} # -- request ptr to steam id 
+
+
+func request_avatar(peer_id: int) -> void:
+	var _steam_id = Steam.getSteamID() if peer_id == multiplayer.get_unique_id() else peer.get_steam_id_for_peer_id(peer_id)
+	if _steam_id == 0 or avatar_img_cache.has(_steam_id): return
+
+	var handle = Steam.getMediumFriendAvatar(_steam_id)
+	if handle > 0: 
+		_create_texture_from_raw_data(_steam_id,
+									  Steam.getImageSize(handle)["width"],
+									  Steam.getImageRGBA(handle)["buffer"])
+	else:
+		avatar_request_handles[handle] = _steam_id
+
+
+func on_avatar_loaded(handle_id: int, width: int, buffer: Array) -> void:
+	if avatar_request_handles.has(handle_id):
+		var _steam_id = avatar_request_handles[handle_id]
+		_create_texture_from_raw_data(_steam_id, width, buffer)
+		avatar_request_handles.erase(handle_id)
+
+
+func _create_texture_from_raw_data(_steam_id: int, width: int, buffer: Array) -> void:
+	if buffer.is_empty(): 
+		return
+
+	var byte_array = PackedByteArray(buffer)
+	var total_bytes = byte_array.size()
+	var height: int = total_bytes / (width * 4)
+	var image = Image.create_from_data( width, 
+										height, 
+										false, 
+										Image.FORMAT_RGBA8, 
+										byte_array)
+	if image == null:
+		print("Failed to create image from Steam data")
+		return
+	var texture = ImageTexture.create_from_image(image)
+	avatar_img_cache[_steam_id] = texture
+	
+	var p_id = multiplayer.get_unique_id() if _steam_id == Steam.getSteamID() else peer.get_peer_id_for_steam_id(_steam_id)
+	avatar_ready.emit(p_id, texture)
+
+#func _create_texture_from_raw_data(_steam_id: int, size: int, buffer: Array) -> void:
+	#if buffer.is_empty():
+		#return
+	#var byte_array = PackedByteArray(buffer)
+	#var image = Image.create_from_data(size, size, false, Image.FORMAT_RGBA8, byte_array)
+	#var texture = ImageTexture.create_from_image(image)
+	#avatar_img_cache[_steam_id] = texture
+	#
+	## Find peer_id to tell the UI where to put the face
+	#var p_id = multiplayer.get_unique_id() if _steam_id == Steam.getSteamID() else peer.get_peer_id_for_steam_id(_steam_id)
+	#avatar_ready.emit(p_id, texture)
