@@ -1,0 +1,54 @@
+[gd_scene load_steps=8 format=3 uid="uid://cnhg4otdxq1pt"]
+
+[ext_resource type="Texture2D" uid="uid://ccnhlvng3r21l" path="res://assets/Grapple hand Idle.png" id="1_tb2nt"]
+[ext_resource type="Texture2D" uid="uid://b0o5kiutlm1j7" path="res://assets/Grapple hand Reaching.png" id="2_yw58f"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xqdg1"]
+atlas = ExtResource("1_tb2nt")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_328ed"]
+atlas = ExtResource("1_tb2nt")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n2iab"]
+atlas = ExtResource("2_yw58f")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gbcqy"]
+atlas = ExtResource("2_yw58f")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_r5f40"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xqdg1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_328ed")
+}],
+"loop": true,
+"name": &"Idle",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n2iab")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gbcqy")
+}],
+"loop": true,
+"name": &"Reaching",
+"speed": 10.0
+}]
+
+[node name="Grapple Hand" type="Node2D"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
+sprite_frames = SubResource("SpriteFrames_r5f40")
+animation = &"Reaching"
+autoplay = "Idle"
+frame_progress = 0.21218012
