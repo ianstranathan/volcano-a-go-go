@@ -216,6 +216,8 @@ func reconcile(host_state: PlayerState):
 		player.global_position = host_state.pos
 		player.rotation = host_state.rot
 		player.velocity = host_state.vel
+		# -- Integer used when an enum value is expected. 
+		# -- If this is intended, cast the integer to the enum type using the "as" keyword.
 		player.movement_state = host_state.movement_state
 		#var host_idx = get_circular_index(host_state.tick)
 		stored_state.set_state(player, host_state.tick)

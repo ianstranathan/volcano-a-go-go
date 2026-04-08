@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3 uid="uid://ceborxxuc334h"]
+
+[ext_resource type="Script" uid="uid://dxv1feixfe8a7" path="res://UI/HotBar/hotbar_ui.gd" id="1_q8fa1"]
+[ext_resource type="PackedScene" uid="uid://dx8mheb8rjmfv" path="res://UI/HotBar/hotbar_slot.tscn" id="2_vq61a"]
+
+[node name="HotbarUi" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_q8fa1")
+
+[node name="HotBarWindow" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -217.5
+offset_right = 217.5
+offset_bottom = 79.0
+grow_horizontal = 2
+theme_override_constants/separation = 16
+
+[node name="StandardSlots" type="HBoxContainer" parent="HotBarWindow"]
+layout_mode = 2
+alignment = 1
+
+[node name="Slot1" parent="HotBarWindow/StandardSlots" instance=ExtResource("2_vq61a")]
+layout_mode = 2
+
+[node name="Slot2" parent="HotBarWindow/StandardSlots" instance=ExtResource("2_vq61a")]
+layout_mode = 2
+
+[node name="Slot3" parent="HotBarWindow/StandardSlots" instance=ExtResource("2_vq61a")]
+layout_mode = 2
+
+[node name="Slot4" parent="HotBarWindow/StandardSlots" instance=ExtResource("2_vq61a")]
+layout_mode = 2
+
+[node name="Slot5" parent="HotBarWindow/StandardSlots" instance=ExtResource("2_vq61a")]
+layout_mode = 2
+
+[node name="SpecialSlot" parent="HotBarWindow" instance=ExtResource("2_vq61a")]
+layout_mode = 2

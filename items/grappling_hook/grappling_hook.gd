@@ -67,6 +67,7 @@ func tick_update(delta: float, cmd: PlayerCommand):
 
 
 func on_item_stopped():
+	#print("grapple hook finished")
 	target_pos = null
 	rope.hide()
 	set_target_on_interpolated.rpc()

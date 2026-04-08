@@ -132,15 +132,16 @@ func _ready() -> void:
 	
 	#-------------------------------------------------- Local and remote signals
 	#----------------------------- this controls items being able to move player
+	# TODO this should only be valid on either host or local player
+	# -- should have some kind of error that signal isn't connecting to anything on
+	# -- remotes
 	$ItemManager.item_moving_started.connect( func():
-			#print("on machine: ", multiplayer.get_unique_id())
-			#print(name, ": transitioning to item moveing state")
-			#print()
 			movement_state_transition_to( MovementStates.ITEM_MOVING))
 	$ItemManager.item_moving_stopped.connect( func():
 			coyote_timer.start())
 	# ------------------------------------------------------------ Local signals
 	if is_multiplayer_authority():
+		# -- TODO get_child(0) is terrible
 		input_manager = $PlayerController.get_child(0)
 		assert($PlayerController.get_children().size() == 1)
 		assert(input_manager is LocalPlayerController)
@@ -154,10 +155,23 @@ func _ready() -> void:
 			aiming_visual.update_target_pos( pos_or_null))
 		$ItemManager.item_ray_target_position_changed.connect( func(pos: Vector2):
 			aiming_visual.update_dir( pos ))
-		$ItemManager.targeting_item_removed.connect( func():
-			aiming_visual.stop_aiming( ))
+			
+		# --
+		$ItemManager.item_switched.connect( func( keep_aiming_visual):
+			if keep_aiming_visual:
+				aiming_visual.start_aiming()
+			else:
+				aiming_visual.stop_aiming())
+		#$ItemManager.targeting_item_removed.connect( func():
+			#aiming_visual.stop_aiming( ))
+		#$ItemManager.item_switched.connect( func():
+			#aiming_visual.stop_aiming( ))
+		# -- 
+			
 		$ItemManager.targeting_item_added.connect( func():
 			aiming_visual.start_aiming( ))
+		input_manager.inventory_slot_selected.connect( func(slot_index: int):
+			$ItemManager.select_inventory_slot(slot_index))
 
 	coyote_timer.timeout.connect( coyote_time_resolution)
 

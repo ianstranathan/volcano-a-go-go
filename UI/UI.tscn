@@ -1,8 +1,80 @@
-[gd_scene load_steps=2 format=3 uid="uid://btg4x06vjsk5q"]
+[gd_scene load_steps=8 format=3 uid="uid://btg4x06vjsk5q"]
 
 [ext_resource type="Script" uid="uid://ctyi08d6b1xq2" path="res://UI/UI.gd" id="1_6dd3c"]
+[ext_resource type="PackedScene" uid="uid://ceborxxuc334h" path="res://UI/HotBar/hotbar_ui.tscn" id="2_dhe1o"]
+[ext_resource type="PackedScene" uid="uid://sk0genylx2rr" path="res://UI/leader_icon_bar/leader_icon_bar.tscn" id="2_q0uhn"]
+[ext_resource type="Script" uid="uid://d3an8jw4234yh" path="res://networking/networking_stats_overlay/networking_stats_overlay.gd" id="3_f1fl4"]
+[ext_resource type="PackedScene" uid="uid://c04hhdbm4x1" path="res://UI/track_ui_minimap/track_ui_minimap.tscn" id="4_e707p"]
 
-[node name="Ui" type="Control"]
+[sub_resource type="Shader" id="Shader_f1fl4"]
+resource_local_to_scene = true
+code = "shader_type canvas_item;
+
+void vertex() {
+	// Called for every vertex the material is visible on.
+}
+float sdCircle( vec2 p, float r )
+{
+    return length(p) - r;
+}
+
+//vec3 grey_scale(vec3 col){
+	//return vec3((col.x + col.y + col.z) / 3.);
+//}
+
+uniform vec2 positions[4];
+uniform vec3 player_cols[4];
+
+uniform vec2 level_dims;
+
+// this is just trial and error for the given uv scale
+//
+const vec3 volcano_uv_bounds = vec3(0.825, // max length of side of volcano
+								   -0.425, // volcanco floow in uv space
+									0.4);  // volcano top in uv space
+
+void fragment() {
+	vec2 uv = 2. * UV - 1.;
+	uv.y *= -1.;
+	vec2 zoomed_uv = 0.6 * (UV - vec2(0.5)) + vec2(0.5);
+	vec4 tex_sample = texture(TEXTURE, zoomed_uv);
+	float tex_delta = fwidth(tex_sample.x);
+
+	float mask = 0.0;
+	float mask_alpha = 0.0;
+	vec3 col = tex_sample.xyz + 0.35;
+	for( int i = 0; i < positions.length(); i++)
+	{
+		vec2 pos = positions[i];
+
+		float x = volcano_uv_bounds.x * pos.x / (level_dims.x / 2.);
+		float y = mix(volcano_uv_bounds.y, volcano_uv_bounds.z, (pos.y / level_dims.y));
+
+
+
+		// add to total color
+
+		float m = smoothstep(0., 2. * fwidth(length(uv)), sdCircle(uv - vec2(x,y), 0.015));
+		// cut out black mask from total color
+		col *= m;
+		// set color
+		col += (1. - m) * player_cols[i];
+		mask_alpha += (1. - m);
+	}
+	float alpha = 1. - smoothstep(0.4, 0.4 + tex_delta, tex_sample.x);
+	alpha += mask_alpha;
+	COLOR = vec4(col, alpha);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jqf55"]
+resource_local_to_scene = true
+shader = SubResource("Shader_f1fl4")
+shader_parameter/positions = PackedVector2Array(0, 1100, 1900, 200, 0, 1000, 0, 400)
+shader_parameter/player_cols = PackedVector3Array(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0)
+shader_parameter/level_dims = Vector2(10000, 10000)
+
+[node name="Ui" type="Control" node_paths=PackedStringArray("track", "leader_icon_bar")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,17 +82,89 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_6dd3c")
+track = NodePath("HudMargin/HudLayout/BottomArea/BottomRight/TextureRect")
+leader_icon_bar = NodePath("HudMargin/HudLayout/TopArea/TopLeft/LeaderIconBar")
 
-[node name="PanelContainer" type="PanelContainer" parent="."]
+[node name="HudMargin" type="MarginContainer" parent="."]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -25.5
-offset_right = 25.5
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
-[node name="Label" type="Label" parent="PanelContainer"]
+[node name="HudLayout" type="VBoxContainer" parent="HudMargin"]
 layout_mode = 2
-text = "HELLO"
+
+[node name="TopArea" type="HBoxContainer" parent="HudMargin/HudLayout"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="TopLeft" type="VBoxContainer" parent="HudMargin/HudLayout/TopArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="LeaderIconBar" parent="HudMargin/HudLayout/TopArea/TopLeft" instance=ExtResource("2_q0uhn")]
+layout_mode = 2
+
+[node name="TopCenter" type="VBoxContainer" parent="HudMargin/HudLayout/TopArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TopRight" type="VBoxContainer" parent="HudMargin/HudLayout/TopArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="MiddleArea" type="HBoxContainer" parent="HudMargin/HudLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MidLeft" type="VBoxContainer" parent="HudMargin/HudLayout/MiddleArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="MidCenter" type="VBoxContainer" parent="HudMargin/HudLayout/MiddleArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MidRight" type="VBoxContainer" parent="HudMargin/HudLayout/MiddleArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="BottomArea" type="HBoxContainer" parent="HudMargin/HudLayout"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+
+[node name="BottomLeft" type="VBoxContainer" parent="HudMargin/HudLayout/BottomArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+alignment = 2
+
+[node name="Label" type="Label" parent="HudMargin/HudLayout/BottomArea/BottomLeft"]
+layout_mode = 2
+script = ExtResource("3_f1fl4")
+
+[node name="BottomCenter" type="VBoxContainer" parent="HudMargin/HudLayout/BottomArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="CenterContainer" type="CenterContainer" parent="HudMargin/HudLayout/BottomArea/BottomCenter"]
+layout_mode = 2
+
+[node name="HotbarUi" parent="HudMargin/HudLayout/BottomArea/BottomCenter/CenterContainer" instance=ExtResource("2_dhe1o")]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="BottomRight" type="VBoxContainer" parent="HudMargin/HudLayout/BottomArea"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="TextureRect" parent="HudMargin/HudLayout/BottomArea/BottomRight" instance=ExtResource("4_e707p")]
+material = SubResource("ShaderMaterial_jqf55")
+layout_mode = 2

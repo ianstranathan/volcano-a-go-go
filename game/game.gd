@@ -29,6 +29,7 @@ var player_data_dict:Dictionary = {} # -- id to player_data
 
 #var tickables : Array = []
 # ------------------------------------------------------------------------------
+@onready var ui = $CanvasLayer/Ui
 
 func _ready():
 	assert(spawn_points)
@@ -51,7 +52,7 @@ func _ready():
 	NetManager.game_world = self
 	
 	# ------------------------------------------------------- UI hookups
-	$CanvasLayer/LeaderIconBar.game_ref = self
+	ui.game_ref = self
 	
 	# --------------- TEST
 	$WorldGeometry/FallingPlatform.lava_ref = $WorldGeometry/Lava
@@ -61,8 +62,7 @@ func execute_tick( delta: float ):
 		if child.has_method("execute_tick"):
 			child.execute_tick( delta )
 	
-	# -- replace this with UI.execute_tick
-	$CanvasLayer/LeaderIconBar.execute_tick( delta )
+	ui.execute_tick( delta )
 
 func _on_player_info_received(peer_id: int, _name: String, spawn_index: int):
 	spawn_player(peer_id, _name, spawn_index)
@@ -121,7 +121,7 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 
 
 # ------------------------------------------------------------------------ Utils
-func get_placement():
+func ordered_players_by_height() -> Array:
 	"""
 	Used in UI to decide relative heights of players
 	sorts players by global_position.y and returns an array of their ids
@@ -130,10 +130,10 @@ func get_placement():
 	# -- sort_custom sorts in place
 	ret.sort_custom( func(a: Player, b: Player):
 		if abs(a.global_position.y - b.global_position.y) < 1:
-			# Use ID as a tie-breaker so the order stays fixed
+			# -- using id as a tie-breaker to prevent jitter
 			return int(a.name) < int(b.name) 
 		return (a.global_position.y < b.global_position.y))
-	return ret.map( func(c): return int( c.name ))
+	return ret
 
 
 @onready var rng = RandomNumberGenerator.new()

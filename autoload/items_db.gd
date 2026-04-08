@@ -26,6 +26,7 @@ var item_pickup_textures = {
 }
 
 func get_texture(item_key: ItemNames) -> Texture2D:
+	#print("in get_tex: ", item_key)
 	assert(item_key in items)
 	return item_pickup_textures[ item_key ]
 #ItemsDb.get_texture(item_lookup)
