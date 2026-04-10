@@ -54,7 +54,7 @@ void fragment() {
 
 		// add to total color
 
-		float m = smoothstep(0., 2. * fwidth(length(uv)), sdCircle(uv - vec2(x,y), 0.015));
+		float m = smoothstep(0., 2. * fwidth(length(uv)), sdCircle(uv - vec2(x,y), 0.03));
 		// cut out black mask from total color
 		col *= m;
 		// set color
@@ -70,9 +70,9 @@ void fragment() {
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jqf55"]
 resource_local_to_scene = true
 shader = SubResource("Shader_f1fl4")
-shader_parameter/positions = PackedVector2Array(0, 1100, 1900, 200, 0, 1000, 0, 400)
+shader_parameter/positions = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0)
 shader_parameter/player_cols = PackedVector3Array(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0)
-shader_parameter/level_dims = Vector2(10000, 10000)
+shader_parameter/level_dims = Vector2(120000, 10000)
 
 [node name="Ui" type="Control" node_paths=PackedStringArray("track", "leader_icon_bar")]
 layout_mode = 3

@@ -21,8 +21,8 @@ func _physics_process(_delta: float) -> void:
 	if !multiplayer.is_server():
 		# -- diif compared to the last host packet
 		# -- TODO assert that tick_multiplier is pure function
-		#stats += "Tick Speed: %.2f%%\n" % (NetManager.tick_multiplier() * 100.0)
-		stats += "Tick offset from ideal: %d\n" % NetManager.tick_error
+		stats += "Tick Speed: %.2f%%\n" % (NetManager.tick_multiplier() * 100.0)
+		stats += "Tick error: %d\n" % NetManager.tick_error()
 		stats += "Clock Synced: %s\n" % str(NetManager.clock_synced)
 	else:
 		pass

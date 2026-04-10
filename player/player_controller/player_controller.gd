@@ -18,10 +18,10 @@ state variables agree to within a certain margin)
 
 @onready var player: Player = get_parent()
 # -- either RemotePlayerController or LocalPlayerController
-var controller: Node2D
+var controller: LocalPlayerController
 
 # -- so we're keeping 60 ticks, or 1 second a 60hz physics sim
-var input_and_state_buffer_size: int = 120
+var input_and_state_buffer_size: int = 240
 var command_history_buffer: Array[PlayerCommand] = []
 var reconciliation_state_buffer: Array[PlayerState] = []
 
@@ -43,10 +43,7 @@ func _ready() -> void:
 	# -- if we're a local player, we're going to be predicting & reconciling
 	if is_multiplayer_authority():
 		controller = LocalPlayerController.new()
-	# if we're a remote copy, we're going to be interpolating
-	else:
-		controller = RemotePlayerController.new()
-	
+		add_child(controller)
 	# -- for now, let's just put them on everybody, but I think I can cut this out
 	command_history_buffer.resize( input_and_state_buffer_size )
 	reconciliation_state_buffer.resize( input_and_state_buffer_size )
@@ -65,7 +62,7 @@ func _ready() -> void:
 			interpolation_buffer[i] = PlayerState.new()
 		
 	# -- 
-	add_child(controller)
+	
 
 
 func get_player_state( a_tick: int) -> PlayerState:
@@ -218,7 +215,7 @@ func reconcile(host_state: PlayerState):
 		player.velocity = host_state.vel
 		# -- Integer used when an enum value is expected. 
 		# -- If this is intended, cast the integer to the enum type using the "as" keyword.
-		player.movement_state = host_state.movement_state
+		player.movement_state = host_state.movement_state as Player.MovementStates
 		#var host_idx = get_circular_index(host_state.tick)
 		stored_state.set_state(player, host_state.tick)
 		

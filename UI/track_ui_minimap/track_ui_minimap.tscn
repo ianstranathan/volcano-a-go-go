@@ -51,7 +51,7 @@ void fragment() {
 
 		// add to total color
 
-		float m = smoothstep(0., 2. * fwidth(length(uv)), sdCircle(uv - vec2(x,y), 0.015));
+		float m = smoothstep(0., 2. * fwidth(length(uv)), sdCircle(uv - vec2(x,y), 0.03));
 		// cut out black mask from total color
 		col *= m;
 		// set color

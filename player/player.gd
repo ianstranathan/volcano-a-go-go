@@ -715,7 +715,7 @@ func can_parachute() -> bool:
 
 
 func can_pick_up_item():
-	print("player checking item can_pick_up: ")
+	#print("player checking item can_pick_up: ")
 	return $ItemManager.can_pick_up()
 	
 
