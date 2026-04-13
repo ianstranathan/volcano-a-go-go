@@ -88,6 +88,9 @@ var is_on_ground := true # -- our "truth" about being on the ground (e.g. slight
 # ----------------------------------------------------- multiplayer specific var
 var input_manager: LocalPlayerController
 @onready var player_controller = $PlayerController
+
+signal local_controller_added( lc_ref: LocalPlayerController )
+signal started_falling
 # ----------------------------------------------------
 
 
@@ -143,6 +146,7 @@ func _ready() -> void:
 	if is_multiplayer_authority():
 		# -- TODO get_child(0) is terrible
 		input_manager = $PlayerController.get_child(0)
+		local_controller_added.emit( input_manager )
 		assert($PlayerController.get_children().size() == 1)
 		assert(input_manager is LocalPlayerController)
 		var aiming_visual  = load("res://player/aiming_visual/aiming_visual.tscn").instantiate()
@@ -310,7 +314,10 @@ func my_is_on_floor() -> bool:
 
 
 func is_falling():
-	return velocity.y >= 0 and not my_is_on_floor()
+	var ret = velocity.y >= 0 and not my_is_on_floor()
+	#if ret:
+		#started_falling.emit()
+	return ret
 
 
 @onready var rhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/RHS, $WallCheckContainer/RHS1]

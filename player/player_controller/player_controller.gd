@@ -16,6 +16,7 @@ Or it reconciles the state (checks to make sure the position, velocity, and
 state variables agree to within a certain margin)
 """
 
+
 @onready var player: Player = get_parent()
 # -- either RemotePlayerController or LocalPlayerController
 var controller: LocalPlayerController
@@ -44,6 +45,7 @@ func _ready() -> void:
 	if is_multiplayer_authority():
 		controller = LocalPlayerController.new()
 		add_child(controller)
+		
 	# -- for now, let's just put them on everybody, but I think I can cut this out
 	command_history_buffer.resize( input_and_state_buffer_size )
 	reconciliation_state_buffer.resize( input_and_state_buffer_size )
