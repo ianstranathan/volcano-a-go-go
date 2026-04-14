@@ -6,9 +6,8 @@ var horizontal_look_ahead_distance: float
 var vertical_look_ahead_distance: float
 
 @export_group("Smoothing")
-@export var lead_speed: float = 5.0    # How fast the camera shifts side-to-side
-@export var follow_speed: float = 10.0 # How fast the camera follows the player's position
-
+@export var lead_speed: float = 5.0    
+@export var follow_speed: float = 10.0
 var target_offset: Vector2 = Vector2.ZERO
 
 func _ready():

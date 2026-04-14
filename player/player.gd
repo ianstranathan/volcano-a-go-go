@@ -60,24 +60,16 @@ var last_move_input: Vector2 = Vector2.ZERO
 var last_wall_normal: Vector2 = Vector2.ZERO
 
 # -------------------------------------------------- Buffer Timers
-# -- wait times are set in inspector
-#@onready var coyote_timer: Timer = $BufferTimersContainer/CoyoteTimeTimer
-#@onready var jump_buffer_timer: Timer = $BufferTimersContainer/JumpBufferTimer
-#@onready var wall_jump_coyote_timer: Timer = $BufferTimersContainer/WallJumpCoyoteTimeTimer
-#@onready var ledge_grab_buffer_timer: Timer = $BufferTimersContainer/LedgeGrabBufferTimer
-#@onready var side_somersault_timer: Timer = $BufferTimersContainer/SideSomersaultTimer
-
 var coyote_timer: TickTimer            = TickTimer.new(0.15)
 var jump_buffer_timer: TickTimer       = TickTimer.new(0.15)
 var wall_jump_coyote_timer: TickTimer  = TickTimer.new(0.25)
 var ledge_grab_buffer_timer: TickTimer = TickTimer.new(0.30)
-var side_somersault_timer: TickTimer   = TickTimer.new(0.25)
-
+#var side_somersault_timer: TickTimer   = TickTimer.new(0.25)
 
 
 ## The number of frames where you can't move horizontally after wall jump 
 var manual_wall_jump_frame_counter: int = 0
-@export var num_frame_you_cant_move_after_wall_jump = 6.0
+@export var num_frame_you_cant_move_after_wall_jump :int = 6
 
 # -- misc
 var can_climb := false
@@ -89,8 +81,8 @@ var is_on_ground := true # -- our "truth" about being on the ground (e.g. slight
 var input_manager: LocalPlayerController
 @onready var player_controller = $PlayerController
 
-signal local_controller_added( lc_ref: LocalPlayerController )
-signal started_falling
+#signal local_controller_added( lc_ref: LocalPlayerController )
+#signal started_falling
 # ----------------------------------------------------
 
 
@@ -146,7 +138,7 @@ func _ready() -> void:
 	if is_multiplayer_authority():
 		# -- TODO get_child(0) is terrible
 		input_manager = $PlayerController.get_child(0)
-		local_controller_added.emit( input_manager )
+		#local_controller_added.emit( input_manager )
 		assert($PlayerController.get_children().size() == 1)
 		assert(input_manager is LocalPlayerController)
 		var aiming_visual  = load("res://player/aiming_visual/aiming_visual.tscn").instantiate()
@@ -191,10 +183,10 @@ func check_for_jump() -> void:
 	if !jump_buffer_timer.is_stopped():
 		if is_on_ground:
 			is_on_ground = false
-			if !side_somersault_timer.is_stopped():
-				do_jump(JumpTypes.SOMERSAULT_FLIP)
-			else:
-				do_jump(JumpTypes.REGULAR)
+			#if !side_somersault_timer.is_stopped():
+				#do_jump(JumpTypes.SOMERSAULT_FLIP)
+			#else:
+			do_jump(JumpTypes.REGULAR)
 		elif can_wall_jump():
 			move_input = Vector2(-last_wall_normal.x, move_input.y)
 			manual_wall_jump_frame_counter = num_frame_you_cant_move_after_wall_jump
@@ -366,8 +358,8 @@ func move(move_func_override = null) -> void:
 	if not is_zero_approx(input_x):
 		var target_speed = input_x * top_speed
 		
-		if last_move_input.x * input_x < 0:
-			side_somersault_timer.start()
+		#if last_move_input.x * input_x < 0:
+			#side_somersault_timer.start()
 
 		var is_turning = input_x * velocity.x < 0
 		
@@ -415,7 +407,7 @@ func idle_state_fn(_delta) -> void:
 
 
 func walking_state_fn(_delta) -> void:
-	if is_zero_approx(move_input.x) and side_somersault_timer.is_stopped():
+	if is_zero_approx(move_input.x): #and side_somersault_timer.is_stopped():
 		movement_state_transition_to( MovementStates.IDLE)
 	check_for_jump()
 	move()

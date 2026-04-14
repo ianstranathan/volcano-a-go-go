@@ -40,7 +40,6 @@ material = SubResource("ShaderMaterial_yw30f")
 texture = ExtResource("2_rkbax")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-visible = false
 shape = SubResource("CapsuleShape2D_ugqs2")
 
 [node name="FloorCheckContainer" type="Node2D" parent="."]
@@ -112,22 +111,28 @@ collision_mask = 5
 
 [node name="GrabManager" type="Area2D" parent="." node_paths=PackedStringArray("player_ref")]
 visible = false
-collision_layer = 2
-collision_mask = 16
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
 script = ExtResource("7_boad6")
 player_ref = NodePath("..")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GrabManager"]
 scale = Vector2(3.790234, -5.1270866)
 shape = SubResource("RectangleShape2D_boad6")
+disabled = true
 
 [node name="ClimbingInterface" type="Area2D" parent="."]
-collision_layer = 32
-collision_mask = 32
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
 script = ExtResource("8_rgyib")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ClimbingInterface"]
 shape = SubResource("CapsuleShape2D_ugqs2")
+disabled = true
 
 [node name="PlayerController" type="Node2D" parent="."]
 script = ExtResource("7_rgyib")

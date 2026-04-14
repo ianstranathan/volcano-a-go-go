@@ -63,7 +63,8 @@ func tick_update(delta: float, cmd: PlayerCommand):
 			on_item_stopped()
 	
 	if target_pos:
-		handle_grapple(delta)
+		#handle_grapple(delta)
+		handle_hookshot(delta)
 
 
 func on_item_stopped():
@@ -87,25 +88,40 @@ func _physics_process(_delta: float) -> void:
 		rope.set_point_position(0, Vector2.ZERO)
 
 
-func handle_grapple(delta):
+func handle_hookshot(delta):
 	var to_anchor = target_pos - player_ref.global_position
-	var current_dist = to_anchor.length()
+	var distance = to_anchor.length()
 	var target_dir = to_anchor.normalized()
 	
-	rest_length = max(rest_length - reel_in_speed * delta, 20.0)
-	if current_dist > rest_length:
-		var outward_vel = player_ref.velocity.dot(target_dir)
-		if outward_vel < 0:
-			player_ref.velocity -= target_dir * outward_vel
-		var overshoot = current_dist - rest_length
-		var responsiveness = 0.25
-		player_ref.velocity += target_dir * (overshoot * responsiveness)
-		
-		# -- make player velocity tangent to swing
-		player_ref.velocity = player_ref.velocity.project(player_ref.velocity.normalized())
-		
-	player_ref.velocity *= (1.0 - (swing_damping * delta)) # -- Damping / Friction
-	#rope.set_point_position(1, to_local(target_pos))
+	# 1. Constant Pull Speed
+	var pull_speed = 1500.0 
+	player_ref.velocity = target_dir * pull_speed
+	
+	# 2. Arrival Logic (Stop when close enough)
+	if distance < 50.0:
+		# Stop pulling and perhaps give a little "hop" at the end
+		#state = NORMAL # Switch back to your movement state
+		player_ref.velocity = player_ref.velocity * 0.5
+		on_item_stopped()
+#func handle_grapple(delta):
+	#var to_anchor = target_pos - player_ref.global_position
+	#var current_dist = to_anchor.length()
+	#var target_dir = to_anchor.normalized()
+	#
+	#rest_length = max(rest_length - reel_in_speed * delta, 20.0)
+	#if current_dist > rest_length:
+		#var outward_vel = player_ref.velocity.dot(target_dir)
+		#if outward_vel < 0:
+			#player_ref.velocity -= target_dir * outward_vel
+		#var overshoot = current_dist - rest_length
+		#var responsiveness = 0.25
+		#player_ref.velocity += target_dir * (overshoot * responsiveness)
+		#
+		## -- make player velocity tangent to swing
+		#player_ref.velocity = player_ref.velocity.project(player_ref.velocity.normalized())
+		#
+	#player_ref.velocity *= (1.0 - (swing_damping * delta)) # -- Damping / Friction
+	##rope.set_point_position(1, to_local(target_pos))
 
 
 func set_player_ref(p: Player) -> void:
