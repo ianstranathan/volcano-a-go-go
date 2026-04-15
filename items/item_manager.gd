@@ -61,6 +61,7 @@ func pick_up(item_lookup: ItemsDb.ItemNames) -> void:
 	
 	# -- some items require knowledge about the player (e.g. to alter their velocity)
 	if item.has_method("set_player_ref"):
+		# -- FIXME
 		item.set_player_ref(player_ref)
 		
 	if owner_id == multiplayer.get_unique_id():

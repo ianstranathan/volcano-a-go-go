@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=15 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -9,8 +9,9 @@
 [ext_resource type="PackedScene" uid="uid://4d5kvc0vxnc1" path="res://placeholders/palceholder_platform/placeholder_platform.tscn" id="7_u5opy"]
 [ext_resource type="Script" uid="uid://dae2c8i45te8f" path="res://game/world_effects.gd" id="8_y36n6"]
 [ext_resource type="PackedScene" uid="uid://csxlguu7f4gt6" path="res://items/pickup_item/pickup_item.tscn" id="9_vsp63"]
-[ext_resource type="Texture2D" uid="uid://c4oflmcqxtgy3" path="res://assets/hookshot.svg" id="10_b686c"]
+[ext_resource type="Texture2D" uid="uid://dh12276y8fv5y" path="res://assets/hookshot.svg" id="10_vsp63"]
 [ext_resource type="Script" uid="uid://c1o22ooao6lq" path="res://game/spawned_items.gd" id="11_3vho3"]
+[ext_resource type="Texture2D" uid="uid://c4oflmcqxtgy3" path="res://assets/grappling_hook.svg" id="11_b686c"]
 [ext_resource type="PackedScene" uid="uid://btg4x06vjsk5q" path="res://UI/UI.tscn" id="14_b686c"]
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
 
@@ -92,6 +93,10 @@ sync_extents = Vector2(400, 400)
 
 [node name="Lava" parent="WorldGeometry" instance=ExtResource("15_hb504")]
 
+[node name="PlaceholderPlatform7" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
+position = Vector2(1158, -1981)
+coll_extents = Vector2(400, 400)
+
 [node name="SpawnPoints" type="Node2D" parent="."]
 
 [node name="Marker2D" type="Marker2D" parent="SpawnPoints"]
@@ -110,8 +115,12 @@ position = Vector2(-286, 0)
 script = ExtResource("5_dxrkv")
 
 [node name="PickupItem" parent="PickupItems" instance=ExtResource("9_vsp63")]
-position = Vector2(121, -15)
-_texture = ExtResource("10_b686c")
+item_lookup = 1
+_texture = ExtResource("10_vsp63")
+
+[node name="PickupItem2" parent="PickupItems" instance=ExtResource("9_vsp63")]
+position = Vector2(-380, 0)
+_texture = ExtResource("11_b686c")
 
 [node name="WorldEffects" type="Node2D" parent="." node_paths=PackedStringArray("players_container")]
 script = ExtResource("8_y36n6")

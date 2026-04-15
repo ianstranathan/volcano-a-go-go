@@ -4,7 +4,7 @@ extends Node
 # ItemDatabase.gd (Autoload)
 
 enum ItemNames{
-	#GRAPPLING_HOOK,
+	GRAPPLING_HOOK,
 	HOOKSHOT,
 	PARACHUTE,
 	ROPE,
@@ -13,7 +13,7 @@ enum ItemNames{
 
 
 var items = {
-	#ItemNames.GRAPPLING_HOOK: preload("res://items/grappling_hook/grappling_hook.tscn"),
+	ItemNames.GRAPPLING_HOOK: preload("res://items/grappling_hook/grappling_hook.tscn"),
 	ItemNames.HOOKSHOT:       preload("res://items/hookshot/hookshot.tscn"),
 	ItemNames.PARACHUTE:      preload("res://items/parachute/parachute.tscn"),
 	ItemNames.ROPE:           preload("res://items/rope_ladder/rope_ladder_spawner.tscn"),
@@ -22,6 +22,7 @@ var items = {
 
 
 var item_pickup_textures = {
+	ItemNames.GRAPPLING_HOOK: preload("res://assets/grappling_hook.svg"),
 	ItemNames.HOOKSHOT:       preload("res://assets/hookshot.svg"),
 	ItemNames.PARACHUTE:      preload("res://assets/parachute.svg"),
 	ItemNames.ROPE:           preload("res://assets/rope-coil.svg"),

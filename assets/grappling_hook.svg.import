@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dh12276y8fv5y"
-path="res://.godot/imported/rope-dart.svg-a9517a9621d33aa5323770940b6b55dc.ctex"
+uid="uid://c4oflmcqxtgy3"
+path="res://.godot/imported/grappling_hook.svg-38eacb6730984974e22f2b7ef0ace9ca.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/rope-dart.svg"
-dest_files=["res://.godot/imported/rope-dart.svg-a9517a9621d33aa5323770940b6b55dc.ctex"]
+source_file="res://assets/grappling_hook.svg"
+dest_files=["res://.godot/imported/grappling_hook.svg-38eacb6730984974e22f2b7ef0ace9ca.ctex"]
 
 [params]
 

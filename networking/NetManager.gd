@@ -262,6 +262,7 @@ func tick_error() -> float:
 # -- Why discrete steps instead of a continuous lerp or something:
 # -- Discrete steps act as a low-pass filter. They ignore the "vibration" of the network and only
 # -- react when there is a sustained, significant trend of drifting too far away
+var overlay_tick_multiplier = 1.0
 func tick_multiplier() -> float:
 	if multiplayer.is_server() or !clock_synced:
 		return 1.0
@@ -272,6 +273,7 @@ func tick_multiplier() -> float:
 	# -- tick_error < 0 => that we're less than ideal tick lead and need to speed up
 	# -- tick_error > 0 => that we're greater than ideal tick lead and need to slow down
 	# -- 1. - adjust    => account for sign
+	overlay_tick_multiplier = 1.0 - adjustment
 	return 1.0 - adjustment
 
 

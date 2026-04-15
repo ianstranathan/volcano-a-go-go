@@ -3,7 +3,7 @@ extends CharacterBody2D
 class_name Player
 
 @export_group("Kinematics")
-@export var baseline_speed: float = 250.0
+@export var baseline_speed: float = 275.0
 @onready var move_speed: float = baseline_speed
 
 @export var ACCL := 50.0

@@ -9,16 +9,12 @@ Multiplayer authority is decided by item manager at spawn
 @export var reel_in_speed: float = 50
 @export var grapple_change_rate := 200.0
 @export var swing_damping := 1.0
-@export var grapple_max_distance: float = 800
-@export var grapple_min_distance: float = 50
-
-@onready var rest_length = grapple_min_distance
+@export var ray_check_max_distance: float = 800
 @onready var ray_component = $RaycastItemComponent
 @onready var rope := $Line2D
 
 
 var target_pos
-#var input_manager: LocalPlayerController
 var player_ref: Player
 
 
@@ -30,7 +26,7 @@ func _ready() -> void:
 		call_deferred("queue_free"))
 	
 	if is_multiplayer_authority() or multiplayer.is_server():
-		ray_component.initialize_ray( grapple_max_distance )
+		ray_component.initialize_ray( ray_check_max_distance )
 	
 
 # -- NOTE
@@ -63,8 +59,7 @@ func tick_update(delta: float, cmd: PlayerCommand):
 			on_item_stopped()
 	
 	if target_pos:
-		#handle_grapple(delta)
-		handle_hookshot(delta)
+		handle_hookshot()
 
 
 func on_item_stopped():
@@ -85,10 +80,9 @@ func on_item_stopped():
 func _physics_process(_delta: float) -> void:
 	if target_pos:
 		rope.set_point_position(1, to_local(target_pos))
-		rope.set_point_position(0, Vector2.ZERO)
 
 
-func handle_hookshot(delta):
+func handle_hookshot():
 	var to_anchor = target_pos - player_ref.global_position
 	var distance = to_anchor.length()
 	var target_dir = to_anchor.normalized()
@@ -103,25 +97,7 @@ func handle_hookshot(delta):
 		#state = NORMAL # Switch back to your movement state
 		player_ref.velocity = player_ref.velocity * 0.5
 		on_item_stopped()
-#func handle_grapple(delta):
-	#var to_anchor = target_pos - player_ref.global_position
-	#var current_dist = to_anchor.length()
-	#var target_dir = to_anchor.normalized()
-	#
-	#rest_length = max(rest_length - reel_in_speed * delta, 20.0)
-	#if current_dist > rest_length:
-		#var outward_vel = player_ref.velocity.dot(target_dir)
-		#if outward_vel < 0:
-			#player_ref.velocity -= target_dir * outward_vel
-		#var overshoot = current_dist - rest_length
-		#var responsiveness = 0.25
-		#player_ref.velocity += target_dir * (overshoot * responsiveness)
-		#
-		## -- make player velocity tangent to swing
-		#player_ref.velocity = player_ref.velocity.project(player_ref.velocity.normalized())
-		#
-	#player_ref.velocity *= (1.0 - (swing_damping * delta)) # -- Damping / Friction
-	##rope.set_point_position(1, to_local(target_pos))
+
 
 
 func set_player_ref(p: Player) -> void:

@@ -33,3 +33,9 @@ func get_intersection_pos():
 
 func initialize_ray( ray_dist: float):
 	ray.target_position = Vector2(ray_dist, 0.0)
+
+
+# -- util to not call is_colliding more than once in graplling hook
+func get_intersection_data():
+	if ray.is_colliding():
+		return [ray.get_collision_point(), ray.get_collider()]
