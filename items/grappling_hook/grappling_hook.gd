@@ -247,13 +247,13 @@ func set_player_ref(p: Player) -> void:
 	player_ref = p
 	
 	
-func _draw():
-	if is_grappling:
-		#var active_pivot = pivot_points_stack.back()
-		#draw_line(to_local(active_pivot), to_local(wrap_corner_pos), Color.CYAN, 10.0)
-		draw_circle(to_local(wrap_corner_pos), 20.0, Color.ORANGE)
-		#draw_line(to_local(active_pivot), to_local(player_ref.global_position), Color.WHITE, 1.0)
+#func _draw():
+	#if is_grappling:
+		##var active_pivot = pivot_points_stack.back()
+		##draw_line(to_local(active_pivot), to_local(wrap_corner_pos), Color.CYAN, 10.0)
+		#draw_circle(to_local(wrap_corner_pos), 20.0, Color.ORANGE)
+		##draw_line(to_local(active_pivot), to_local(player_ref.global_position), Color.WHITE, 1.0)
 
 
-func _process(_delta):
-	queue_redraw() # Forces _draw() to update every frame
+#func _process(_delta):
+	#queue_redraw() # Forces _draw() to update every frame

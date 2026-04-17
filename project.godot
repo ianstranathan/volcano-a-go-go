@@ -17,6 +17,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 config/name="Volcano-a-go-go"
 run/main_scene="uid://43330p8bmmr2"
 config/features=PackedStringArray("4.5", "Forward Plus")
+run/max_fps=120
 config/icon="res://icon.svg"
 
 [autoload]
@@ -32,6 +33,12 @@ NetManager="*res://networking/NetManager.gd"
 
 window/size/initial_position_type=3
 window/size/resizable=false
+
+[file_customization]
+
+folder_colors={
+"res://utils/": "pink"
+}
 
 [global_group]
 

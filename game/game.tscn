@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
 
 [node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "pickup_items_container", "spawned_items_container")]
+position = Vector2(2, 0)
 script = ExtResource("1_dxrkv")
 player_scene = ExtResource("2_4fuuu")
 players_container = NodePath("PlayersContainer")

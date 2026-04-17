@@ -6,6 +6,9 @@ class_name Player
 @export var baseline_speed: float = 275.0
 @onready var move_speed: float = baseline_speed
 
+@export var mass = 1.0
+var inv_mass = (1.0 / mass)
+
 @export var ACCL := 50.0
 # ------------------------------ turning game feel
 @export var TURN_ACCL: = 500.0
@@ -241,6 +244,7 @@ func coyote_time_resolution() -> void:
 
 
 func execute_tick(delta: float, cmd: PlayerCommand):
+	#print( "pos: ", global_position, "; vel: ", velocity)
 	apply_command(cmd)
 	$ItemManager.process_item_tick(delta, cmd)
 	
@@ -262,17 +266,17 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	#tmp_burn_handle() # TODO # -- temporary burn visual feedbac	
 	
 	# -- velocity verlet update
-	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
+	#global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
+	#
+	#if velocity.y < TERMINAL_FALL_SPEED:
+		#velocity.y += get_g() * delta
+#
+	#var collision = move_and_collide(Vector2.ZERO)
 	
-	if velocity.y < TERMINAL_FALL_SPEED:
-		velocity.y += get_g() * delta
-
-	var collision = move_and_collide(Vector2.ZERO)
-	
-	#if current_platform: # -- account for relative velocities
-		#print("we're in here")
-		#velocity += current_platform.get_velocity() * delta
-		#move_and_collide(current_platform.get_velocity() * delta)
+	if current_platform: # -- account for relative velocities
+		#print(current_platform.get_velocity() * delta)
+		velocity += current_platform.get_velocity() * delta
+		move_and_collide(current_platform.get_velocity() * delta)
 	
 	#if collision:
 		## -- projection of ground normal is mostly vertical
@@ -280,6 +284,21 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 		#if is_on_ground:
 			#current_platform_check( collision )
 			#velocity.y = 0
+	var collision = move_and_collide(velocity * delta, true)
+	if collision:
+		var _collider = collision.get_collider()
+		if collision.get_collider() is Player:
+			if self.get_instance_id() < _collider.get_instance_id():
+				MyPhysicsUtils.resolve_collision(self, _collider, collision)
+		
+	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
+	
+	if velocity.y < TERMINAL_FALL_SPEED:
+		velocity.y += get_g() * delta
+
+	
+	collision = move_and_collide(Vector2.ZERO)
+	
 	if collision:
 		var normal = collision.get_normal()
 		is_on_ground = normal.dot(Vector2.UP) > 0.7
@@ -287,7 +306,7 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 			current_platform_check( collision )
 			if velocity.y > 0:
 				velocity.y = 0
-
+				
 	last_move_input = move_input
 
 # -- TODO

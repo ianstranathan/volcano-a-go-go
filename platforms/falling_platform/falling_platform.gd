@@ -23,13 +23,18 @@ var lava_ref: TheLava = null:
 		#print("lava got set in falling platform: ", value)
 		$lava_floating_component.lava_ref = value
 
+
+var velocity: Vector2 = Vector2.ZERO
+@onready var last_frame_position := global_position
 func execute_tick( delta: float):
+	velocity = (global_position - last_frame_position) / delta
 	$moveable_component.execute_tick( delta )
 	$lava_floating_component.execute_tick( delta )
-	
+	last_frame_position = global_position
+
 
 func get_velocity() -> Vector2:
-	return $moveable_component.velocity
+	return velocity
 
 
 func _ready() -> void:
