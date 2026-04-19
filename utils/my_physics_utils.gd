@@ -2,24 +2,27 @@ extends RefCounted
 
 class_name MyPhysicsUtils
 
-static func resolve_collision(A: Player, B: Player, kinematic_collision: KinematicCollision2D):
+static func resolve_collision(A: Player, B: Player,
+							  kinematic_collision: KinematicCollision2D) -> Vector2:
 	var contact_normal = kinematic_collision.get_normal()
 	var relative_velocity = A.velocity - B.velocity
 	var velocity_along_normal = relative_velocity.dot(contact_normal)
 	
 	if velocity_along_normal > 0:
-		return
+		return Vector2.ONE
 
 	var e := 0.5
 	var inv_mass_sum = A.inv_mass + B.inv_mass
-	if inv_mass_sum == 0: return 
+	if inv_mass_sum == 0: 
+		return Vector2.ONE 
 	
 	var j = -(1 + e) * velocity_along_normal
 	j /= inv_mass_sum
 	
 	var impulse = j * contact_normal
-	A.velocity += A.inv_mass * impulse
-	B.velocity -= B.inv_mass * impulse
+	return impulse
+	#A.velocity += A.inv_mass * impulse
+	#B.velocity -= B.inv_mass * impulse
 
 	
 	#var depth = kinematic_collision.get_depth()

@@ -83,7 +83,7 @@ var is_on_ground := true # -- our "truth" about being on the ground (e.g. slight
 # ----------------------------------------------------- multiplayer specific var
 var input_manager: LocalPlayerController
 @onready var player_controller = $PlayerController
-
+var is_replaying: bool = false
 #signal local_controller_added( lc_ref: LocalPlayerController )
 #signal started_falling
 # ----------------------------------------------------
@@ -242,8 +242,12 @@ func coyote_time_resolution() -> void:
 				movement_state_transition_to(MovementStates.IDLE)
 	is_on_ground = false
 
+# -- for itnerpolating sprite / visual smoothing in reconcilliation
+var pos_previous: Vector2 = Vector2.ZERO
+var pos_current: Vector2 = Vector2.ZERO
 
 func execute_tick(delta: float, cmd: PlayerCommand):
+	pos_previous = global_position
 	#print( "pos: ", global_position, "; vel: ", velocity)
 	apply_command(cmd)
 	$ItemManager.process_item_tick(delta, cmd)
@@ -261,8 +265,7 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	
 	# -- call the movement state function matching the movement_state variable
 	call(MovementStates.keys()[movement_state].to_lower() + "_state_fn", delta)
-	
-	
+
 	#tmp_burn_handle() # TODO # -- temporary burn visual feedbac	
 	
 	# -- velocity verlet update
@@ -284,13 +287,22 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 		#if is_on_ground:
 			#current_platform_check( collision )
 			#velocity.y = 0
+	
 	var collision = move_and_collide(velocity * delta, true)
 	if collision:
 		var _collider = collision.get_collider()
-		if collision.get_collider() is Player:
-			if self.get_instance_id() < _collider.get_instance_id():
-				MyPhysicsUtils.resolve_collision(self, _collider, collision)
-		
+		if _collider is Player:
+			# -- host calculates and applies to both players on its machine
+			if multiplayer.is_server():
+				pass
+				var impulse = MyPhysicsUtils.resolve_collision(self, _collider, collision)
+				velocity += impulse * inv_mass
+				_collider.velocity -= impulse * _collider.inv_mass
+			# # -- local prediction, guess to avoid lag
+			elif int(name) == multiplayer.get_unique_id():
+				var impulse = MyPhysicsUtils.resolve_collision(self, _collider, collision)
+				velocity += impulse * inv_mass
+				
 	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
 	
 	if velocity.y < TERMINAL_FALL_SPEED:
@@ -308,6 +320,15 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 				velocity.y = 0
 				
 	last_move_input = move_input
+	pos_current = global_position
+
+
+@rpc("any_peer","unreliable")
+func player_collision_resolution(id: int, impulse: Vector2) -> void:
+	#print( name )
+	if int(name) == id:
+		velocity -= impulse * inv_mass
+
 
 # -- TODO
 func current_platform_check(coll: KinematicCollision2D):

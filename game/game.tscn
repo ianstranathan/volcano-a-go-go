@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=16 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" uid="uid://dh12276y8fv5y" path="res://assets/hookshot.svg" id="10_vsp63"]
 [ext_resource type="Script" uid="uid://c1o22ooao6lq" path="res://game/spawned_items.gd" id="11_3vho3"]
 [ext_resource type="Texture2D" uid="uid://c4oflmcqxtgy3" path="res://assets/grappling_hook.svg" id="11_b686c"]
+[ext_resource type="Texture2D" uid="uid://s7qk4ylbme1f" path="res://assets/parachute.svg" id="12_hb504"]
 [ext_resource type="PackedScene" uid="uid://btg4x06vjsk5q" path="res://UI/UI.tscn" id="14_b686c"]
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
 
@@ -122,6 +123,11 @@ _texture = ExtResource("10_vsp63")
 [node name="PickupItem2" parent="PickupItems" instance=ExtResource("9_vsp63")]
 position = Vector2(-380, 0)
 _texture = ExtResource("11_b686c")
+
+[node name="PickupItem3" parent="PickupItems" instance=ExtResource("9_vsp63")]
+position = Vector2(-125, -214)
+item_lookup = 2
+_texture = ExtResource("12_hb504")
 
 [node name="WorldEffects" type="Node2D" parent="." node_paths=PackedStringArray("players_container")]
 script = ExtResource("8_y36n6")

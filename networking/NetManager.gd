@@ -320,6 +320,7 @@ func send_input_to_host(byte_arr: PackedByteArray) -> void:
 			if buffer[idx].tick < cmd.tick:
 				buffer[idx] = cmd
 
+
 # -- see pickup.gd
 # -- only copy on the host's machine can trigger the pickup
 @rpc("authority", "call_local", "reliable")
@@ -330,6 +331,14 @@ func sync_item_pickup(a_world_id:int, a_peer_id: int, item_lookup_enum: ItemsDb.
 	if _player:
 		#print("Picking up from id: ", multiplayer.get_unique_id())
 		_player.get_node("ItemManager").pick_up(item_lookup_enum)
+
+
+#@rpc("call_local", "authority", "unreliable")
+#func player_collision_resolution(id_A: int, id_B: int, impulse: Vector2) -> void:
+	#var _player_A = player_instances_by_player_id[ id_A ]
+	#var _player_B = player_instances_by_player_id[ id_B ]
+	#_player_A.velocity += impulse * _player_A.inv_mass
+	#_player_B.velocity -= impulse * _player_B.inv_mass
 
 
 

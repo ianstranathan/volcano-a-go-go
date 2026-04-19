@@ -37,9 +37,27 @@ func set_target_on_interpolated(pos=null):
 	if !multiplayer.is_server():
 		target_pos = pos
 		if pos:
+			is_grappling = true
 			rope.show()
 		else:
+			is_grappling = false
 			rope.hide()
+
+
+@rpc("any_peer", "reliable")
+func update_remote_interpolated_rope_points(pos = null):
+	# The server already knows, so only run on clients
+	if multiplayer.is_server(): return 
+	
+	if pos != null:
+		pivot_points_stack.append(pos)
+		# dummy angle or 
+		wrap_angles_stack.append(0.0) 
+		wrap_directions_stack.append(0.0)
+	else:
+		pivot_points_stack.clear()
+		wrap_angles_stack.clear()
+		wrap_directions_stack.clear()
 
 
 func tick_update(delta: float, cmd: PlayerCommand):
@@ -63,7 +81,12 @@ func tick_update(delta: float, cmd: PlayerCommand):
 
 func on_item_stopped():
 	is_grappling = false
+	
 	pivot_points_stack.clear()
+	wrap_angles_stack.clear()
+	wrap_directions_stack.clear()
+	
+	update_remote_interpolated_rope_points.rpc()
 	#print("grapple hook finished")
 	target_pos = null
 	shape_node = null
@@ -79,10 +102,10 @@ func on_item_stopped():
 
 
 # -- visuals can be decoupled from the deterministic tick
-# Assume pivot_points_stack starts with [initial_anchor_point]
+# -- pivot_points_stack starts with [initial_anchor_point]
 func _physics_process(_delta: float) -> void:
 	if is_grappling:
-		# We need: Player Position (index 0) + All Pivots
+		# -- player pos (index 0) + pivots
 		var required_points = pivot_points_stack.size() + 1
 		
 		if rope.points.size() != required_points:
@@ -168,15 +191,18 @@ func initialize_grapple( intersection_pos: Vector2, collider: CollisionObject2D)
 var wrap_directions_stack: Array[float] # Stores 1 or -1
 var wrap_angles_stack: Array[float]
 func update_pivot(new_pivot_point: Vector2):
+	
+	#var  
 	if pivot_points_stack.size() > 0:
 		var angle_to_player = (player_ref.global_position - new_pivot_point).angle()
 		wrap_angles_stack.append(angle_to_player)
-		
 		# Determine if we wrapped coming from the left or right
 		var side = sign(previous_angle) 
 		wrap_directions_stack.append(side)
 
 	pivot_points_stack.append(new_pivot_point)
+	update_remote_interpolated_rope_points.rpc(new_pivot_point)
+	
 	target_pos = new_pivot_point
 	rest_length = (target_pos - player_ref.global_position).length()
 	wrap_corner_pos = get_closest_corner()
@@ -229,9 +255,7 @@ func handle_grapple(delta):
 	if current_dist > rest_length:
 		player_ref.global_position = target_pos - (target_dir * rest_length)
 		
-		# B. Vector Projection: Keep only the sideways (tangent) velocity
-		# This is the "Spiderman" feel: gravity pulls you down, 
-		# the rope pulls you in, and you accelerate into the curve.
+		#  -- Vector Projection acceleration from gravity
 		var radial_velocity = player_ref.velocity.dot(target_dir)
 		
 		if radial_velocity < 0: # If moving away from the anchor

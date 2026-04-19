@@ -16,7 +16,7 @@ Or it reconciles the state (checks to make sure the position, velocity, and
 state variables agree to within a certain margin)
 """
 
-
+@onready var TICK_RATE = NetManager.TICK_RATE
 @onready var player: Player = get_parent()
 # -- either RemotePlayerController or LocalPlayerController
 var controller: LocalPlayerController
@@ -173,6 +173,7 @@ func _process(delta):
 
 	# # -----------------------------------------------
 	# -- interpolate position
+	player.pos_previous = player.global_position
 	if point_a and point_b:
 		# -- slowly lerp towards the min offset
 		current_offset = lerp(current_offset, min_offset, 0.1 * delta)
@@ -187,11 +188,11 @@ func _process(delta):
 		# shortage_frames += 1
 		# we don't have enough data to interpolate => stay at the most recent packet
 		player.global_position = point_a.pos
-
+	player.pos_current = player.global_position
 
 # -- where should we put these consts?
-const POS_TOLERANCE: float = 3.0 # in pixels
-const ROT_TOLERANCE: float = 0.06 # in radians (i.e. about 3.5 degrees)
+const POS_TOLERANCE: float = 5.0 # in pixels
+#const ROT_TOLERANCE: float = 0.06 # in radians (i.e. about 3.5 degrees)
 
 func reconcile(host_state: PlayerState):
 	#var index = get_circular_index(host_state.tick)
@@ -203,17 +204,18 @@ func reconcile(host_state: PlayerState):
 		
 	# -- reconciliation tolerances
 	var pos_error = stored_state.pos.distance_to(host_state.pos)
-	var rot_error = abs(angle_difference(stored_state.rot, host_state.rot))
+	#var rot_error = abs(angle_difference(stored_state.rot, host_state.rot))
 	var needs_reconciled = (
 		pos_error > POS_TOLERANCE or 
-		rot_error > ROT_TOLERANCE or 
+		#rot_error > ROT_TOLERANCE or 
 		stored_state.movement_state != host_state.movement_state
 	)
 	
 	if needs_reconciled:
 		print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
 		player.global_position = host_state.pos
-		player.rotation = host_state.rot
+		#player.global_position = lerp(player.global_position, host_state.pos, 0.5)
+		#player.rotation = host_state.rot
 		player.velocity = host_state.vel
 		# -- Integer used when an enum value is expected. 
 		# -- If this is intended, cast the integer to the enum type using the "as" keyword.
@@ -226,13 +228,16 @@ func reconcile(host_state: PlayerState):
 		# -- all the way up to present
 		var replay_tick = host_state.tick + 1
 		
+		player.is_replaying = true
 		while replay_tick <= NetManager.current_tick:
 			var r_idx = get_circular_index(replay_tick)
 			var cmd = command_history_buffer[r_idx]
 			
 			# -- add a flag so sounds and other stuff don't play while reconciling
-			player.execute_tick(NetManager.TICK_RATE, cmd)
+			
+			player.execute_tick(TICK_RATE, cmd)
 			# -- correct this record
 			reconciliation_state_buffer[r_idx].set_state(player, replay_tick)
 			#print("reconciling")
 			replay_tick += 1
+		player.is_replaying = false
