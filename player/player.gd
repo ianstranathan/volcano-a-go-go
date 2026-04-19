@@ -3,8 +3,11 @@ extends CharacterBody2D
 class_name Player
 
 @export_group("Kinematics")
-@export var baseline_speed: float = 250.0
+@export var baseline_speed: float = 275.0
 @onready var move_speed: float = baseline_speed
+
+@export var mass = 1.0
+var inv_mass = (1.0 / mass)
 
 @export var ACCL := 50.0
 # ------------------------------ turning game feel
@@ -60,24 +63,16 @@ var last_move_input: Vector2 = Vector2.ZERO
 var last_wall_normal: Vector2 = Vector2.ZERO
 
 # -------------------------------------------------- Buffer Timers
-# -- wait times are set in inspector
-#@onready var coyote_timer: Timer = $BufferTimersContainer/CoyoteTimeTimer
-#@onready var jump_buffer_timer: Timer = $BufferTimersContainer/JumpBufferTimer
-#@onready var wall_jump_coyote_timer: Timer = $BufferTimersContainer/WallJumpCoyoteTimeTimer
-#@onready var ledge_grab_buffer_timer: Timer = $BufferTimersContainer/LedgeGrabBufferTimer
-#@onready var side_somersault_timer: Timer = $BufferTimersContainer/SideSomersaultTimer
-
 var coyote_timer: TickTimer            = TickTimer.new(0.15)
 var jump_buffer_timer: TickTimer       = TickTimer.new(0.15)
 var wall_jump_coyote_timer: TickTimer  = TickTimer.new(0.25)
 var ledge_grab_buffer_timer: TickTimer = TickTimer.new(0.30)
-var side_somersault_timer: TickTimer   = TickTimer.new(0.25)
-
+#var side_somersault_timer: TickTimer   = TickTimer.new(0.25)
 
 
 ## The number of frames where you can't move horizontally after wall jump 
 var manual_wall_jump_frame_counter: int = 0
-@export var num_frame_you_cant_move_after_wall_jump = 6.0
+@export var num_frame_you_cant_move_after_wall_jump :int = 6
 
 # -- misc
 var can_climb := false
@@ -88,6 +83,9 @@ var is_on_ground := true # -- our "truth" about being on the ground (e.g. slight
 # ----------------------------------------------------- multiplayer specific var
 var input_manager: LocalPlayerController
 @onready var player_controller = $PlayerController
+var is_replaying: bool = false
+#signal local_controller_added( lc_ref: LocalPlayerController )
+#signal started_falling
 # ----------------------------------------------------
 
 
@@ -132,16 +130,18 @@ func _ready() -> void:
 	
 	#-------------------------------------------------- Local and remote signals
 	#----------------------------- this controls items being able to move player
+	# TODO this should only be valid on either host or local player
+	# -- should have some kind of error that signal isn't connecting to anything on
+	# -- remotes
 	$ItemManager.item_moving_started.connect( func():
-			#print("on machine: ", multiplayer.get_unique_id())
-			#print(name, ": transitioning to item moveing state")
-			#print()
 			movement_state_transition_to( MovementStates.ITEM_MOVING))
 	$ItemManager.item_moving_stopped.connect( func():
 			coyote_timer.start())
 	# ------------------------------------------------------------ Local signals
 	if is_multiplayer_authority():
+		# -- TODO get_child(0) is terrible
 		input_manager = $PlayerController.get_child(0)
+		#local_controller_added.emit( input_manager )
 		assert($PlayerController.get_children().size() == 1)
 		assert(input_manager is LocalPlayerController)
 		var aiming_visual  = load("res://player/aiming_visual/aiming_visual.tscn").instantiate()
@@ -154,10 +154,23 @@ func _ready() -> void:
 			aiming_visual.update_target_pos( pos_or_null))
 		$ItemManager.item_ray_target_position_changed.connect( func(pos: Vector2):
 			aiming_visual.update_dir( pos ))
-		$ItemManager.targeting_item_removed.connect( func():
-			aiming_visual.stop_aiming( ))
+			
+		# --
+		$ItemManager.item_switched.connect( func( keep_aiming_visual):
+			if keep_aiming_visual:
+				aiming_visual.start_aiming()
+			else:
+				aiming_visual.stop_aiming())
+		#$ItemManager.targeting_item_removed.connect( func():
+			#aiming_visual.stop_aiming( ))
+		#$ItemManager.item_switched.connect( func():
+			#aiming_visual.stop_aiming( ))
+		# -- 
+			
 		$ItemManager.targeting_item_added.connect( func():
 			aiming_visual.start_aiming( ))
+		input_manager.inventory_slot_selected.connect( func(slot_index: int):
+			$ItemManager.select_inventory_slot(slot_index))
 
 	coyote_timer.timeout.connect( coyote_time_resolution)
 
@@ -173,10 +186,10 @@ func check_for_jump() -> void:
 	if !jump_buffer_timer.is_stopped():
 		if is_on_ground:
 			is_on_ground = false
-			if !side_somersault_timer.is_stopped():
-				do_jump(JumpTypes.SOMERSAULT_FLIP)
-			else:
-				do_jump(JumpTypes.REGULAR)
+			#if !side_somersault_timer.is_stopped():
+				#do_jump(JumpTypes.SOMERSAULT_FLIP)
+			#else:
+			do_jump(JumpTypes.REGULAR)
 		elif can_wall_jump():
 			move_input = Vector2(-last_wall_normal.x, move_input.y)
 			manual_wall_jump_frame_counter = num_frame_you_cant_move_after_wall_jump
@@ -229,8 +242,13 @@ func coyote_time_resolution() -> void:
 				movement_state_transition_to(MovementStates.IDLE)
 	is_on_ground = false
 
+# -- for itnerpolating sprite / visual smoothing in reconcilliation
+var pos_previous: Vector2 = Vector2.ZERO
+var pos_current: Vector2 = Vector2.ZERO
 
 func execute_tick(delta: float, cmd: PlayerCommand):
+	pos_previous = global_position
+	#print( "pos: ", global_position, "; vel: ", velocity)
 	apply_command(cmd)
 	$ItemManager.process_item_tick(delta, cmd)
 	
@@ -247,22 +265,21 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	
 	# -- call the movement state function matching the movement_state variable
 	call(MovementStates.keys()[movement_state].to_lower() + "_state_fn", delta)
-	
-	
+
 	#tmp_burn_handle() # TODO # -- temporary burn visual feedbac	
 	
 	# -- velocity verlet update
-	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
+	#global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
+	#
+	#if velocity.y < TERMINAL_FALL_SPEED:
+		#velocity.y += get_g() * delta
+#
+	#var collision = move_and_collide(Vector2.ZERO)
 	
-	if velocity.y < TERMINAL_FALL_SPEED:
-		velocity.y += get_g() * delta
-
-	var collision = move_and_collide(Vector2.ZERO)
-	
-	#if current_platform: # -- account for relative velocities
-		#print("we're in here")
-		#velocity += current_platform.get_velocity() * delta
-		#move_and_collide(current_platform.get_velocity() * delta)
+	if current_platform: # -- account for relative velocities
+		#print(current_platform.get_velocity() * delta)
+		velocity += current_platform.get_velocity() * delta
+		move_and_collide(current_platform.get_velocity() * delta)
 	
 	#if collision:
 		## -- projection of ground normal is mostly vertical
@@ -270,6 +287,30 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 		#if is_on_ground:
 			#current_platform_check( collision )
 			#velocity.y = 0
+	
+	var collision = move_and_collide(velocity * delta, true)
+	if collision:
+		var _collider = collision.get_collider()
+		if _collider is Player:
+			# -- host calculates and applies to both players on its machine
+			if multiplayer.is_server():
+				pass
+				var impulse = MyPhysicsUtils.resolve_collision(self, _collider, collision)
+				velocity += impulse * inv_mass
+				_collider.velocity -= impulse * _collider.inv_mass
+			# # -- local prediction, guess to avoid lag
+			elif int(name) == multiplayer.get_unique_id():
+				var impulse = MyPhysicsUtils.resolve_collision(self, _collider, collision)
+				velocity += impulse * inv_mass
+				
+	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
+	
+	if velocity.y < TERMINAL_FALL_SPEED:
+		velocity.y += get_g() * delta
+
+	
+	collision = move_and_collide(Vector2.ZERO)
+	
 	if collision:
 		var normal = collision.get_normal()
 		is_on_ground = normal.dot(Vector2.UP) > 0.7
@@ -277,8 +318,17 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 			current_platform_check( collision )
 			if velocity.y > 0:
 				velocity.y = 0
-
+				
 	last_move_input = move_input
+	pos_current = global_position
+
+
+@rpc("any_peer","unreliable")
+func player_collision_resolution(id: int, impulse: Vector2) -> void:
+	#print( name )
+	if int(name) == id:
+		velocity -= impulse * inv_mass
+
 
 # -- TODO
 func current_platform_check(coll: KinematicCollision2D):
@@ -296,7 +346,10 @@ func my_is_on_floor() -> bool:
 
 
 func is_falling():
-	return velocity.y >= 0 and not my_is_on_floor()
+	var ret = velocity.y >= 0 and not my_is_on_floor()
+	#if ret:
+		#started_falling.emit()
+	return ret
 
 
 @onready var rhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/RHS, $WallCheckContainer/RHS1]
@@ -345,8 +398,8 @@ func move(move_func_override = null) -> void:
 	if not is_zero_approx(input_x):
 		var target_speed = input_x * top_speed
 		
-		if last_move_input.x * input_x < 0:
-			side_somersault_timer.start()
+		#if last_move_input.x * input_x < 0:
+			#side_somersault_timer.start()
 
 		var is_turning = input_x * velocity.x < 0
 		
@@ -394,7 +447,7 @@ func idle_state_fn(_delta) -> void:
 
 
 func walking_state_fn(_delta) -> void:
-	if is_zero_approx(move_input.x) and side_somersault_timer.is_stopped():
+	if is_zero_approx(move_input.x): #and side_somersault_timer.is_stopped():
 		movement_state_transition_to( MovementStates.IDLE)
 	check_for_jump()
 	move()
@@ -701,7 +754,7 @@ func can_parachute() -> bool:
 
 
 func can_pick_up_item():
-	print("player checking item can_pick_up: ")
+	#print("player checking item can_pick_up: ")
 	return $ItemManager.can_pick_up()
 	
 

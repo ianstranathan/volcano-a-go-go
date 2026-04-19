@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c3y337vualo4a"
-path="res://.godot/imported/UI_volcano_outline.png-d2866100e859876fc89e0f5f03cb8a2c.ctex"
+uid="uid://dh12276y8fv5y"
+path="res://.godot/imported/hookshot.svg-b989a643227fa0ee6c5a273753385bc9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://UI/UI_volcano_outline.png"
-dest_files=["res://.godot/imported/UI_volcano_outline.png-d2866100e859876fc89e0f5f03cb8a2c.ctex"]
+source_file="res://assets/hookshot.svg"
+dest_files=["res://.godot/imported/hookshot.svg-b989a643227fa0ee6c5a273753385bc9.ctex"]
 
 [params]
 
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

@@ -1,0 +1,35 @@
+[gd_scene load_steps=9 format=3 uid="uid://cvpf74tya22rc"]
+
+[ext_resource type="Script" uid="uid://cdvokl05npfna" path="res://items/hookshot/hookshot.gd" id="1_47bpm"]
+[ext_resource type="Script" uid="uid://du6dcuy4lm2fk" path="res://items/item_interface.gd" id="2_vdrbj"]
+[ext_resource type="Shader" uid="uid://ceb75jub2at3q" path="res://items/hookshot/hookshot.gdshader" id="3_lgewl"]
+[ext_resource type="Texture2D" uid="uid://ojr7fheqa0xi" path="res://assets/Test.png" id="4_twhdk"]
+[ext_resource type="PackedScene" uid="uid://1yqyqa8jm5k" path="res://items/raycast_item_component.tscn" id="5_um6cr"]
+[ext_resource type="Script" uid="uid://dmm17nhn1wysy" path="res://items/item_components/movement_override_component.gd" id="6_w87r7"]
+
+[sub_resource type="Resource" id="Resource_g5xqo"]
+resource_local_to_scene = true
+script = ExtResource("2_vdrbj")
+metadata/_custom_type_script = "uid://du6dcuy4lm2fk"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5rvkf"]
+shader = ExtResource("3_lgewl")
+shader_parameter/tex = ExtResource("4_twhdk")
+
+[node name="Hookshot" type="Node2D"]
+script = ExtResource("1_47bpm")
+item_interface = SubResource("Resource_g5xqo")
+
+[node name="Line2D" type="Line2D" parent="."]
+material = SubResource("ShaderMaterial_5rvkf")
+points = PackedVector2Array(0, 0, 0, 0)
+width = 20.0
+default_color = Color(0.4238622, 0.2185036, 0.0974899, 1)
+texture_mode = 1
+
+[node name="RaycastItemComponent" parent="." instance=ExtResource("5_um6cr")]
+
+[node name="MovementOverrideComponent" type="Node" parent="."]
+script = ExtResource("6_w87r7")
+_allows_jump = true
+metadata/_custom_type_script = "uid://dmm17nhn1wysy"

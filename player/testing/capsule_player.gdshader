@@ -22,10 +22,11 @@ void fragment() {
 	vec2 uv = 2. * UV - 1.;
 	float d = sdSegment(uv, vec2(0., 0.45), vec2(0., -0.45));
 	float m = 1. - smoothstep(0.3, 0.35, d);
-	float t = exp(-dummy_burn_timer);
+	// float t = exp(-dummy_burn_timer);
 	
-	vec3 col = mix(src_col.xyz, vec3(1., 0., 0.) + sin(20. * TIME), t);
-	COLOR = vec4(col, m);
+	//vec3 col = mix(src_col.xyz, vec3(1., 0., 0.) + sin(20. * TIME), t);
+	//vec3 col = src_col.xyz;
+	COLOR = vec4(src_col.xyz, m);
 }
 
 //void light() {

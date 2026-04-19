@@ -3,6 +3,7 @@ extends Node
 """
 """
 signal connection_failed
+signal avatar_ready
 
 const ip = "127.0.0.1"
 const PORT := 8910
@@ -28,3 +29,7 @@ func join(_player_name: String) -> void:
 func close_connection():
 	if multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()
+
+
+func request_avatar(_peer_id: int):
+	pass

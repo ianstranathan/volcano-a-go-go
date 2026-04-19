@@ -21,7 +21,7 @@ void fragment() {
 
     float mask = red_threshold * green_is_low * blue_is_present;
 	
-	vec3 col = tex_color.xyz * (skin_tones[skin_tone_type] * (1. - mask) + turban_color.xyz * mask);
+	vec3 col = tex_color.xyz * (skin_tones[skin_tone_type] * (1. - mask) + 1.5 * turban_color.xyz * mask);
     COLOR = vec4(col, tex_color.a);
 }
 

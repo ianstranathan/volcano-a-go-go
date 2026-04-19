@@ -1,0 +1,54 @@
+[gd_scene load_steps=4 format=3 uid="uid://dx8mheb8rjmfv"]
+
+[ext_resource type="Script" uid="uid://dqglqq82qyf4r" path="res://UI/HotBar/hotbar_slot.gd" id="1_eh5w8"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eh5w8"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.34407574, 0.3440758, 0.34407547, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_htlpn"]
+draw_center = false
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+
+[node name="HotbarSlot" type="Control"]
+clip_contents = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_eh5w8")
+
+[node name="Backing" type="Panel" parent="."]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_eh5w8")
+
+[node name="SelectedOutline" type="Panel" parent="."]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_htlpn")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="Icon" type="TextureRect" parent="MarginContainer"]
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5

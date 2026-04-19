@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dh12276y8fv5y"
-path="res://.godot/imported/rope-dart.svg-a9517a9621d33aa5323770940b6b55dc.ctex"
+uid="uid://c3y337vualo4a"
+path="res://.godot/imported/UI_volcano_outline.png-6002f54853ad7301b2da1cf0b45fe452.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/rope-dart.svg"
-dest_files=["res://.godot/imported/rope-dart.svg-a9517a9621d33aa5323770940b6b55dc.ctex"]
+source_file="res://assets/UI_volcano_outline.png"
+dest_files=["res://.godot/imported/UI_volcano_outline.png-6002f54853ad7301b2da1cf0b45fe452.ctex"]
 
 [params]
 
@@ -38,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

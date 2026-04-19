@@ -6,15 +6,15 @@ signal item_depleted
 signal stopped
 signal destroyed
 
-@export var use_mode: ItemUseMode
-
-
-enum ItemUseMode 
-{
-	INSTANT,       # -- e.g. immediately affects player, like health potion
-	ITEM_SPAWNING, # -- ice block, obstruction block, rope ladder
-	PLAYER_MOVING  # -- grappling hook
-}
+#@export var use_mode: ItemUseMode
+#
+#
+#enum ItemUseMode 
+#{
+	#INSTANT,       # -- e.g. immediately affects player, like health potion
+	#ITEM_SPAWNING, # -- ice block, obstruction block, rope ladder
+	#PLAYER_MOVING  # -- grappling hook
+#}
 
 var tick_update_fn: Callable
 var finished_using_item: bool = false # did the thing being interfaced with stop?

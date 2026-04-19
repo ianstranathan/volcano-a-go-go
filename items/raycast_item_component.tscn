@@ -6,3 +6,4 @@
 script = ExtResource("1_stave")
 
 [node name="RayCast2D" type="RayCast2D" parent="."]
+collision_mask = 3
