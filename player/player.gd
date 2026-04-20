@@ -3,17 +3,18 @@ extends CharacterBody2D
 class_name Player
 
 @export_group("Kinematics")
-@export var baseline_speed: float = 275.0
+@export var baseline_speed: float = 380.0
+var v_x_peak_2_fall = baseline_speed * 0.65
 @onready var move_speed: float = baseline_speed
-
 @export var mass = 1.0
 var inv_mass = (1.0 / mass)
-
 @export var ACCL := 50.0
+
 # ------------------------------ turning game feel
 @export var TURN_ACCL: = 500.0
-@export var friction = 250.0       # Stopping power
-@export var responsiveness = 15.0   # How fast the "accel rate" itself changes
+#@export var friction = 250.0      
+#@export var responsiveness = 15.0
+
 # ------------------------------
 @onready var MOV_ACCL := ACCL
 @onready var current_accel = 0.0
@@ -30,7 +31,7 @@ var inv_mass = (1.0 / mass)
 # -- NOTE: these are all kinematically decided, i.e. functions
 # -------- of jump_height, jump_distance_to_peak, baseline_speed
 @onready var time_to_peak = jump_distance_to_peak / baseline_speed
-@onready var time_to_ground = fall_distance_from_peak / baseline_speed
+@onready var time_to_ground = fall_distance_from_peak / v_x_peak_2_fall
 
 @onready var jump_gravity = 2 * jump_height / (time_to_peak * time_to_peak);
 @onready var fall_gravity = 2 * jump_height / (time_to_ground * time_to_ground);
@@ -215,8 +216,8 @@ func do_jump(jump_type):
 						"global_rotation",
 						global_rotation + sign(last_move_input.x) * TAU, time_to_peak)
 		JumpTypes.WALL:
-			velocity = Vector2(-last_wall_normal.x * (jump_speed / 1.6),
-								(jump_speed / 1.5))
+			velocity = Vector2(-last_wall_normal.x * (jump_speed / 1.8),
+								(jump_speed / 1.2))
 			velocity *= jump_speed_modifier
 			#Events.world_effect.emit(
 							#name.to_int(), 

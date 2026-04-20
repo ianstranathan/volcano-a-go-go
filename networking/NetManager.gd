@@ -86,23 +86,24 @@ func _physics_process(delta: float) -> void:
 		for id in player_instances_by_player_id:
 			var _player = player_instances_by_player_id[id]
 			
-			# -- are we the machine running this NetManager's instance? 
-			# -- (host or client)
+			# -- is this the machine running this NetManager's instance? (host or client)
 			if id == multiplayer.get_unique_id():
 				# -- then step the local player's tick immediately (prediction)
 				# -- this is sent to the server's client keyed buffer of 
 				# -- tick-marked / saved commands
 				_player.player_controller.on_tick_generated(current_tick, TICK_RATE)
-			# -- go through of buffer of tick-marked / saved local player commands
+			# -- go through buffer of tick-marked / saved local player commands
 			elif multiplayer.is_server():
 				host_process_remote_client(id, _player)
 			# -- at a slower Hz, host sends out RPC to give interpolation and
 			# -- reconciliation data for client's local version
 			if multiplayer.is_server() and (current_tick % update_remote_modulo == 0):
-				sync_player_state.rpc(
-						id,
-						_player.player_controller.get_player_state( current_tick ).serialize()
-					)
+				var _state = _player.player_controller.get_player_state( current_tick )
+				if _state.tick > 0:
+					sync_player_state.rpc(
+							id,
+							_state.serialize()
+						)
 	# -- this is used for smoothly moving remote copies
 	fract_tick = _timer / TICK_RATE
 

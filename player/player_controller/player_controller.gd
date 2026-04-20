@@ -195,6 +195,8 @@ const POS_TOLERANCE: float = 5.0 # in pixels
 #const ROT_TOLERANCE: float = 0.06 # in radians (i.e. about 3.5 degrees)
 
 func reconcile(host_state: PlayerState):
+	if host_state.tick <= 0:
+		return
 	#var index = get_circular_index(host_state.tick)
 	var stored_state = reconciliation_state_buffer[get_circular_index(host_state.tick)]
 

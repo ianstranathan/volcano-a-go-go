@@ -95,7 +95,6 @@ func on_item_stopped():
 	$MovementOverrideComponent.finish()
 
 
-# -- client who has authority over this player calls this to everyone
 #@rpc("authority", "call_local", "reliable")
 #func _sync_destruction():
 	#call_deferred("queue_free")
@@ -156,7 +155,7 @@ func get_closest_corner() -> Vector2:
 	var min_dist = INF
 
 	for corner in corners:
-		# Only consider corners LOWER than the point
+		# -- this is a heuristic FIXME
 		if corner.y < local_point.y:
 			continue
 
@@ -165,7 +164,7 @@ func get_closest_corner() -> Vector2:
 			min_dist = dist
 			closest_corner = corner
 
-	# Fallback: if none were below, just use normal closest
+	# -- corner wasn't found fallback
 	if closest_corner == null:
 		for corner in corners:
 			var dist = local_point.distance_squared_to(corner)
@@ -183,16 +182,9 @@ func initialize_grapple( intersection_pos: Vector2, collider: CollisionObject2D)
 	update_pivot( intersection_pos )
 
 
-#func update_pivot(new_pivot_point: Vector2):
-	#pivot_points_stack.append(new_pivot_point)
-	#target_pos = new_pivot_point
-	#rest_length = (target_pos - player_ref.global_position).length()
-	#wrap_corner_pos = get_closest_corner()
 var wrap_directions_stack: Array[float] # Stores 1 or -1
 var wrap_angles_stack: Array[float]
-func update_pivot(new_pivot_point: Vector2):
-	
-	#var  
+func update_pivot(new_pivot_point: Vector2): 
 	if pivot_points_stack.size() > 0:
 		var angle_to_player = (player_ref.global_position - new_pivot_point).angle()
 		wrap_angles_stack.append(angle_to_player)
@@ -251,7 +243,10 @@ func handle_grapple(delta):
 			# For simplicity, here is the pop logic:
 			if check_unwrap_condition(diff): 
 				unwrap_pivot()
-				
+	
+	# -- FIXME TODO
+	# -- player can tunnel through platform if rest length bug (wrong corner was)
+	# -- decided
 	if current_dist > rest_length:
 		player_ref.global_position = target_pos - (target_dir * rest_length)
 		
@@ -270,7 +265,7 @@ func handle_grapple(delta):
 func set_player_ref(p: Player) -> void:
 	player_ref = p
 	
-	
+# ---------------------------------------------------------------- DEBUG Drawing
 #func _draw():
 	#if is_grappling:
 		##var active_pivot = pivot_points_stack.back()
