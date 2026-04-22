@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ba5khv4uf4vm0" path="res://lava_body/lavable_body.gd" id="1_dg4h2"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_xobjf"]
-[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://placeholders/palceholder_platform/placeholder_platform.gdshader" id="2_yn4me"]
+[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://platforms/palceholder_platform/placeholder_platform.gdshader" id="2_yn4me"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_yn4me"]
 size = Vector2(128, 128)

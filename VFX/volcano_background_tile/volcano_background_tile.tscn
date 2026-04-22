@@ -1,0 +1,29 @@
+[gd_scene load_steps=9 format=3 uid="uid://cgxsk88yiod3e"]
+
+[ext_resource type="Script" uid="uid://346hoi575vnn" path="res://VFX/volcano_background_tile/volcano_background_tile.gd" id="1_r5xer"]
+[ext_resource type="Shader" uid="uid://cw2joqlxm1yit" path="res://VFX/volcano_background_tile/volcano_background_tile.gdshader" id="2_3upxm"]
+[ext_resource type="Texture2D" uid="uid://g832rt407u8f" path="res://assets/luke_background_0.png" id="2_jqq0j"]
+[ext_resource type="Texture2D" uid="uid://boh752oaa4a6x" path="res://assets/PBR textures/Lava_01_basecolor-1K.png" id="3_5s8sw"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="4_obf0s"]
+[ext_resource type="Texture2D" uid="uid://cs5x25roea0b3" path="res://assets/PBR textures/Rocks011_2K-JPG_NormalGL.jpg" id="5_tc4dp"]
+[ext_resource type="Texture2D" uid="uid://opy7dao8ejop" path="res://assets/PBR textures/Rocks011_1K-PNG_Color.png" id="6_5s8sw"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vgvlu"]
+shader = ExtResource("2_3upxm")
+shader_parameter/noise_tex = ExtResource("4_obf0s")
+shader_parameter/normal_map = ExtResource("5_tc4dp")
+shader_parameter/rock_tex = ExtResource("6_5s8sw")
+shader_parameter/magma_tex = ExtResource("3_5s8sw")
+
+[node name="VolcanoBackground" type="Node2D"]
+script = ExtResource("1_r5xer")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+z_index = -100
+z_as_relative = false
+texture_filter = 1
+texture_repeat = 2
+material = SubResource("ShaderMaterial_vgvlu")
+texture = ExtResource("2_jqq0j")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]

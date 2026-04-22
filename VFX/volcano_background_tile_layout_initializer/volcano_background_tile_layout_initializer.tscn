@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cfatrcj3roxry"]
+
+[ext_resource type="Script" uid="uid://calooaiugr3ac" path="res://VFX/volcano_background_tile_layout_initializer/volcano_background_tile_layout_initializer.gd" id="1_ef8fr"]
+
+[node name="VolcanoBackgroundTileLayoutInitializer" type="Node2D"]
+script = ExtResource("1_ef8fr")

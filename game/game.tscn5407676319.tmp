@@ -58,11 +58,11 @@ coll_extents = Vector2(200, 50)
 
 [node name="RH_Boundary" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
 position = Vector2(2278, -405)
-coll_extents = Vector2(200, 10000)
+coll_extents = Vector2(200, 2000)
 
 [node name="LH_Boundary" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
 position = Vector2(-2868, -405)
-coll_extents = Vector2(200, 10000)
+coll_extents = Vector2(200, 2000)
 
 [node name="LH_WALL" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
 position = Vector2(-372, -236)
@@ -90,6 +90,7 @@ coll_extents = Vector2(200, 50)
 
 [node name="WindGustLift" parent="WorldGeometry" instance=ExtResource("5_j8tme")]
 position = Vector2(-1039, -441)
+coll_extents = Vector2(1000, 10000)
 
 [node name="ANGLED" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
 position = Vector2(146.00003, -1336)
@@ -105,26 +106,6 @@ sync_extents = Vector2(400, 400)
 
 [node name="PlaceholderPlatform7" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
 position = Vector2(1158, -1981)
-coll_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform8" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(1765, -970)
-coll_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform9" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(1841, -2739)
-coll_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform10" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(335, -2739)
-coll_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform11" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(335, -2739)
-coll_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform12" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(-425, -3627)
 coll_extents = Vector2(400, 400)
 
 [node name="AnimatedPlaceholderPlatform" parent="WorldGeometry" node_paths=PackedStringArray("path_follow") instance=ExtResource("8_4cobl")]
