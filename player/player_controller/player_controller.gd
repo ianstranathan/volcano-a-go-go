@@ -22,7 +22,7 @@ state variables agree to within a certain margin)
 var controller: LocalPlayerController
 
 # -- so we're keeping 60 ticks, or 1 second a 60hz physics sim
-var input_and_state_buffer_size: int = 240
+var input_and_state_buffer_size: int = 480
 var command_history_buffer: Array[PlayerCommand] = []
 var reconciliation_state_buffer: Array[PlayerState] = []
 
@@ -215,7 +215,7 @@ func reconcile(host_state: PlayerState):
 	if stored_state.tick != host_state.tick or stored_state.tick == -1:
 		print("Reconcile check: Stored: ", stored_state.tick, " Host: ", host_state.tick)
 		# -- small mismatch
-		if abs(stored_state.tick - host_state.tick) <= 12:
+		if abs(stored_state.tick - host_state.tick) <= 15:
 			# -- we are searching for a matching tick
 			# -- outwardly from this tick, i.e. one tick less, one tick moree
 			# -- then two ticks less and two ticks more...

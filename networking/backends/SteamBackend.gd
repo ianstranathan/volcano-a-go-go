@@ -12,7 +12,6 @@ which forces byte arithmetic to make an avatar
 signal connection_failed
 signal avatar_ready(steam_id, texture)
 
-var _pending_avatar_retries: Dictionary = {}
 var current_lobby_id # -- Steam.createLobby returns a lobby_id
 var LOBBY_KEY = "Volcano-Go-Go"
 
@@ -164,7 +163,7 @@ func _create_texture_from_raw_data(_steam_id: int, width: int, buffer: Array) ->
 	var p_id = multiplayer.get_unique_id() if _steam_id == Steam.getSteamID() else peer.get_peer_id_for_steam_id(_steam_id)
 	avatar_ready.emit(p_id, texture)
 
-
+#var _pending_avatar_retries: Dictionary = {}
 #func _retry_avatar_request(peer_id: int) -> void:
 	#if _pending_avatar_retries.has(peer_id):
 		#return

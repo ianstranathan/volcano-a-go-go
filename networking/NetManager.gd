@@ -13,7 +13,7 @@ signal player_info_updated(id: int, player_name: String, spawn_index: int)
 # -----------------------------------------------------------------
 var player_instances_by_player_id  := {}
 var player_data := {} 
-const INPUT_BUFFER_SIZE = 240 # Store 4 seconds of inputs
+const INPUT_BUFFER_SIZE = 480 # Store 4 seconds of inputs
 var remote_input_buffers := {} # -- future command buffers per client
 
 # ---------------------------------------------------------- other stuff to tick
@@ -280,7 +280,7 @@ func get_median_drift(_tick: int, new_sample:float) -> float:
 func update_average_offset(host_tick: int):
 	# -- clock snap if there's a massive desync
 	var current_error = tick_error()
-	if abs(current_error) > 24: # -- arbitrarily choosing 12 in reconcile, so
+	if abs(current_error) > 30: # -- arbitrarily choosing 15 in reconcile, so
 		print("Massive clock drift detected (", current_error, "). Snapping clock.")
 		local_resync_to_host(host_tick)
 		return
