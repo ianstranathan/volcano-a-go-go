@@ -72,6 +72,12 @@ func tick_update(delta: float, cmd: PlayerCommand):
 				# -- send to everyone but yourself and the host
 				set_target_on_interpolated.rpc( target_pos )
 				$MovementOverrideComponent.start()
+				if is_multiplayer_authority() and not player_ref.is_replaying:
+					Events.emit_signal("play_world_sound",
+										AudioDb.WorldSoundId.HOOKSHOT_FIRE,
+										global_position,
+										{}
+)
 		else:
 			on_item_stopped()
 	

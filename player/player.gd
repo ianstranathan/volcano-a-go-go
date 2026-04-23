@@ -226,7 +226,13 @@ func do_jump(jump_type):
 							#true if last_wall_normal.x < 0 else false)
 			
 	movement_state_transition_to(MovementStates.JUMPING)
-
+	
+	Events.emit_signal(
+						"play_world_sound",
+						AudioDb.WorldSoundId.JUMP,
+						global_position,
+						{}
+	)
 
 func coyote_time_resolution() -> void:
 	# the transition should only happen if we're coming from a certain set
@@ -695,6 +701,10 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						Effects.EffectNames.LANDING_SMOKE, 
 						global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
 						false)
+					Events.emit_signal("play_world_sound",
+										AudioDb.WorldSoundId.JUMP_LAND,
+										global_position,
+										{})
 			MovementStates.WALL_SLIDING:
 				match new_movement_state:
 					MovementStates.JUMPING:

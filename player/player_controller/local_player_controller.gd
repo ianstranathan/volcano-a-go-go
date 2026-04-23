@@ -6,7 +6,7 @@ signal aim_input_detected
 signal inventory_slot_selected(slot_index: int)
 
 var pending_command := PlayerCommand.new()
-
+var input_blocked: bool = false
 
 enum InputSourceType{
 	CONTROLLER,
@@ -17,7 +17,22 @@ var current_input_source: InputSourceType = InputSourceType.CONTROLLER
 
 const DEADZONE := 0.1
 
+func _ready() -> void:
+	Events.input_blocked.connect(func(blocked: bool) -> void: input_blocked = blocked
+	)
+	
 func update_command(player_command_ref: PlayerCommand, _delta):
+	#@Ian, im pretty sure i had to pass neutral data to block input. this works
+	#take a look if theres a better way
+	if input_blocked:
+		player_command_ref.move_input = Vector2.ZERO
+		player_command_ref.jump_pressed = false
+		player_command_ref.jump_released = false
+		player_command_ref.aiming_input = global_position
+		player_command_ref.using_controller = is_using_controller()
+		player_command_ref.item_use_pressed = false
+		return
+		
 	player_command_ref.move_input = movement_vector()
 	player_command_ref.jump_pressed = just_pressed_action("jump")
 	player_command_ref.jump_released = just_released_action("jump")
@@ -27,6 +42,9 @@ func update_command(player_command_ref: PlayerCommand, _delta):
 
 
 func _input(event: InputEvent) -> void:
+	if input_blocked:
+		return
+		
 	inventory_slot_input(event)
 	# -------------------------------------- change controller types
 	if (current_input_source == InputSourceType.CONTROLLER and

@@ -21,3 +21,11 @@ signal world_effect( player_id: int, effect_type: Effects.EffectNames, pos: Vect
 signal inventory_changed(item_db_enums: Array,
 						selected_index: int, 
 						special_item)
+#-- Block Player Input
+signal input_blocked(blocked: bool)
+
+# -- AudioManager connects to these signals in its _ready
+signal play_local_sound(sound_id: int, volume_db_offset: float, pitch_scale_mult: float)
+signal play_music(track_id: int)
+signal stop_music()
+signal play_world_sound(sound_id: int, world_position: Vector2, adjustments: Dictionary)

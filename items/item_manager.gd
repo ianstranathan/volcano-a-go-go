@@ -104,6 +104,9 @@ func select_inventory_slot(slot_index: int) -> void:
 		return
 
 	last_selected_slot = slot_index
+	Events.emit_signal("play_local_sound", AudioDb.LocalSoundId.HOTBAR_TICK, 
+											0.0, 
+											randf_range(0.98, 1.02))#pitch variation
 	# -- only do the equip logic if there's an item
 	if inventory_items[slot_index] != null:
 		equip_item_at.rpc(slot_index)

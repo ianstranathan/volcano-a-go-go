@@ -54,6 +54,8 @@ func _ready():
 	# ------------------------------------------------------- UI hookups
 	ui.game_ref = self
 	
+	#Rock and Roll
+	Events.emit_signal("play_music", AudioDb.MusicTrackId.GAMEPLAY)
 	# --------------- TEST
 	$WorldGeometry/FallingPlatform.lava_ref = $WorldGeometry/Lava
 	

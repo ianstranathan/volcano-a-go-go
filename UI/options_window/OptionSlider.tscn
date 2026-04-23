@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3 uid="uid://ubeieqgoy7v1"]
+
+[ext_resource type="Script" uid="uid://b0om3qtscm8xt" path="res://UI/options_window/option_slider.gd" id="1_41rnc"]
+
+[node name="OptionSlider" type="HBoxContainer"]
+script = ExtResource("1_41rnc")
+
+[node name="NameLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Setting"
+
+[node name="Slider" type="HSlider" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+step = 5.0
+tick_count = 18
+ticks_on_borders = true
+
+[node name="ValueLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "100%"

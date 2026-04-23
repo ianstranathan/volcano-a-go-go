@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=17 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -15,6 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://s7qk4ylbme1f" path="res://assets/parachute.svg" id="12_hb504"]
 [ext_resource type="PackedScene" uid="uid://btg4x06vjsk5q" path="res://UI/UI.tscn" id="14_b686c"]
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
+[ext_resource type="PackedScene" uid="uid://dkb4hsfhvjgih" path="res://UI/options_window/options_window.tscn" id="16_ee6o4"]
 
 [node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "pickup_items_container", "spawned_items_container")]
 position = Vector2(2, 0)
@@ -139,3 +140,5 @@ script = ExtResource("11_3vho3")
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="Ui" parent="CanvasLayer" instance=ExtResource("14_b686c")]
+
+[node name="OptionsWindow" parent="CanvasLayer" instance=ExtResource("16_ee6o4")]

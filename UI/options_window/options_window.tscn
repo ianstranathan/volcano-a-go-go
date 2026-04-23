@@ -1,0 +1,119 @@
+[gd_scene load_steps=4 format=3 uid="uid://dkb4hsfhvjgih"]
+
+[ext_resource type="Script" uid="uid://byry74fj0hegv" path="res://UI/options_window/options_window.gd" id="1_4ten8"]
+[ext_resource type="PackedScene" uid="uid://ubeieqgoy7v1" path="res://UI/options_window/OptionSlider.tscn" id="2_2aqy6"]
+[ext_resource type="Script" uid="uid://bci6dgnnha4aj" path="res://UI/options_window/audio.gd" id="2_lfprw"]
+
+[node name="OptionsWindow" type="CanvasLayer"]
+script = ExtResource("1_4ten8")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dimmer" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.23529412)
+
+[node name="CenterContainer" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WindowPanel" type="PanelContainer" parent="Root/CenterContainer"]
+custom_minimum_size = Vector2(350, 350)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Root/CenterContainer/WindowPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="WindowVBox" type="VBoxContainer" parent="Root/CenterContainer/WindowPanel/Margin"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox"]
+layout_mode = 2
+text = "Options"
+horizontal_alignment = 1
+
+[node name="Tabs" type="TabContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox"]
+layout_mode = 2
+tab_alignment = 1
+current_tab = 0
+
+[node name="General" type="MarginContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs"]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="GeneralVBox" type="VBoxContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/General"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/General/GeneralVBox"]
+layout_mode = 2
+text = "- Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+-Curabitur semper tortor vel euismod blandit.
+-Proin vitae est pellentesque, auctor dolor sed, dictum ipsum.
+-Maecenas mattis velit ac arcu volutpat, et finibus nulla blandit.
+-Donec ut ex ac leo mattis pretium."
+
+[node name="OptionSlider" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/General/GeneralVBox" instance=ExtResource("2_2aqy6")]
+layout_mode = 2
+
+[node name="OptionSlider2" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/General/GeneralVBox" instance=ExtResource("2_2aqy6")]
+layout_mode = 2
+
+[node name="Audio" type="MarginContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs"]
+visible = false
+layout_mode = 2
+script = ExtResource("2_lfprw")
+metadata/_tab_index = 1
+
+[node name="AudioVBox" type="VBoxContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/Audio"]
+layout_mode = 2
+
+[node name="MasterRow" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/Audio/AudioVBox" instance=ExtResource("2_2aqy6")]
+layout_mode = 2
+label_text = "Master"
+
+[node name="MusicRow" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/Audio/AudioVBox" instance=ExtResource("2_2aqy6")]
+layout_mode = 2
+label_text = "Music"
+
+[node name="EffectsRow" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/Audio/AudioVBox" instance=ExtResource("2_2aqy6")]
+layout_mode = 2
+label_text = "Effects"
+
+[node name="UIRow" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/Audio/AudioVBox" instance=ExtResource("2_2aqy6")]
+layout_mode = 2
+label_text = "UI"
+
+[node name="Input" type="MarginContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="InputVbox" type="VBoxContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/Input"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/Input/InputVbox"]
+layout_mode = 2
+text = "-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+-Curabitur semper tortor vel euismod blandit.
+-Proin vitae est pellentesque, auctor dolor sed, dictum ipsum.
+-Maecenas mattis velit ac arcu volutpat, et finibus nulla blandit.
+-Donec ut ex ac leo mattis pretium."
