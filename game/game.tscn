@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=18 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -12,7 +12,6 @@
 [ext_resource type="PackedScene" uid="uid://csxlguu7f4gt6" path="res://items/pickup_item/pickup_item.tscn" id="9_vsp63"]
 [ext_resource type="Texture2D" uid="uid://dh12276y8fv5y" path="res://assets/hookshot.svg" id="10_vsp63"]
 [ext_resource type="Script" uid="uid://c1o22ooao6lq" path="res://game/spawned_items.gd" id="11_3vho3"]
-[ext_resource type="Texture2D" uid="uid://c4oflmcqxtgy3" path="res://assets/grappling_hook.svg" id="11_b686c"]
 [ext_resource type="Texture2D" uid="uid://s7qk4ylbme1f" path="res://assets/parachute.svg" id="12_hb504"]
 [ext_resource type="PackedScene" uid="uid://btg4x06vjsk5q" path="res://UI/UI.tscn" id="14_b686c"]
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
@@ -163,11 +162,27 @@ item_lookup = 1
 _texture = ExtResource("10_vsp63")
 
 [node name="PickupItem2" parent="PickupItems" instance=ExtResource("9_vsp63")]
-position = Vector2(-380, 0)
-_texture = ExtResource("11_b686c")
+position = Vector2(-771, 0)
+item_lookup = 1
+_texture = ExtResource("10_vsp63")
 
 [node name="PickupItem3" parent="PickupItems" instance=ExtResource("9_vsp63")]
 position = Vector2(-125, -214)
+item_lookup = 2
+_texture = ExtResource("12_hb504")
+
+[node name="PickupItem4" parent="PickupItems" instance=ExtResource("9_vsp63")]
+position = Vector2(908, 0)
+item_lookup = 1
+_texture = ExtResource("10_vsp63")
+
+[node name="PickupItem5" parent="PickupItems" instance=ExtResource("9_vsp63")]
+position = Vector2(286, -7)
+item_lookup = 2
+_texture = ExtResource("12_hb504")
+
+[node name="PickupItem6" parent="PickupItems" instance=ExtResource("9_vsp63")]
+position = Vector2(-563, -153)
 item_lookup = 2
 _texture = ExtResource("12_hb504")
 

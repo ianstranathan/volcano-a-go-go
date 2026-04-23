@@ -12,6 +12,7 @@ which forces byte arithmetic to make an avatar
 signal connection_failed
 signal avatar_ready(steam_id, texture)
 
+var _pending_avatar_retries: Dictionary = {}
 var current_lobby_id # -- Steam.createLobby returns a lobby_id
 var LOBBY_KEY = "Volcano-Go-Go"
 
@@ -97,15 +98,41 @@ var avatar_request_handles: Dictionary = {} # -- request ptr to steam id
 
 
 func request_avatar(peer_id: int) -> void:
+	# Steam.getSteamID() docs:
+	# Gets the Steam ID (ID64) of the account currently logged into the Steam client. 
+	# This is commonly called the 'current user', or 'local user'.
 	var _steam_id = Steam.getSteamID() if peer_id == multiplayer.get_unique_id() else peer.get_steam_id_for_peer_id(peer_id)
-	if _steam_id == 0 or avatar_img_cache.has(_steam_id): return
 
+	# -- short circuit if we've already made the texture in the avatar callback
+	if avatar_img_cache.has(_steam_id):
+		avatar_ready.emit(peer_id, avatar_img_cache[_steam_id])
+		return
+
+	# -- this is just a safety wait, keeps trying until steam's been
+	# -- fully intialized
+	# -- bad design though, should wait until steam is set up before ever
+	# -- trying this (see NetManager)
+	
+	if _steam_id != 0:
+		if _avatar_retry_counts.has(peer_id):
+			_avatar_retry_counts.erase(peer_id)
+	else:
+		_retry_avatar_request(peer_id)
+		return
+		
+	#if _steam_id == 0:
+		#_retry_avatar_request(peer_id)
+		#return
+
+	# -- Steam.getMediumFriendAvatar returns immediately 
+	# -- or triggers avatar_loaded later
 	var handle = Steam.getMediumFriendAvatar(_steam_id)
 	if handle > 0: 
 		_create_texture_from_raw_data(_steam_id,
 									  Steam.getImageSize(handle)["width"],
 									  Steam.getImageRGBA(handle)["buffer"])
 	else:
+		# -- get an key to have for the callback in on_avatar_loaded
 		avatar_request_handles[handle] = _steam_id
 
 
@@ -137,14 +164,51 @@ func _create_texture_from_raw_data(_steam_id: int, width: int, buffer: Array) ->
 	var p_id = multiplayer.get_unique_id() if _steam_id == Steam.getSteamID() else peer.get_peer_id_for_steam_id(_steam_id)
 	avatar_ready.emit(p_id, texture)
 
-#func _create_texture_from_raw_data(_steam_id: int, size: int, buffer: Array) -> void:
-	#if buffer.is_empty():
+
+#func _retry_avatar_request(peer_id: int) -> void:
+	#if _pending_avatar_retries.has(peer_id):
 		#return
-	#var byte_array = PackedByteArray(buffer)
-	#var image = Image.create_from_data(size, size, false, Image.FORMAT_RGBA8, byte_array)
-	#var texture = ImageTexture.create_from_image(image)
-	#avatar_img_cache[_steam_id] = texture
-	#
-	## Find peer_id to tell the UI where to put the face
-	#var p_id = multiplayer.get_unique_id() if _steam_id == Steam.getSteamID() else peer.get_peer_id_for_steam_id(_steam_id)
-	#avatar_ready.emit(p_id, texture)
+	#_pending_avatar_retries[peer_id] = true
+	#call_deferred("_retry_avatar_request_deferred", peer_id)
+#
+#
+#func _retry_avatar_request_deferred(peer_id: int) -> void:
+	#await get_tree().create_timer(0.2).timeout
+	#_pending_avatar_retries.erase(peer_id)
+	#request_avatar(peer_id)
+var _avatar_retry_counts: Dictionary = {}
+
+func _retry_avatar_request(peer_id: int) -> void:
+	# 1. Initialize the counter if this is the first attempt
+	if not _avatar_retry_counts.has(peer_id):
+		_avatar_retry_counts[peer_id] = 0
+	
+	# 2. Increment and check for a "Hard Stop"
+	_avatar_retry_counts[peer_id] += 1
+	
+	if _avatar_retry_counts[peer_id] > 25: # Bail after ~5 seconds
+		print("Avatar Request: Max retries reached for peer ", peer_id)
+		_avatar_retry_counts.erase(peer_id)
+		# OPTIONAL: emit a default "No Avatar" texture here
+		return
+
+	# 3. Use call_deferred to jump out of the current call stack
+	call_deferred("_retry_avatar_request_deferred", peer_id)
+
+
+func _retry_avatar_request_deferred(peer_id: int) -> void:
+	await get_tree().create_timer(0.2).timeout
+	
+	# 4. Peer Validation: Stop if they are gone
+	if not multiplayer.get_peers().has(peer_id) and peer_id != multiplayer.get_unique_id():
+		_avatar_retry_counts.erase(peer_id)
+		return
+
+	# 5. Call request_avatar again
+	# We DON'T erase the retry count here; request_avatar will call 
+	# _retry_avatar_request again if it still fails, incrementing the count.
+	request_avatar(peer_id)
+
+	# 6. Success Cleanup
+	# In your request_avatar() function, if it SUCCEEDS, 
+	# you MUST call _avatar_retry_counts.erase(peer_id)

@@ -64,7 +64,7 @@ func host(player_name: String):
 	NetManager.player_data[1] = NetManager.create_player_entry(player_name, 0)
 	active_backend.host()
 	NetManager.player_info_updated.emit(1, player_name, 0)
-
+	
 
 func join(player_name: String):
 	# -- the rest of initialization in NetManager is through a callback on
@@ -91,4 +91,7 @@ func using_enet() -> bool:
 
 
 func get_avatar( id:int ) -> void:
+	# -- so this will percolate to lobby, through 
+	# -- signal avatar_received(peer_id, image_texture)
 	active_backend.request_avatar( id )
+	
