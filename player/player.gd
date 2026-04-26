@@ -226,13 +226,14 @@ func do_jump(jump_type):
 							#true if last_wall_normal.x < 0 else false)
 			
 	movement_state_transition_to(MovementStates.JUMPING)
+	if is_multiplayer_authority() and not is_replaying:
+		Events.emit_signal(
+							"play_world_sound",
+							AudioDb.WorldSoundId.JUMP,
+							global_position,0,randf_range(0.8, 1.20),
+							{}
+		)
 	
-	Events.emit_signal(
-						"play_world_sound",
-						AudioDb.WorldSoundId.JUMP,
-						global_position,0,randf_range(0.8, 1.20),
-						{}
-	)
 
 func coyote_time_resolution() -> void:
 	# the transition should only happen if we're coming from a certain set

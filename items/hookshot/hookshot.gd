@@ -58,7 +58,7 @@ func tick_update(delta: float, cmd: PlayerCommand):
 				if is_multiplayer_authority() and not player_ref.is_replaying:
 					Events.emit_signal("play_world_sound",
 										AudioDb.WorldSoundId.HOOKSHOT_FIRE,
-										global_position,0,1,
+										target_pos,0,1,
 										{})
 		else:
 			on_item_stopped()
