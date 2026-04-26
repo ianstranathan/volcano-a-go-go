@@ -1,10 +1,10 @@
 [gd_scene load_steps=9 format=3 uid="uid://dcuknsfjt8mbc"]
 
-[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://placeholders/palceholder_platform/placeholder_platform.gdshader" id="1_5ydsn"]
+[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://platforms/palceholder_platform/placeholder_platform.gdshader" id="1_5ydsn"]
 [ext_resource type="Script" uid="uid://c0p33tl8kpqrn" path="res://platforms/falling_platform/falling_platform.gd" id="1_igbuq"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_igbuq"]
 [ext_resource type="PackedScene" uid="uid://j2as0dklypue" path="res://platforms/coll_sprite_matcher.tscn" id="3_0ptkl"]
-[ext_resource type="Script" uid="uid://dtfq1nc2xw" path="res://platforms/moveable_component.gd" id="4_w4aup"]
+[ext_resource type="Script" uid="uid://dtfq1nc2xw" path="res://platforms/falling_platform_component.gd" id="4_w4aup"]
 [ext_resource type="Script" uid="uid://40mnitwh447v" path="res://platforms/lava_floating_component.gd" id="6_0ptkl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0ptkl"]
@@ -15,10 +15,11 @@ resource_local_to_scene = true
 shader = ExtResource("1_5ydsn")
 shader_parameter/source_col = Color(0.5, 0.5, 0.5, 1)
 
-[node name="FallingPlatform" type="AnimatableBody2D" groups=["lava-bodies"]]
+[node name="FallingPlatform" type="AnimatableBody2D" node_paths=PackedStringArray("falling_platform_component") groups=["lava-bodies"]]
 collision_layer = 4
 collision_mask = 7
 script = ExtResource("1_igbuq")
+falling_platform_component = NodePath("falling_platform_component")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -1)
@@ -34,9 +35,9 @@ body = NodePath("..")
 color = Color(0.8234346, 0.152709, 0.6924257, 1)
 coll_extents = Vector2(100, 100)
 
-[node name="moveable_component" type="Node2D" parent="."]
+[node name="falling_platform_component" type="Node2D" parent="."]
 script = ExtResource("4_w4aup")
 
 [node name="lava_floating_component" type="Node2D" parent="." node_paths=PackedStringArray("moveable_component_ref")]
 script = ExtResource("6_0ptkl")
-moveable_component_ref = NodePath("../moveable_component")
+moveable_component_ref = NodePath("../falling_platform_component")

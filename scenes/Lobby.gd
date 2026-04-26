@@ -23,7 +23,7 @@ func _ready() -> void:
 	# --------------------------------------------------- button connections
 	steam_checkbox.toggled.connect( func(b):
 		if b:
-			print(b)
+			#print(b)
 			NetworkGateway.switch_to_backend(NetworkGateway.BackendType.STEAM))
 	host_btn.pressed.connect(_on_host_pressed)
 	join_btn.pressed.connect(_on_join_pressed)
@@ -34,7 +34,7 @@ func _ready() -> void:
 func _on_host_pressed() -> void:
 	var player_name = name_input.text.strip_edges()
 	if player_name.is_empty():
-		player_name = "Boss Man Host"
+		player_name = "Der Host"
 	
 	NetworkGateway.host(player_name)
 	
@@ -50,7 +50,8 @@ func _on_join_pressed() -> void:
 	NetworkGateway.join(player_name)
 	status_label.text = NetworkGateway.get_join_text()
 	_update_ui_state()
-	
+
+
 #------------------------------------------------------------------------------
 func _on_leave_pressed() -> void:
 	NetworkGateway.leave()
@@ -120,12 +121,13 @@ func _clear_all_slots() -> void:
 
 
 func on_avatar_received(peer_id: int, tex: ImageTexture):
-	# Use a callable with 'call_deferred' to ensure the SceneTree is updated
+	# -- 'call_deferred' to ensure the SceneTree is updated
+	# -- otherwise the network callback will happen before the UI update
 	apply_avatar.call_deferred(peer_id, tex)
 
 
 func apply_avatar(peer_id: int, tex: ImageTexture):
-	if id_to_avatar_tex_rect.size() == 0:
+	if not id_to_avatar_tex_rect.has(peer_id):
 		return
 	id_to_avatar_tex_rect[ peer_id ].texture = tex
 
@@ -139,9 +141,10 @@ func _create_slot(peer_id: int) -> PanelContainer:
 	slot.add_child(hbox)
 	
 	# -------------------------------------------------------------------------
-	NetworkGateway.get_avatar( peer_id ) # -- callback eventually to on_avatar_received
+	# -- this eventually gets filled from a callback
 	var avatar_rect = TextureRect.new()
 	id_to_avatar_tex_rect[ peer_id ] = avatar_rect # -- to reference in callback
+	#print(id_to_avatar_tex_rect)
 	avatar_rect.name = "Avatar_" + str(peer_id) 
 	avatar_rect.custom_minimum_size = Vector2(40, 40)
 	avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

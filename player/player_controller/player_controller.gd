@@ -22,7 +22,7 @@ state variables agree to within a certain margin)
 var controller: LocalPlayerController
 
 # -- so we're keeping 60 ticks, or 1 second a 60hz physics sim
-var input_and_state_buffer_size: int = 240
+var input_and_state_buffer_size: int = 480
 var command_history_buffer: Array[PlayerCommand] = []
 var reconciliation_state_buffer: Array[PlayerState] = []
 
@@ -35,7 +35,7 @@ var last_command_executed: PlayerCommand = PlayerCommand.new()
 var last_confirmed_tick: int = -1
 
 var recent_cmds: Array[PlayerCommand] = []
-var recent_cmd_range := 5 # -- we're sending 5 commands or 105 bytes to host every tick
+var recent_cmd_range := 12 # -- we're sending 5 commands or 105 bytes to host every tick
 
 # -- NOTE
 # -- This requires the spawning logic to give authority to a node before
@@ -50,9 +50,22 @@ func _ready() -> void:
 	command_history_buffer.resize( input_and_state_buffer_size )
 	reconciliation_state_buffer.resize( input_and_state_buffer_size )
 	interpolation_buffer.resize( interpolation_buffer_size )
-	
 	recent_cmds.resize(recent_cmd_range)
+	
+	reset_all_buffers()
 	# -- initialize the circular buffers
+	#for i in range(input_and_state_buffer_size):
+		#command_history_buffer[i] = PlayerCommand.new()
+		#reconciliation_state_buffer[i] = PlayerState.new()
+		#
+		## -- size recent cmd buffer
+		#if i < recent_cmd_range:
+			#recent_cmds[i] = PlayerCommand.new()
+		#if i < interpolation_buffer_size:
+			#interpolation_buffer[i] = PlayerState.new()
+
+
+func reset_all_buffers():
 	for i in range(input_and_state_buffer_size):
 		command_history_buffer[i] = PlayerCommand.new()
 		reconciliation_state_buffer[i] = PlayerState.new()
@@ -62,9 +75,6 @@ func _ready() -> void:
 			recent_cmds[i] = PlayerCommand.new()
 		if i < interpolation_buffer_size:
 			interpolation_buffer[i] = PlayerState.new()
-		
-	# -- 
-	
 
 
 func get_player_state( a_tick: int) -> PlayerState:
@@ -113,8 +123,10 @@ func on_tick_generated(tick: int, delta: float):
 			# -- get last 5 commands from existing command history
 			var check_tick = tick - i # i is zero we're at tick, i is -5, we're 5 cmds back
 			if check_tick > 0: # -- only do this if it's a valid tick
-				var _idx = check_tick % recent_cmd_range
-				recent_cmds[_idx] = command_history_buffer[get_circular_index(check_tick)]
+				# -- is this actually aligned to tick modulo?
+				#var _idx = check_tick % recent_cmd_range
+				#recent_cmds[_idx] = command_history_buffer[get_circular_index(check_tick)]
+				recent_cmds[i] = command_history_buffer[get_circular_index(check_tick)]
 		#print("Client sending state for: ", current_command.tick)
 		# -- send the command to the host for it to move its remote copies
 		# -- and tell the other players that this player moved
@@ -200,10 +212,28 @@ func reconcile(host_state: PlayerState):
 	#var index = get_circular_index(host_state.tick)
 	var stored_state = reconciliation_state_buffer[get_circular_index(host_state.tick)]
 
-	if stored_state.tick != host_state.tick:
+	if stored_state.tick != host_state.tick or stored_state.tick == -1:
 		print("Reconcile check: Stored: ", stored_state.tick, " Host: ", host_state.tick)
-		return
-		
+		# -- small mismatch
+		if abs(stored_state.tick - host_state.tick) <= 15:
+			# -- we are searching for a matching tick
+			# -- outwardly from this tick, i.e. one tick less, one tick moree
+			# -- then two ticks less and two ticks more...
+			var found = false
+			for i in range(1, 15):
+				for offset in [-i, i]:
+					var t = host_state.tick + offset
+					var idx = get_circular_index(t)
+					if reconciliation_state_buffer[idx].tick == t:
+						stored_state = reconciliation_state_buffer[idx]
+						found = true
+						break
+				if found:
+					break
+			if not found:
+				hard_reset(host_state)
+				return
+
 	# -- reconciliation tolerances
 	var pos_error = stored_state.pos.distance_to(host_state.pos)
 	#var rot_error = abs(angle_difference(stored_state.rot, host_state.rot))
@@ -212,7 +242,7 @@ func reconcile(host_state: PlayerState):
 		#rot_error > ROT_TOLERANCE or 
 		stored_state.movement_state != host_state.movement_state
 	)
-	
+
 	if needs_reconciled:
 		print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
 		player.global_position = host_state.pos
@@ -230,16 +260,35 @@ func reconcile(host_state: PlayerState):
 		# -- all the way up to present
 		var replay_tick = host_state.tick + 1
 		
+		# -- add a flag so sounds and other stuff don't play while reconciling
 		player.is_replaying = true
 		while replay_tick <= NetManager.current_tick:
 			var r_idx = get_circular_index(replay_tick)
 			var cmd = command_history_buffer[r_idx]
+
+			# -- fallback gaurds
+			if cmd.tick != replay_tick:
+				if last_command_executed.tick > 0:
+					cmd = last_command_executed
+				else:
+					cmd = PlayerCommand.new()
 			
-			# -- add a flag so sounds and other stuff don't play while reconciling
-			
+			# -- we always do a thing then save it
 			player.execute_tick(TICK_RATE, cmd)
-			# -- correct this record
+			last_command_executed = cmd
 			reconciliation_state_buffer[r_idx].set_state(player, replay_tick)
-			#print("reconciling")
+
 			replay_tick += 1
 		player.is_replaying = false
+
+
+func hard_reset(host_state: PlayerState):
+	player.global_position = host_state.pos
+	player.velocity = host_state.vel
+	player.movement_state = host_state.movement_state as Player.MovementStates
+	NetManager.local_resync_to_host(host_state.tick)
+	reset_all_buffers()
+	last_command_executed = PlayerCommand.new()
+	last_confirmed_tick = host_state.tick
+	reconciliation_state_buffer[get_circular_index(host_state.tick)].set_state(player, host_state.tick)
+	player.is_replaying = false

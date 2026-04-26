@@ -1,6 +1,8 @@
 extends Node
 
 """
+We're striving towards:
+A nondeterministic simulation that is corrected using authoritative snapshots
 """
 
 # ------------------------------------------------------------ signals for lobby
@@ -11,14 +13,13 @@ signal player_info_updated(id: int, player_name: String, spawn_index: int)
 # -----------------------------------------------------------------
 var player_instances_by_player_id  := {}
 var player_data := {} 
-const INPUT_BUFFER_SIZE = 240 # Store 4 seconds of inputs
+const INPUT_BUFFER_SIZE = 480 # Store 4 seconds of inputs
 var remote_input_buffers := {} # -- future command buffers per client
 
 # ---------------------------------------------------------- other stuff to tick
 var game_world: Node2D
 
 # ----------------------------------------------------------------- ticking vars
-var is_initialized := false
 var current_tick: int = 0     # -- each machines tick number for state reconcile
 var _timer: float = 0.0       # -- just counting up delta for tick increment
 const TICK_RATE := 1.0 / 60.0 # -- tick rate have to be deterministic
@@ -26,9 +27,9 @@ var fract_tick: float = 0.0   # -- decimal remainder of the tick
 var update_remote_modulo : int = 2 # -- e.g. 60hz -> 30hz
 var clock_synced := false
 var ideal_tick_lead: int = 0 # -- from initial ping, then dynamically updated
-var last_host_tick: int = 0
+#var last_host_tick: int = 0
 var average_offset: float = 0
-const OFFSET_LERP_WEIGHT := 0.05
+const OFFSET_LERP_WEIGHT := 0.02
 const MAX_CLOCK_ADJUST := 0.02
 # ------------------------------------------------------------------------------
 var tick_scheduler := TickScheduler.new()
@@ -49,26 +50,25 @@ var ping_samples_needed: int = 10
 # ------------------------------------------------------------------------------
 
 func _ready() -> void:
-	multiplayer.peer_connected.connect(_on_peer_connected)
+	multiplayer.peer_connected.connect(network_handshake)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.connected_to_server.connect(_on_client_connected_to_server)
 
-
+	player_info_updated.connect( _on_player_info_updated )
+# problem: server is starting simuilation way before clients
+# due to steam initialization lag
+# Solution => clear the history of the player when it gets its ideal lead time
 
 func _physics_process(delta: float) -> void:
 	if multiplayer.multiplayer_peer == null:
 		return
 	
-	if !is_initialized:
+	if !clock_synced:
 		if multiplayer.is_server():
-			# Server might need a different condition, 
-			# e.g., waiting for at least one client or a 'start' signal
 			pass 
 		else:
-			return # Clients wait for RTT and Clock Sync
-	
-	if !multiplayer.is_server() and !clock_synced:
-		return
+			# -- we're a client and we just bail out of here
+			return
 
 	_timer += delta * tick_multiplier()
 	while _timer >= TICK_RATE:
@@ -99,11 +99,10 @@ func _physics_process(delta: float) -> void:
 			# -- reconciliation data for client's local version
 			if multiplayer.is_server() and (current_tick % update_remote_modulo == 0):
 				var _state = _player.player_controller.get_player_state( current_tick )
-				if _state.tick > 0:
-					sync_player_state.rpc(
-							id,
-							_state.serialize()
-						)
+				if _state.tick > 0: # -- don't reconcile against an unintialized state
+					sync_player_state.rpc(current_tick,
+										  id,
+										  _state.serialize())
 	# -- this is used for smoothly moving remote copies
 	fract_tick = _timer / TICK_RATE
 
@@ -135,19 +134,65 @@ func setup_remote_buffer(id: int):
 	remote_input_buffers[id] = buffer
 
 
+func network_handshake(new_player_id):
+	if NetworkGateway.using_steam():
+		wait_for_steam_handshake(new_player_id)
+	else:
+		player_registration(new_player_id)
+
+#
+#func wait_for_steam_handshake(id: int):
+	#var steam_backend = NetworkGateway.active_backend
+	#var steam_id = steam_backend.peer.get_steam_id_for_peer_id(id)
+	#
+	## If it's 0, the handshake isn't finished yet
+	## -- this fully blocks until the connection works
+	#if steam_id == 0:
+		## Check again in a few frames
+		#await get_tree().create_timer(0.1).timeout
+		#wait_for_steam_handshake(id)
+		#return
+	#
+	#print("Steam Handshake complete for Peer: ", id, " SteamID: ", steam_id)
+	#player_registration(id)
+func wait_for_steam_handshake(id: int, attempts: int = 0):
+	var max_attempts = 50 # 5 seconds total (50 * 0.1)
+	# case: the peer disconnected while we were waiting
+	if not multiplayer.get_peers().has(id):
+		print("Aborting handshake: Peer ", id, " disappeared.")
+		return
+	var steam_backend = NetworkGateway.active_backend
+	var steam_id = steam_backend.peer.get_steam_id_for_peer_id(id)
+	if steam_id == 0:
+		if attempts >= max_attempts:
+			print("Steam Handshake timed out for Peer: ", id)
+			# -- gotta do something here, like remove the client
+			return
+			
+		await get_tree().create_timer(0.1).timeout
+		# -- recurse
+		wait_for_steam_handshake(id, attempts + 1)
+		return
+	
+	print("Steam Handshake complete for Peer: ", id, " SteamID: ", steam_id)
+	player_registration(id)
+
+
 # Called on server when a new peer connects
-func _on_peer_connected(new_player_id: int) -> void:
+func player_registration(new_player_id: int) -> void:
+	# -- ui shouldn't know anything about Network readiness
+	NetworkGateway.get_avatar(new_player_id)
 	# -- tell whoever is listening (i.e. a lobby)
 	peer_connected.emit( new_player_id )
-
 	if multiplayer.is_server():		
 		# -- Send the new peer all the already existing players
 		for id in player_data :
-			setup_remote_buffer( id )
+			#setup_remote_buffer( id )
 			var d = player_data[ id ]
 			_register_player.rpc_id(new_player_id, id, d[KEY_NAME], d[KEY_INDEX])
 	else:
 		start_network_ping()
+
 
 func _on_peer_disconnected(id: int) -> void:
 	# -- tell whoever is listening (i.e. some way to catch the player leaving)
@@ -174,13 +219,16 @@ func _update_player_name(player_name: String) -> void:
 	_register_player.rpc(sender_id, player_name, spawn_index)
 
 
-# RPC: Server -> To All Clients
+# RPC: Host -> To All Clients
 @rpc("authority", "call_local", "reliable")
 func _register_player(id: int, p_name: String, s_index: int) -> void:
 	# Everyone saves the server's dictated data
 	player_data[id] = create_player_entry(p_name, s_index)
 	player_info_updated.emit(id, p_name, s_index)
 
+
+func _on_player_info_updated(peer_id: int, _name: String, _idx: int) -> void:
+	NetworkGateway.get_avatar(peer_id)
 
 # -- let the game actually tell you the lookup reference
 # -- i.e. game injects this when player is spawned
@@ -192,18 +240,8 @@ func unregister_player(peer_id: int) -> void:
 	player_instances_by_player_id.erase(peer_id)
 
 
-# ------------------------------------------------------------ state syncing fns
-func initialize_state_sync(host_versions_state_tick: int):
-	clock_synced = true
-	average_offset = float(ideal_tick_lead)
-	drift_history.fill(ideal_tick_lead)
-	last_host_tick = host_versions_state_tick
-	current_tick = host_versions_state_tick + ideal_tick_lead # -- RTT buffer
-	_timer = 0.0
-
-
 @rpc("authority", "unreliable") 
-func sync_player_state(id: int, byte_arr: PackedByteArray):
+func sync_player_state(hosts_current_tick: int, id: int, byte_arr: PackedByteArray):
 	var host_versions_state = PlayerState.deserialize( byte_arr )
 	
 	# -- rpcs by default go to everyone but the caller
@@ -212,19 +250,9 @@ func sync_player_state(id: int, byte_arr: PackedByteArray):
 	# -- this implies that all checks are unecessary here of the form:
 	# ------ multiplayer.is_server() &
 	# ------ id == multiplayer.get_unique_id()
-  
-	# ------------------------------------------------------------- initial sync
-	#if (!multiplayer.is_server() and !clock_synced and 
-		#ideal_tick_lead != null and host_versions_state.tick > 0):
-		#initialize_state_sync(host_versions_state.tick)
-	if !clock_synced and (ideal_tick_lead != 0) and host_versions_state.tick > 0:
-		initialize_state_sync(host_versions_state.tick)
-	
+
 	# ---------------------------------------------------- tick drift per client
-	#if !multiplayer.is_server() and id == multiplayer.get_unique_id():
-	# -- moving average
-	update_average_offset(host_versions_state.tick)
-	last_host_tick = host_versions_state.tick
+	update_average_offset(hosts_current_tick)
 	
 	# ----------------------------------------- interpolation and reconciliation
 	var _player = player_instances_by_player_id.get(id)
@@ -237,7 +265,6 @@ func sync_player_state(id: int, byte_arr: PackedByteArray):
 			# -- we just tell the client to save this state, the interpolation
 			# -- happens on the local machine
 			_player.player_controller.update_remote_state( host_versions_state )
-	
 
 
 func get_median_drift(_tick: int, new_sample:float) -> float:
@@ -251,6 +278,12 @@ func get_median_drift(_tick: int, new_sample:float) -> float:
 
 
 func update_average_offset(host_tick: int):
+	# -- clock snap if there's a massive desync
+	var current_error = tick_error()
+	if abs(current_error) > 30: # -- arbitrarily choosing 15 in reconcile, so
+		print("Massive clock drift detected (", current_error, "). Snapping clock.")
+		local_resync_to_host(host_tick)
+		return
 	var raw_offset = float(current_tick - host_tick)
 	var filtered_offset = get_median_drift(host_tick, raw_offset)
 	average_offset = lerp(average_offset, filtered_offset, OFFSET_LERP_WEIGHT)
@@ -260,16 +293,16 @@ func tick_error() -> float:
 	return average_offset - ideal_tick_lead
 
 
-# -- Why discrete steps instead of a continuous lerp or something:
-# -- Discrete steps act as a low-pass filter. They ignore the "vibration" of the network and only
-# -- react when there is a sustained, significant trend of drifting too far away
-var overlay_tick_multiplier = 1.0
+var overlay_tick_multiplier = 1.0 # -- for debugging ui / overlay
 func tick_multiplier() -> float:
+	# -- redundant variable assignments are to protect against mutating the
+	# -- clock from the debugging overlay
 	if multiplayer.is_server() or !clock_synced:
 		return 1.0
 	var _tick_error = tick_error()
-	if abs(_tick_error) < 0.5: 	# -- dead zone
+	if abs(_tick_error) < 2: 	# -- dead zone
 		return 1.0
+	
 	var adjustment = clamp(_tick_error * 0.01, -MAX_CLOCK_ADJUST, MAX_CLOCK_ADJUST)
 	# -- tick_error < 0 => that we're less than ideal tick lead and need to speed up
 	# -- tick_error > 0 => that we're greater than ideal tick lead and need to slow down
@@ -278,13 +311,14 @@ func tick_multiplier() -> float:
 	return 1.0 - adjustment
 
 
-# -- the client has to live in the "future" because of round trip time / jitter etc
-# -- the host needs a way of getting data and then calling them at the approritate tick
+
+
+
+# -- the client has to live in the "future" because of RTT & jitter
+# -- the host needs a way of getting data and then calling
+# --  them at the approritate tick
 func host_process_remote_client(id: int, _player: Player):
-	if not remote_input_buffers.has(id):
-		setup_remote_buffer(id)
-		return
-		
+	# -- remote buffers are initialized in request_host_start
 	var buffer = remote_input_buffers.get(id)
 	if buffer == null:
 		return
@@ -292,16 +326,26 @@ func host_process_remote_client(id: int, _player: Player):
 	# -- update the hosts remote version of everyone
 	# -- previous saved command from send_input_to_host
 	var cmd = buffer[current_tick % INPUT_BUFFER_SIZE]
-	# -- we just tick it off if it matches
-	if cmd.tick > 0:
+	var _controller =  _player.player_controller
+	var last_command_executed = _controller.last_command_executed
+
+	if cmd.tick >= 0:
 		if cmd.tick == current_tick:
 			_player.execute_tick(TICK_RATE, cmd)
-		else: # -- extraploation
-			print("Player extraolating, tick:", current_tick)
-			_player.execute_tick(TICK_RATE,
-								_player.player_controller.last_command_executed)
-		var _idx = _player.player_controller.get_circular_index( current_tick )
-		_player.player_controller.reconciliation_state_buffer[_idx].set_state(_player, current_tick)
+			_controller.last_command_executed = cmd
+		elif (current_tick - cmd.tick) <= 2:
+			# -- slightly late or reused slot but this is still valid
+			_player.execute_tick(TICK_RATE, cmd)
+			_controller.last_command_executed = cmd
+		elif (current_tick - last_command_executed.tick) <= 5:
+			# reuse last known good input
+			_player.execute_tick(TICK_RATE, last_command_executed)
+		else:
+			# -- this is idle
+			_player.execute_tick(TICK_RATE, PlayerCommand.new())
+		# -- regardless we need to update the reconcilliation_state_buffer after doing
+		var _idx = _controller.get_circular_index(current_tick)
+		_controller.reconciliation_state_buffer[_idx].set_state(_player, current_tick)
 
 
 
@@ -321,6 +365,10 @@ func send_input_to_host(byte_arr: PackedByteArray) -> void:
 			if buffer[idx].tick < cmd.tick:
 				buffer[idx] = cmd
 
+# -- TODO
+# -- it should actually be client predicted / driven
+# -- so... 
+# -- also, this should probably be in game or something, not here
 
 # -- see pickup.gd
 # -- only copy on the host's machine can trigger the pickup
@@ -332,15 +380,6 @@ func sync_item_pickup(a_world_id:int, a_peer_id: int, item_lookup_enum: ItemsDb.
 	if _player:
 		#print("Picking up from id: ", multiplayer.get_unique_id())
 		_player.get_node("ItemManager").pick_up(item_lookup_enum)
-
-
-#@rpc("call_local", "authority", "unreliable")
-#func player_collision_resolution(id_A: int, id_B: int, impulse: Vector2) -> void:
-	#var _player_A = player_instances_by_player_id[ id_A ]
-	#var _player_B = player_instances_by_player_id[ id_B ]
-	#_player_A.velocity += impulse * _player_A.inv_mass
-	#_player_B.velocity -= impulse * _player_B.inv_mass
-
 
 
 # ------------------------------------------------------------ initial ping test
@@ -372,8 +411,46 @@ func client_receive_pong(original_send_time: int):
 		await get_tree().create_timer(0.1).timeout
 		_send_ping()
 	else:
+		# -- get RTT / 2
 		ideal_tick_lead = _calculate_final_offset()
-		is_initialized = true
+		# -- then start simulating on this client
+		request_host_start.rpc_id(1)
+
+
+@rpc("any_peer", "reliable")
+func request_host_start():
+	# -- maybe unecessary, but host guard
+	if not multiplayer.is_server():
+		return
+	var sender_id = multiplayer.get_remote_sender_id()
+	# -- clear the remote buffer for this player
+	# -- we're reinitializing to make sure sure
+	# -- that we have a clean slate to reconcile against
+	setup_remote_buffer(sender_id)
+	# -- maybe initialize them or something? but the host
+	# -- shouldn't be calling anything in host_process_remote_client yet
+	
+	#var _player = player_instances_by_player_id.get( sender_id )
+	#_player.velocity
+	# -- now rpc the player to tell them they can start
+	client_recieve_start_signal_and_tick.rpc_id( sender_id, current_tick)
+	
+	# -- clear the host's version of this player's controller buffers
+	var _player = player_instances_by_player_id.get( sender_id )
+	if _player:
+		_player.player_controller.reset_all_buffers()
+	
+# -- why 2x ideal tick lead?
+# -- well, host sends his snapshot of a tick, it taks RTT / 2 to get there
+# -- we sync to that, but now the host is T + ideal_lead on his end
+# -- and we want to be + ideal_lead ahead => 2x
+@rpc("authority", "reliable")
+func client_recieve_start_signal_and_tick(ht: int):
+	current_tick = ht + 2 * ideal_tick_lead
+	_timer = 0.0
+	clock_synced = true
+	average_offset = float(ideal_tick_lead)
+	drift_history.fill(ideal_tick_lead)
 
 
 func _calculate_final_offset() -> int:
@@ -381,6 +458,13 @@ func _calculate_final_offset() -> int:
 	var one_way_latency = (rtt / 2.0) / 1000.0 # -- msec -> sec
 	# -- sec -> ticks
 	# -- 1 / 60 
-	var one_way_latency_in_ticks = ceil(one_way_latency / TICK_RATE) + 2 # +2 for safety/jitter
+	var one_way_latency_in_ticks = ceil(one_way_latency / TICK_RATE) + 2 # -- + 2 for safety/jitter
 	print("Initial Ping with RTT: ", rtt, "ms. Recommended Tick Offset: ", one_way_latency_in_ticks)
 	return one_way_latency_in_ticks
+
+
+func local_resync_to_host(host_tick: int):
+	current_tick = host_tick + ideal_tick_lead
+	_timer = 0.0
+	average_offset = float(ideal_tick_lead)
+	drift_history.fill(ideal_tick_lead)

@@ -1,7 +1,7 @@
 @tool
 extends AnimatableBody2D
 
-
+@export var falling_platform_component: Node2D
 @onready var sync_tool = $CollSpriteMatcher
 
 @export_group("Component Sync")
@@ -28,7 +28,7 @@ var velocity: Vector2 = Vector2.ZERO
 @onready var last_frame_position := global_position
 func execute_tick( delta: float):
 	velocity = (global_position - last_frame_position) / delta
-	$moveable_component.execute_tick( delta )
+	falling_platform_component.execute_tick( delta )
 	$lava_floating_component.execute_tick( delta )
 	last_frame_position = global_position
 

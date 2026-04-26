@@ -151,3 +151,11 @@ func rand_player_color( seed_val: int) -> Color:
 func rand_skin_tone( seed_val: int) -> int:
 	rng.seed = seed_val
 	return rng.randi_range(0, 4)
+
+
+# -- hardcoding until someone makes a level
+@export var level_x_length = 10000
+@export var level_y_length = 6000
+
+func get_level_dimensions() -> Vector2:
+	return Vector2(level_x_length, level_y_length)
