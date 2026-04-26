@@ -28,6 +28,9 @@ Events="*res://autoload/events.gd"
 Effects="*res://autoload/effects.gd"
 NetworkGateway="*res://networking/NetworkGateway.gd"
 NetManager="*res://networking/NetManager.gd"
+AudioDb="*res://audio/audio_db.gd"
+AudioManager="*res://audio/audio_manager.gd"
+SettingsManager="*res://autoload/settings_manager.gd"
 
 [display]
 
