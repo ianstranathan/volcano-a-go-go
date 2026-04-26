@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://b0rutjix5njrq"]
+
+[ext_resource type="Shader" uid="uid://c4ex4hmdsuvx8" path="res://VFX/progress_wheel/progress_wheel.gdshader" id="1_mibup"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_l04s1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_l04s1"]
+shader = ExtResource("1_mibup")
+shader_parameter/progress = 1.0
+shader_parameter/progress_start_col = Color(1, 0, 0, 1)
+shader_parameter/progress_end_col = Color(0, 1, 0, 1)
+
+[node name="ProgressWheel" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_l04s1")
+texture = ExtResource("2_l04s1")

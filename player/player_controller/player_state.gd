@@ -39,3 +39,10 @@ func set_state(player: Player, _tick: int):
 	rot = player.global_rotation
 	movement_state = player.movement_state
 	tick = _tick
+	
+func copy_state(another_state: PlayerState):
+	pos = another_state.pos
+	vel = another_state.vel
+	rot = another_state.rot
+	movement_state = another_state.movement_state
+	tick = another_state.tick

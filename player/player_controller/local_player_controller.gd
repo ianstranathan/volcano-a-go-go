@@ -24,6 +24,7 @@ func update_command(player_command_ref: PlayerCommand, _delta):
 	player_command_ref.aiming_input = aiming_pos()
 	player_command_ref.using_controller = is_using_controller()
 	player_command_ref.item_use_pressed = just_pressed_action("use_item")
+	player_command_ref.item_use_held = Input.is_action_pressed("use_item")
 
 
 func _input(event: InputEvent) -> void:
