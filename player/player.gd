@@ -230,7 +230,7 @@ func do_jump(jump_type):
 	Events.emit_signal(
 						"play_world_sound",
 						AudioDb.WorldSoundId.JUMP,
-						global_position,
+						global_position,0,randf_range(0.8, 1.20),
 						{}
 	)
 
@@ -703,7 +703,7 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						false)
 					Events.emit_signal("play_world_sound",
 										AudioDb.WorldSoundId.JUMP_LAND,
-										global_position,
+										global_position,0,randf_range(0.8, 1.20),
 										{})
 			MovementStates.WALL_SLIDING:
 				match new_movement_state:

@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://v165xbo0y3nk"]
+
+[ext_resource type="Script" uid="uid://3o3vu0thqkhl" path="res://UI/options_window/option_dropdown.gd" id="1_h87f5"]
+
+[node name="OptionDropdown" type="HBoxContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/separation = 12
+script = ExtResource("1_h87f5")
+
+[node name="NameLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Setting"
+
+[node name="Dropdown" type="OptionButton" parent="."]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+clip_text = true

@@ -26,6 +26,8 @@ signal input_blocked(blocked: bool)
 
 # -- AudioManager connects to these signals in its _ready
 signal play_local_sound(sound_id: int, volume_db_offset: float, pitch_scale_mult: float)
-signal play_music(track_id: int)
+signal play_music(track_id: int, volume_db_offset: float, pitch_scale_mult: float)
 signal stop_music()
-signal play_world_sound(sound_id: int, world_position: Vector2, adjustments: Dictionary)
+signal play_world_sound(sound_id: int, world_position: Vector2, volume_db_offset: float, pitch_scale_mult: float, world_overrides: Dictionary)
+signal start_world_loop(loop_key: StringName, loop_id: int, source: Node2D, volume_db_offset: float, pitch_scale_mult: float, world_overrides: Dictionary)
+signal stop_world_loop(loop_key: StringName)

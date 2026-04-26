@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://dkb4hsfhvjgih"]
+[gd_scene load_steps=5 format=3 uid="uid://dkb4hsfhvjgih"]
 
 [ext_resource type="Script" uid="uid://byry74fj0hegv" path="res://UI/options_window/options_window.gd" id="1_4ten8"]
 [ext_resource type="PackedScene" uid="uid://ubeieqgoy7v1" path="res://UI/options_window/OptionSlider.tscn" id="2_2aqy6"]
-[ext_resource type="Script" uid="uid://bci6dgnnha4aj" path="res://UI/options_window/audio.gd" id="2_lfprw"]
+[ext_resource type="Script" uid="uid://bci6dgnnha4aj" path="res://UI/options_window/options_audio.gd" id="2_lfprw"]
+[ext_resource type="PackedScene" uid="uid://v165xbo0y3nk" path="res://UI/options_window/option_dropdown.tscn" id="4_xwipc"]
 
 [node name="OptionsWindow" type="CanvasLayer"]
 script = ExtResource("1_4ten8")
@@ -54,9 +55,10 @@ horizontal_alignment = 1
 [node name="Tabs" type="TabContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox"]
 layout_mode = 2
 tab_alignment = 1
-current_tab = 0
+current_tab = 1
 
 [node name="General" type="MarginContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs"]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -78,13 +80,16 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="Audio" type="MarginContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs"]
-visible = false
 layout_mode = 2
 script = ExtResource("2_lfprw")
 metadata/_tab_index = 1
 
 [node name="AudioVBox" type="VBoxContainer" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/Audio"]
 layout_mode = 2
+
+[node name="OutputDeviceRow" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/Audio/AudioVBox" instance=ExtResource("4_xwipc")]
+layout_mode = 2
+label_text = "Output"
 
 [node name="MasterRow" parent="Root/CenterContainer/WindowPanel/Margin/WindowVBox/Tabs/Audio/AudioVBox" instance=ExtResource("2_2aqy6")]
 layout_mode = 2

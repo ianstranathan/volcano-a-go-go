@@ -26,4 +26,4 @@ func toggle() -> void:
 		open()
 		
 func _on_tabs_tab_changed(_tab_index: int) -> void:
-	Events.emit_signal("play_local_sound", AudioDb.LocalSoundId.UI_CLICK)
+	Events.emit_signal("play_local_sound", AudioDb.LocalSoundId.UI_CLICK,0,1)
