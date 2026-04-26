@@ -74,8 +74,13 @@ func pick_up(item_lookup: ItemsDb.ItemNames) -> void:
 	if !is_instance_valid(item_interface):
 		equip_item_at.rpc(free_index)
 	emit_inventory_changed()
-
-
+#Play pick up audio - Global?
+	if is_multiplayer_authority and not player_ref.is_replaying:
+		Events.emit_signal("play_world_sound",
+							AudioDb.WorldSoundId.ITEM_PICKUP,
+							global_position,0,1,
+							{}
+							)
 @rpc("call_local", "any_peer", "reliable")
 func equip_item_at(slot_index) -> void:
 	if is_multiplayer_authority() or multiplayer.is_server():
@@ -104,6 +109,9 @@ func select_inventory_slot(slot_index: int) -> void:
 		return
 
 	last_selected_slot = slot_index
+	Events.emit_signal("play_local_sound", AudioDb.LocalSoundId.HOTBAR_TICK, 
+											0.0, 
+											randf_range(0.95, 1.2))#pitch variation
 	# -- only do the equip logic if there's an item
 	if inventory_items[slot_index] != null:
 		equip_item_at.rpc(slot_index)

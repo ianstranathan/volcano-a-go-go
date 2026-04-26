@@ -78,7 +78,16 @@ func stop():
 	turn_off_coll_and_sprite(true)
 	$MovementOverrideComponent.finish()
 	try_timer.stop()
-
+	
+	if is_multiplayer_authority():
+		Events.emit_signal("stop_world_loop", _get_loop_key())
+		
+		#Events.emit_signal(
+			#"play_world_sound",
+			#AudioDb.WorldSoundId.PARACHUTE_OPEN,#using open for closed for now
+			#global_position,
+			#{}
+		#)
 
 func start(_type: ParachuteTypes):
 	gust_interpolant = 0.0
@@ -91,9 +100,24 @@ func start(_type: ParachuteTypes):
 		show_parachute_on_interpolated_remote.rpc(true, offset)
 	
 	try_timer.stop()                   # stop to prevent timeout callback
-	turn_off_coll_and_sprite( false )  # 
-
+	turn_off_coll_and_sprite( false ) 
+	 # 
+	if is_multiplayer_authority and not player_ref.is_replaying:
+		Events.emit_signal("play_world_sound",
+							AudioDb.WorldSoundId.PARACHUTE_OPEN,
+							global_position,0,1,
+							{}
+							)
+		
+		Events.emit_signal(
+			"start_world_loop",
+			_get_loop_key(),
+			AudioDb.WorldLoopId.PARACHUTE_DESCEND,
+			self,2,1,
+			{}
+		)
 var gust_interpolant = 0.0
+
 func tick_update(delta: float, cmd: PlayerCommand):
 	if cmd.item_use_pressed:
 		if parachute_type != ParachuteTypes.NONE:
@@ -112,6 +136,7 @@ func tick_update(delta: float, cmd: PlayerCommand):
 			pass
 		ParachuteTypes.PARACHUTING:
 			player_ref.velocity.y -= 0.97 * player_ref.get_g() * delta
+			
 
 
 func try_parachute():
@@ -138,6 +163,8 @@ func show_parachute_on_interpolated_remote(b: bool, _offset: Vector2):
 		$Sprite2D.visible = b
 
 
+func _get_loop_key() -> StringName:
+	return StringName("parachute_%s" % player_ref.get_multiplayer_authority())
 #@rpc("authority", "call_local", "reliable")
 #func _sync_destruction():
 	#call_deferred("queue_free")

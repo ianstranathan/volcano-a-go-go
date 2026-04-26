@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bo2vw5tl14uk4" path="res://player/player.gd" id="1_yf0e5"]
 [ext_resource type="Shader" uid="uid://bx8fp0q38t35n" path="res://player/testing/capsule_player.gdshader" id="2_g1dw6"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_rkbax"]
-[ext_resource type="Script" uid="uid://c0bg2g4soysfi" path="res://player/grab_manager.gd" id="7_boad6"]
+[ext_resource type="Script" path="res://player/grab_manager.gd" id="7_boad6"]
 [ext_resource type="Script" uid="uid://bkmykxgvovkdg" path="res://items/item_manager.gd" id="7_hg6s5"]
 [ext_resource type="Script" uid="uid://cyisxpb4cr1db" path="res://player/player_controller/player_controller.gd" id="7_rgyib"]
 [ext_resource type="Script" uid="uid://by03gqnwcld5s" path="res://player/climb_interface.gd" id="8_rgyib"]
