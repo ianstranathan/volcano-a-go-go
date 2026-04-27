@@ -16,7 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://btg4x06vjsk5q" path="res://UI/UI.tscn" id="14_b686c"]
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
 [ext_resource type="PackedScene" uid="uid://dkb4hsfhvjgih" path="res://UI/options_window/options_window.tscn" id="16_ee6o4"]
-[ext_resource type="PackedScene" uid="uid://cfatrcj3roxry" path="res://VFX/volcano_background_tile_layout_initializer/volcano_background_tile_layout_initializer.tscn" id="16_ee6o4"]
+[ext_resource type="PackedScene" uid="uid://cfatrcj3roxry" path="res://VFX/volcano_background_tile_layout_initializer/volcano_background_tile_layout_initializer.tscn" id="17_ee6o4"]
 
 [sub_resource type="Curve2D" id="Curve2D_4cobl"]
 _data = {
@@ -199,5 +199,6 @@ script = ExtResource("11_3vho3")
 [node name="Ui" parent="CanvasLayer" instance=ExtResource("14_b686c")]
 
 [node name="OptionsWindow" parent="CanvasLayer" instance=ExtResource("16_ee6o4")]
-[node name="VolcanoBackgroundTileLayoutInitializer" parent="." node_paths=PackedStringArray("game_ref") instance=ExtResource("16_ee6o4")]
+
+[node name="VolcanoBackgroundTileLayoutInitializer" parent="." node_paths=PackedStringArray("game_ref") instance=ExtResource("17_ee6o4")]
 game_ref = NodePath("..")
