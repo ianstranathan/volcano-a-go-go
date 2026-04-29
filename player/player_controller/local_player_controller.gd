@@ -31,6 +31,8 @@ func update_command(player_command_ref: PlayerCommand, _delta):
 		player_command_ref.aiming_input = global_position
 		player_command_ref.using_controller = is_using_controller()
 		player_command_ref.item_use_pressed = false
+		player_command_ref.item_use_held = false
+		player_command_ref.sprint_held = false
 		return
 		
 	player_command_ref.move_input = movement_vector()
@@ -40,7 +42,7 @@ func update_command(player_command_ref: PlayerCommand, _delta):
 	player_command_ref.using_controller = is_using_controller()
 	player_command_ref.item_use_pressed = just_pressed_action("use_item")
 	player_command_ref.item_use_held = Input.is_action_pressed("use_item")
-
+	player_command_ref.sprint_held = Input.is_action_pressed("sprint")
 
 func _input(event: InputEvent) -> void:
 	if input_blocked:

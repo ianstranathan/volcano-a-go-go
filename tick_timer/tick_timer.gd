@@ -25,6 +25,7 @@ signal timeout
 @export var one_shot := true
 @export var autostart := false
 
+# -- need to pull this from NetManager
 const TICK_RATE := 1.0 / 60.0
 var running := false
 
@@ -59,8 +60,6 @@ func start(time := -1.0):
 
 
 func _schedule_internal(target_tick: int):
-	# Pass ONLY the wait_ticks if using your current Scheduler logic
-	# or modify Scheduler to take an absolute tick.
 	NetManager.tick_scheduler.schedule_at(target_tick,
 										  func(): _on_timeout(_generation))
 

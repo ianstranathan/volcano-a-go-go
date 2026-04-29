@@ -136,10 +136,10 @@ func on_tick_generated(tick: int, delta: float):
 
 
 # -- TODO
-var min_offset: float = 6.0    # 100ms
-var max_offset: float = 15.0   # ~250ms
-var current_offset: float = 6.0 
-var shortage_frames: int = 0   # How many frames have we lacked a point_b?
+@onready var min_offset: float = NetManager.tick_lead
+@onready var max_offset: float = 2 * NetManager.tick_lead
+@onready var current_offset: float = min_offset
+#var shortage_frames: int = 0
 
 func _process(delta):
 	if is_multiplayer_authority(): 
@@ -205,11 +205,11 @@ func _process(delta):
 	player.pos_current = player.global_position
 
 # -- where should we put these consts?
-const POS_TOLERANCE: float = 5.0 # in pixels
+const BASE_POS_TOLERANCE: float = 2.0 # in pixels
 #const ROT_TOLERANCE: float = 0.06 # in radians (i.e. about 3.5 degrees)
 
-func reconcile(host_state: PlayerState):
-	#return
+
+func reconcile(host_state: PlayerState, _time_in_transit: float):
 	# -- we don't care about reconciling to an uninitialized state
 	if host_state.tick <= 0:
 		return
@@ -227,17 +227,25 @@ func reconcile(host_state: PlayerState):
 	if stored_state.tick != host_state.tick:
 		return
 	
+	# -- this is velocity adjusted, how much could we have diverged while
+	# -- message was being sent, not perfect but seems to fix the hookshot
+	var pos_tolerance = BASE_POS_TOLERANCE + player.velocity.length() * _time_in_transit
+	#pos_tolerance = min() # what's a good min?
 	var pos_error = stored_state.pos.distance_to(host_state.pos)
 	#var rot_error = abs(angle_difference(stored_state.rot, host_state.rot))
 	var needs_reconciled = (
-		pos_error > POS_TOLERANCE 
+		(pos_error > pos_tolerance) or
 		#rot_error > ROT_TOLERANCE or 
-		#stored_state.movement_state != host_state.movement_state
+		stored_state.movement_state != host_state.movement_state
 	)
 
 	# -- snap to the correct position in the past
 	# -- and replay all the commands saved between this tick and the current tick
 	if needs_reconciled:
+		# -- this is the vector from the old/non-reconciled position
+		# --  to the new/ reconciled position
+		player.reconciled.emit( host_state.pos - player.global_position )
+		
 		print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
 		# -- correct the past record to authoritative host
 		var copy_host_state = PlayerState.new()
@@ -251,7 +259,8 @@ func reconcile(host_state: PlayerState):
 		player.rotation = host_state.rot
 		player.movement_state = host_state.movement_state as Player.MovementStates
 
-
+		
+		
 		# -- now we need to re-run all our commands starting after this tick
 		var replay_tick = host_state.tick + 1
 		# -- add a flag so sounds and other stuff don't play while reconciling

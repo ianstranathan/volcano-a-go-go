@@ -5,6 +5,7 @@ extends Node2D
 @export var accl_curve: Curve
 var player_ref: Player
 var g
+var accl_cut_off_speed: float
 
 func _ready() -> void:
 	#----------------------------------- item interface / dependency injection
@@ -15,6 +16,7 @@ func _ready() -> void:
 
 	if player_ref:
 		g = player_ref.get_g()
+		accl_cut_off_speed = 1.5 * player_ref.TERMINAL_FALL_SPEED
 
 var interpolant := 0.0
 @export var delta_increase_rate: float = 1.0
@@ -25,40 +27,45 @@ func accl_sample(delta: float) -> float:
 	return accl_curve.sample(interpolant)
 
 
+var started: bool = false
 func tick_update(delta: float, cmd: PlayerCommand):
 	if cmd.item_use_held:
-		if !$Sprite2D.visible:
-			# -- turn off for this client and the host's version
-			$Sprite2D.show()
-			$GPUParticles2D.visible = true
-			$GPUParticles2D.emitting = true
-			show_on_interpolated()
-		player_ref.velocity.y -= 1.5 * g * accl_sample( delta ) * delta
+		if !started:
+			#player_ref.testing = true
+			on_item_started()
+			started = true
+
+		if player_ref and player_ref.velocity.y < accl_cut_off_speed:
+			player_ref.velocity.y -= 1.5 * g * accl_sample( delta ) * delta
 	else:
-		if $Sprite2D.visible:
-			$Sprite2D.hide()
-			$GPUParticles2D.visible = false
-			$GPUParticles2D.emitting = false
-			show_on_interpolated( false )
-		interpolant = 0.0
+		on_item_stopped()
+		started = false
+
+
+func on_item_started():
+	print("yo")
+	$MovementOverrideComponent.start()
+	toggle_visual( true )
+	show_on_interpolated.rpc( true )
+
+
+func on_item_stopped():
+	interpolant = 0.0
+	toggle_visual( false )
+	show_on_interpolated.rpc( false )
+	$MovementOverrideComponent.finish()
+
+
+func toggle_visual(b: bool):
+	$Sprite2D.visible = b
+	$GPUParticles2D.visible = b
+	$GPUParticles2D.emitting = b
 
 
 @rpc("any_peer", "reliable")
 func show_on_interpolated(b=true):
 	if !multiplayer.is_server():
-		if b:
-			$Sprite2D.show()
-			$GPUParticles2D.visible = true
-			$GPUParticles2D.emitting = true
-		else:
-			$Sprite2D.hide()
-			$GPUParticles2D.visible = false
-			$GPUParticles2D.emitting = false
-
-
-func on_item_stopped():
-	show_on_interpolated( false )
-	$MovementOverrideComponent.finish()
+		toggle_visual( b )
 
 
 func set_player_ref(p: Player) -> void:

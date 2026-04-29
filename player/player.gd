@@ -2,6 +2,10 @@ extends CharacterBody2D
 
 class_name Player
 
+# -- emitted from player_controller when reconcilliation happens for
+# -- visual smoothing in the PlayerVisualInterpolator (sprite & item_manager)
+signal reconciled
+
 @export_group("Kinematics")
 @export var baseline_speed: float = 380.0
 var v_x_peak_2_fall = baseline_speed * 0.65
@@ -97,6 +101,7 @@ enum MovementStates
 {
 	IDLE,
 	WALKING,
+	RUNNING,
 	JUMPING,
 	FALLING,
 	CROUCHING,
@@ -202,37 +207,36 @@ func check_for_jump() -> void:
 		elif movement_state == MovementStates.CLIMBING:
 			do_jump(JumpTypes.REGULAR)
 
-
-func do_jump(jump_type):
+@onready var wall_jump_scale: Vector2 = Vector2(jump_speed / 2.0,
+					 							jump_speed / 1.3)
+func do_jump(jump_type, velocity_override=null):
 	# -- logic of what to do for a specific jump
 	jump_buffer_timer.stop()
 	match jump_type:
 		JumpTypes.REGULAR:
-			velocity.y = jump_speed * jump_speed_modifier
-		JumpTypes.SOMERSAULT_FLIP:
-			velocity.y = jump_speed * jump_speed_modifier * somersault_factor
-			var tween = create_tween()
-			tween.tween_property(self, 
-						"global_rotation",
-						global_rotation + sign(last_move_input.x) * TAU, time_to_peak)
+			velocity.y = jump_speed
+		#JumpTypes.SOMERSAULT_FLIP:
+			#velocity.y = jump_speed * jump_speed_modifier * somersault_factor
+			#var tween = create_tween()
+			#tween.tween_property(self, 
+						#"global_rotation",
+						#global_rotation + sign(last_move_input.x) * TAU, time_to_peak)
 		JumpTypes.WALL:
-			velocity = Vector2(-last_wall_normal.x * (jump_speed / 1.8),
-								(jump_speed / 1.2))
-			velocity *= jump_speed_modifier
-			#Events.world_effect.emit(
-							#name.to_int(), 
-							#Effects.EffectNames.WALL_JUMP, 
-							#global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
-							#true if last_wall_normal.x < 0 else false)
-			
+			if !velocity_override:
+				velocity = Vector2(-last_wall_normal.x * wall_jump_scale.x,
+									wall_jump_scale.y)
+			else:
+				velocity = velocity_override
+			# -- maybe want both components to be affected?
+
+	velocity.y *= jump_speed_modifier
+
 	movement_state_transition_to(MovementStates.JUMPING)
 	if is_multiplayer_authority() and not is_replaying:
-		Events.emit_signal(
-							"play_world_sound",
+		Events.emit_signal("play_world_sound",
 							AudioDb.WorldSoundId.JUMP,
 							global_position,0,randf_range(0.8, 1.20),
-							{}
-		)
+							{})
 	
 
 func coyote_time_resolution() -> void:
@@ -254,7 +258,11 @@ func coyote_time_resolution() -> void:
 var pos_previous: Vector2 = Vector2.ZERO
 var pos_current: Vector2 = Vector2.ZERO
 
+# -- variable set by NetManager to gate initialization
+#var is_ready = false
 func execute_tick(delta: float, cmd: PlayerCommand):
+	#if !is_ready:
+		#return
 	pos_previous = global_position
 	#print( "pos: ", global_position, "; vel: ", velocity)
 	apply_command(cmd)
@@ -262,6 +270,8 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	
 	if !last_move_input:
 		last_move_input = move_input
+	
+	$StaminaVisual.update_tick( delta )
 	
 	# -- climbing check
 	if should_start_climbing():
@@ -390,9 +400,33 @@ func set_debug_label(new_movement_state: MovementStates) -> void:
 
 
 #------------------------------------------------- movement state fns
-# Add this to your class variables at the top
+func move_resolution(move_speed_override=null):
+	var target_speed
+	if move_speed_override:
+		target_speed = move_input.x * move_speed_override * move_speed_modifier
+	else:
+		target_speed = move_input.x * move_speed * move_speed_modifier
+	var is_turning := move_input.x * velocity.x < 0
+	var is_overspeed : bool = abs(velocity.x) > abs(target_speed)
+	
+	var target_accel_rate = TURN_ACCL if is_turning else MOV_ACCL
+	current_accel = lerp(current_accel, float(target_accel_rate), 0.15)
 
+	if is_overspeed and not is_turning:
+		var _is_in_air = movement_state in [MovementStates.FALLING, MovementStates.JUMPING]
+		var decl_weight = AIR_DECL if _is_in_air else DECL
+		velocity.x = move_toward(velocity.x, 0, decl_weight)
+	else:
+		velocity.x = move_toward(velocity.x, target_speed, current_accel)
+
+
+func stop_resolution():
+	current_accel = move_toward(current_accel, MOV_ACCL, DECL)
+
+var testing: bool = false
 func move(move_func_override = null) -> void:
+	if testing:
+		return
 	if move_func_override:
 		move_func_override.call()
 		return
@@ -400,43 +434,45 @@ func move(move_func_override = null) -> void:
 	if manual_wall_jump_frame_counter > 0:
 		return
 
-	var top_speed = move_speed * move_speed_modifier
-	var input_x = move_input.x
-
-	if not is_zero_approx(input_x):
-		var target_speed = input_x * top_speed
-		
-		#if last_move_input.x * input_x < 0:
-			#side_somersault_timer.start()
-
-		var is_turning = input_x * velocity.x < 0
-		
-		var target_accel_rate = MOV_ACCL
-		# -- TODO
-		#--  Clean up and put in some game feel juice for turning inertia
-		if is_turning:
-			target_accel_rate = TURN_ACCL
-			
-			# -- TODO
-			if movement_state == MovementStates.WALKING:
-				Events.world_effect.emit(
-					name.to_int(), 
-					Effects.EffectNames.DIRECTION_CHANGE, 
-					# -- magic number beware, just wanted to offset it
-					global_position - Vector2(input_x * 20., 0.) , 
-					true if input_x > 0 else false)
-		
-		current_accel = lerp(current_accel, float(target_accel_rate), 0.15)
-
-		var is_overspeed = abs(velocity.x) > top_speed
-		
-		if is_overspeed and not is_turning:
-			var _decl = (AIR_DECL if movement_state in [MovementStates.FALLING, MovementStates.JUMPING] else DECL)
-			velocity.x = move_toward(velocity.x, 0, _decl)
-		else:
-			velocity.x = move_toward(velocity.x, target_speed, current_accel)
+	if not is_zero_approx(move_input.x):
+		move_resolution()
 	else:
-		current_accel = move_toward(current_accel, MOV_ACCL, DECL)
+		stop_resolution()
+		
+	#if not is_zero_approx(input_x):
+		#var target_speed = input_x * top_speed
+		#
+		##if last_move_input.x * input_x < 0:
+			##side_somersault_timer.start()
+#
+		#var is_turning = input_x * velocity.x < 0
+		#
+		#var target_accel_rate = MOV_ACCL
+		## -- TODO
+		##--  Clean up and put in some game feel juice for turning inertia
+		#if is_turning:
+			#target_accel_rate = TURN_ACCL
+			#
+			## -- TODO
+			#if movement_state == MovementStates.WALKING:
+				#Events.world_effect.emit(
+					#name.to_int(), 
+					#Effects.EffectNames.DIRECTION_CHANGE, 
+					## -- magic number beware, just wanted to offset it
+					#global_position - Vector2(input_x * 20., 0.) , 
+					#true if input_x > 0 else false)
+		#
+		#current_accel = lerp(current_accel, float(target_accel_rate), 0.15)
+#
+		#var is_overspeed = abs(velocity.x) > top_speed
+		#
+		#if is_overspeed and not is_turning:
+			#var _decl = (AIR_DECL if movement_state in [MovementStates.FALLING, MovementStates.JUMPING] else DECL)
+			#velocity.x = move_toward(velocity.x, 0, _decl)
+		#else:
+			#velocity.x = move_toward(velocity.x, target_speed, current_accel)
+	#else:
+		#current_accel = move_toward(current_accel, MOV_ACCL, DECL)
 
 
 
@@ -463,13 +499,30 @@ func walking_state_fn(_delta) -> void:
 		coyote_timer.start()
 
 
+func running_state_fn( _delta) -> void:
+	if is_zero_approx(move_input.x): #and side_somersault_timer.is_stopped():
+		movement_state_transition_to( MovementStates.IDLE)
+	check_for_jump()
+	move_resolution( 1.8 * move_speed )
+	if check_for_falling():
+		coyote_timer.start()
+
+# -- case: where we want a wall jump as fast as possible
+func wall_jump_fast_utility():
+	if !jump_buffer_timer.is_stopped():
+		var _normal := wall_normal()
+		if _normal != Vector2.ZERO:
+			do_jump(JumpTypes.WALL,  wall_jump_scale * Vector2(-_normal.x, 1.))
+
+
 func jumping_state_fn(_delta) -> void:
-	# -- be carefule, I consciously took away an absolute value check
+	# -- be careful, I consciously took away an absolute value check
 	# -- jumping should always be a negative direction
 	hang_time_modifier = hang_time_curve.sample(1. - (velocity.y / jump_speed))
 	
 	handle_corner_correction()
 	move()
+	wall_jump_fast_utility()
 	if is_falling():
 		movement_state_transition_to(MovementStates.FALLING)
 
@@ -551,6 +604,8 @@ func falling_state_fn(_delta) -> void:
 		# -- maybe we wanna go through the air slightly slower?
 	
 	move()
+	wall_jump_fast_utility()
+	
 	if is_ledge_grabbing() and ledge_grab_buffer_timer.is_stopped():
 		# -- we stop gravity and falling velocity, save the climbing pos
 		velocity = Vector2.ZERO
@@ -714,6 +769,8 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 							Effects.EffectNames.WALL_JUMP, 
 							global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
 							true if last_wall_normal.x < 0 else false)
+			MovementStates.RUNNING:
+				$StaminaVisual.use( false )
 		# ----------------------------------
 		if new_movement_state in [MovementStates.IDLE, MovementStates.WALKING, MovementStates.WALL_SLIDING]:
 			last_tocuhing_surface_state = new_movement_state
@@ -727,6 +784,8 @@ func gravity_from_state():
 		MovementStates.IDLE:
 			return jump_gravity
 		MovementStates.WALKING:
+			return  jump_gravity
+		MovementStates.RUNNING:
 			return  jump_gravity
 		MovementStates.JUMPING:
 			return jump_gravity
@@ -781,6 +840,15 @@ func apply_command( c: PlayerCommand):
 		velocity.y *= 0.4
 		movement_state_transition_to(MovementStates.FALLING)
 	
+	$StaminaVisual.use( c.sprint_held )
+	if c.sprint_held:
+		if (movement_state == MovementStates.IDLE or
+			movement_state == MovementStates.WALKING):
+			movement_state_transition_to(MovementStates.RUNNING)
+	else:
+		if movement_state == MovementStates.RUNNING:
+			movement_state_transition_to(MovementStates.WALKING)
+		
 	# -- this is a bit fragile I think, we only have an input manager
 	# -- if we're multiplayer authority
 	#$ItemManager.use_item(c.item_use_pressed)

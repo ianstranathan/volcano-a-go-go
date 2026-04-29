@@ -1,0 +1,19 @@
+[gd_scene load_steps=5 format=3 uid="uid://c07knt5y66nv4"]
+
+[ext_resource type="Shader" uid="uid://c4ex4hmdsuvx8" path="res://VFX/progress_wheel/progress_wheel.gdshader" id="1_arh8a"]
+[ext_resource type="Script" uid="uid://py6evpo0sd3b" path="res://player/stamina_visual/stamina_visual.gd" id="1_cgjmm"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="3_5t75q"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cgjmm"]
+shader = ExtResource("1_arh8a")
+shader_parameter/progress = 0.70000001043084
+shader_parameter/progress_start_col = Color(0.9882353, 0, 0, 1)
+shader_parameter/progress_end_col = Color(0, 1, 0, 1)
+
+[node name="StaminaVisual" type="Node2D"]
+script = ExtResource("1_cgjmm")
+seconds_of_stamina = 5.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_cgjmm")
+texture = ExtResource("3_5t75q")

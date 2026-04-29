@@ -22,14 +22,14 @@ var game_world: Node2D
 # ----------------------------------------------------------------- ticking vars
 var current_tick: int = 0     # -- each machines tick number for state reconcile
 var _timer: float = 0.0       # -- just counting up delta for tick increment
-const TICK_RATE := 1.0 / 60.0 # -- tick rate have to be deterministic
+const TICK_RATE := 1.0 / 60.0 # --
 var fract_tick: float = 0.0   # -- decimal remainder of the tick
 var update_remote_modulo : int = 2 # -- e.g. 60hz -> 30hz
 var clock_synced := false
-var ideal_tick_lead: int = 0 # -- from initial ping, then dynamically updated
+var tick_lead: int = 10 # -- from initial ping, then dynamically updated
 #var last_host_tick: int = 0
 var average_offset: float = 0
-const OFFSET_LERP_WEIGHT := 0.02
+const OFFSET_LERP_WEIGHT := 0.03#0.02
 const MAX_CLOCK_ADJUST := 0.005 # 0.5% max speed change
 # ------------------------------------------------------------------------------
 var tick_scheduler := TickScheduler.new()
@@ -43,7 +43,7 @@ const KEY_COLOR = "color"
 # ------------------------------------------------------------------------------
 var drift_history: Array[float] = []
 const DRIFT_WINDOW_SIZE = 61          # Odd number for exact median
-const median_index = 11
+const median_index = (DRIFT_WINDOW_SIZE - 1) / 2.
 
 var pings: Array[float] = []
 var ping_samples_needed: int = 10
@@ -191,7 +191,6 @@ func player_registration(new_player_id: int) -> void:
 	if multiplayer.is_server():		
 		# -- Send the new peer all the already existing players
 		for id in player_data :
-			#setup_remote_buffer( id )
 			var d = player_data[ id ]
 			_register_player.rpc_id(new_player_id, id, d[KEY_NAME], d[KEY_INDEX])
 	else:
@@ -264,13 +263,17 @@ func sync_player_state(hosts_current_tick: int, id: int, byte_arr: PackedByteArr
 		return
 	else:
 		if id == multiplayer.get_unique_id():
-			_player.player_controller.reconcile( host_versions_state )               
+			var time_in_transit = average_offset * TICK_RATE
+			_player.player_controller.reconcile( host_versions_state, time_in_transit)               
 		else:
 			# -- we just tell the client to save this state, the interpolation
 			# -- happens on the local machine
 			_player.player_controller.update_remote_state( host_versions_state )
 
 
+# -- this is just filtering out the spikes in a collection of something
+# -- in this case, we're saving the offset (how far away from the host's tick
+# -- are we in sync_player rpc / frame
 func get_median_drift(_tick: int, new_sample:float) -> float:
 	if drift_history.size() == 0:
 		drift_history.resize(DRIFT_WINDOW_SIZE)
@@ -281,57 +284,47 @@ func get_median_drift(_tick: int, new_sample:float) -> float:
 	return sorted[median_index]
 
 
+var out_of_sync_frames = 0 # -- trying to soften how often hardsnapping happens
+
 func update_average_offset(host_tick: int):
-	# -- clock snap if there's a massive desync
-	var current_error = tick_error()
-	if abs(current_error) > 30: # -- arbitrarily choosing 15 in reconcile, so
-		print("Massive clock drift detected (", current_error, "). Snapping clock.")
-		local_resync_to_host(host_tick)
-		return
 	var raw_offset = float(current_tick - host_tick)
 	var filtered_offset = get_median_drift(host_tick, raw_offset)
 	average_offset = lerp(average_offset, filtered_offset, OFFSET_LERP_WEIGHT)
+	
+	var current_error = tick_error()
+	
+	# -- clock snap if there's a massive desync
+	# -- 30 ticks @60Hz is half of a second. i.e. 500ms
+	# -- I don't think it can reasonably be higher than this
+	if abs(current_error) > 30:
+		out_of_sync_frames += 1
+		if out_of_sync_frames > 20:
+			print("Massive clock drift detected (", current_error, "). Snapping clock.")
+			local_resync_to_host(host_tick)
+	else:
+		out_of_sync_frames = 0
 
 
 func tick_error() -> float:
-	return average_offset - ideal_tick_lead
+	return average_offset - tick_lead
 
 
 var overlay_tick_multiplier = 1.0 # -- for debugging ui / overlay
-#func tick_multiplier() -> float:
-	## -- redundant variable assignments are to protect against mutating the
-	## -- clock from the debugging overlay
-	#if multiplayer.is_server() or !clock_synced:
-		#return 1.0
-	#var _tick_error = tick_error()
-	#if abs(_tick_error) < 2: 	# -- dead zone
-		#return 1.0
-	#
-	#var adjustment = clamp(_tick_error * 0.01, -MAX_CLOCK_ADJUST, MAX_CLOCK_ADJUST)
-	## -- tick_error < 0 => that we're less than ideal tick lead and need to speed up
-	## -- tick_error > 0 => that we're greater than ideal tick lead and need to slow down
-	## -- 1. - adjust    => account for sign
-	#overlay_tick_multiplier = 1.0 - adjustment
-	#return 1.0 - adjustment
 func tick_multiplier() -> float:
 	if multiplayer.is_server() or !clock_synced:
 		return 1.0
-	
 	var _tick_error = tick_error()
-	
-	# 1. Dead zone: If we are within 1 tick, do NOTHING. 
-	# Network jitter will ALWAYS make this oscillate slightly.
-	if abs(_tick_error) <= 1.0:
+	if abs(_tick_error) <= 2.0:
 		return 1.0
-	
-	# 2. Very small adjustment factor. 
 	# We want to fix the drift over the course of seconds, not frames.
 	# 0.001 means for every 1 tick of error, we adjust speed by 0.1%
-	var adjustment = _tick_error * 0.001 
+	var adjustment = _tick_error * 0.005 
 	
-	# 3. Strict Clamping. 
-	# Never allow the game to run faster than 1.005 or slower than 0.995.
-	# This prevents the "80% to 120%" oscillations.
+	# -- tick_error < 0 => that we're less than ideal tick lead and need to speed up
+	# -- tick_error > 0 => that we're greater than ideal tick lead and need to slow down
+	# -- remote client's ticking can't run faster than 1 + MAX_CLOCK_ADJUST 
+	# -- or slower than 1 - MAX_CLOCK_ADJUST.
+	# -- this is to prevent the giant oscillations I was seeing .80 - 1.20
 	adjustment = clamp(adjustment, -MAX_CLOCK_ADJUST, MAX_CLOCK_ADJUST)
 	overlay_tick_multiplier = 1.0 - adjustment
 	return 1.0 - adjustment
@@ -354,29 +347,22 @@ func host_process_remote_client(id: int, _player: Player):
 	var _controller =  _player.player_controller
 	var last_command_executed = _controller.last_command_executed
 
-	#var buffer_fullness = cmd.tick - current_tick
-	#if buffer_fullness > 15: # Too much padding!
-		#request_smaller_lead.rpc_id(id)
+	var buffer_fullness = cmd.tick - current_tick
+	if buffer_fullness > 15: # Too much padding!
+		request_smaller_lead.rpc_id(id)
 	
 	if cmd.tick == current_tick:
-		print("ooo")
+		#print("ooo")
 		_player.execute_tick(TICK_RATE, cmd)
 		_controller.last_command_executed = cmd
-	#elif (current_tick - cmd.tick) <= 2:
-		#print("ahhh")
-		## -- slightly late or reused slot but this is still valid
-		#_player.execute_tick(TICK_RATE, cmd)
-		#_controller.last_command_executed = cmd
-	#elif (current_tick - last_command_executed.tick) <= 5:
-		#print("ohh")
-		## reuse last known good input
-		#_player.execute_tick(TICK_RATE, last_command_executed)
 	else:
-		print("ewww")
-		_player.execute_tick(TICK_RATE, PlayerCommand.new())
-		# -- we're starving for input now
-		# -- we need to dynamically increase this client's ideal_tick_lead
-		client_increase_tick_lead.rpc_id( id )
+		# -- if it's an initialized player command
+		if cmd.tick > 0:
+			#print("ewww")
+			_player.execute_tick(TICK_RATE, _controller.last_command_executed)
+			# -- we're starving for input now
+			# -- we need to dynamically increase this client's tick_lead
+			client_increase_tick_lead.rpc_id( id )
 	# -- regardless we need to update the reconcilliation_state_buffer after doing
 	var _idx = _controller.get_circular_index(current_tick)
 	_controller.reconciliation_state_buffer[_idx].set_state(_player, current_tick)
@@ -384,14 +370,11 @@ func host_process_remote_client(id: int, _player: Player):
 
 @rpc("authority", "reliable")
 func request_smaller_lead():
-	var floor_lead = _calculate_final_offset() 
-	if ideal_tick_lead > floor_lead:
-		ideal_tick_lead -= 1
+	tick_lead -= 1
 
 @rpc("authority", "reliable")
 func client_increase_tick_lead():
-	ideal_tick_lead += 1
-	print("Increased lead to ", ideal_tick_lead, " to combat jitter.")
+	tick_lead += 1
 
 
 @rpc("any_peer", "unreliable")
@@ -456,8 +439,8 @@ func client_receive_pong(original_send_time: int):
 		await get_tree().create_timer(0.1).timeout
 		_send_ping()
 	else:
-		# -- get RTT / 2
-		ideal_tick_lead = _calculate_final_offset()
+		# -- get RTT
+		tick_lead = _calculate_final_offset()
 		# -- then start simulating on this client
 		request_host_start.rpc_id(1)
 
@@ -472,50 +455,106 @@ func request_host_start():
 	# -- we're reinitializing to make sure sure
 	# -- that we have a clean slate to reconcile against
 	setup_remote_buffer(sender_id)
+	
 	# -- maybe initialize them or something? but the host
 	# -- shouldn't be calling anything in host_process_remote_client yet
 	
 	#var _player = player_instances_by_player_id.get( sender_id )
 	#_player.velocity
 	# -- now rpc the player to tell them they can start
-	client_recieve_start_signal_and_tick.rpc_id( sender_id, current_tick)
+	client_recieve_start_signal_and_tick.rpc_id( sender_id, sender_id, current_tick)
 	
 	# -- clear the host's version of this player's controller buffers
 	var _player = player_instances_by_player_id.get( sender_id )
 	if _player:
 		_player.player_controller.reset_all_buffers()
-	
+		#_player.is_ready = true
+
+
 # -- why 2x ideal tick lead?
 # -- well, host sends his snapshot of a tick, it taks RTT / 2 to get there
 # -- we sync to that, but now the host is T + ideal_lead on his end
 # -- and we want to be + ideal_lead ahead => 2x
 @rpc("authority", "reliable")
-func client_recieve_start_signal_and_tick(ht: int):
-	current_tick = ht + 2 * ideal_tick_lead
+func client_recieve_start_signal_and_tick(id: int, ht: int):
+	var _player = player_instances_by_player_id.get( id )
+	#_player.is_ready = true
+	current_tick = ht + tick_lead
 	_timer = 0.0
 	clock_synced = true
-	average_offset = float(ideal_tick_lead)
-	drift_history.fill(ideal_tick_lead)
+	average_offset = float(tick_lead)
+	drift_history.fill(tick_lead)
 
 
 func _calculate_final_offset() -> int:
-	var rtt = pings.reduce( func(acc, x): return acc + x, 0) / pings.size()
-	var one_way_latency = (rtt / 2.0) / 1000.0 # -- msec -> sec
+	if pings.is_empty():
+		# -- fallback / default
+		return 5 
+	# # -- get average
+	var sum = 0.0
+	for p in pings:
+		sum += p
+	var avg_rtt = sum / pings.size()
 	
-	var max_rtt = 0
-	#for p in pings: max_rtt = max(max_rtt, p)
-	#var jitter_ms = max_rtt - avg_rtt
+	# # -- calculate variance
+	var variance_sum = 0.0
+	for p in pings:
+		variance_sum += pow(p - avg_rtt, 2)
+	var variance = variance_sum / pings.size()
 	
-	# -- sec -> ticks
-	# -- 1 / 60 
-	# -- NOTE magic number
-	var one_way_latency_in_ticks = ceil(one_way_latency / TICK_RATE) + 5 # -- + 2 for safety/jitter
-	print("Initial Ping with RTT: ", rtt, "ms. Recommended Tick Offset: ", one_way_latency_in_ticks)
-	return one_way_latency_in_ticks
+	# -- 2 * std_dev covers almost all the jitter population
+	var jitter_ms = (2.0 * sqrt(variance)) 
+	var jitter_ticks = ceil((jitter_ms / 1000.0) / TICK_RATE)
+	
+	var RTT_ms = avg_rtt
+	var RTT_ticks = ceil((RTT_ms / 1000.0) / TICK_RATE)
+
+	var base_buffer = lerp(2, 6, clamp(RTT_ms / 500.0, 0.0, 1.0))
+	var lead = RTT_ticks + jitter_ticks + int(base_buffer)
+	print("Initial Ping with avg RTT: ", avg_rtt, "ms")
+	print("Initial Ping with std dev jitter: ", jitter_ms, "ms")
+	return lead
 
 
 func local_resync_to_host(host_tick: int):
-	current_tick = host_tick + 2 * ideal_tick_lead
+	current_tick = host_tick + tick_lead
 	_timer = 0.0
-	average_offset = float(ideal_tick_lead)
-	drift_history.fill(ideal_tick_lead)
+	average_offset = float(tick_lead)
+	drift_history.fill(float(tick_lead))
+
+
+#func _calculate_final_offset() -> int:
+	#var max_rtt = 0
+	## keeping track of max_rtt here
+	#var avg_rtt = pings.reduce( func(acc, p): 
+		#max_rtt = max(max_rtt, p)
+		#return acc + p, 0) / pings.size()
+	 ## -- scale base according to how much lag or jitter there was
+	#var max_jitter_ms = (max_rtt - avg_rtt) / 1000.0
+	#var jitter_ticks = ceil( max_jitter_ms / TICK_RATE )
+	#var RTT_ms = avg_rtt / 1000.0
+	#var RTT_ticks = ceil( RTT_ms / TICK_RATE)
+	
+	
+	# ----------------------------------------------------------------- Refactor
+	#var avg_rtt = pings.reduce( func(acc, x): return acc + x, 0) / pings.size()
+	#var one_way_latency = (avg_rtt / 2.0) / 1000.0 # -- msec -> sec
+	#
+	#var max_rtt = 0
+	#for p in pings: 
+		#max_rtt = max(max_rtt, p)
+	#var jitter_ms = max_rtt - avg_rtt
+	#
+	## -- sec -> ticks
+	## -- 1 / 60 
+	## -- NOTE magic number
+	#var one_way_latency_in_ticks = ceil(one_way_latency / TICK_RATE) + 5 # -- + 2 for safety/jitter
+	#var jitter_ticks = ceil((jitter_ms / 1000.0) / TICK_RATE)
+	#
+	#var lead = one_way_latency_in_ticks + jitter_ticks + 2
+	#print("Initial Ping with Average RTT: ", avg_rtt, "ms")
+	#print("Initial Ping with max jitter: ", max_jitter_ms, "ms")
+	#
+	#var lead = RTT_ticks + jitter_ticks + lerp(2, 7, clamp(RTT_ms / 500.0, 0., 1.))
+	#print("Total lead: ", lead)
+	#return lead

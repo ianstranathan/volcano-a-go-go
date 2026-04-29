@@ -13,11 +13,9 @@ when the lava subsumes them (no point in rendering them anymore)
 For right now, let's just fill out the whole thing
 """
 
-@export var game_ref: Node2D
-
 @onready var bg_tile = preload("res://VFX/volcano_background_tile/volcano_background_tile.tscn")
 
-@onready var level_dimenions: Vector2 = game_ref.get_level_dimensions()
+var level_dimenions: Vector2
 
 
 var top_pt: Vector2 = Vector2.ZERO
@@ -26,9 +24,12 @@ var right_pt: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
+	print( get_parent().name )
+	level_dimenions = get_parent().get_level_dimensions()
 	generate_background()
 	# -- NOTE
 	global_position.y += 100
+
 
 func get_volcano_outline_pts() -> void:
 	var x = level_dimenions.x

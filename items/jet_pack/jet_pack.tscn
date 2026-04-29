@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://bs8xrm4mhlm4g"]
+[gd_scene load_steps=17 format=3 uid="uid://bs8xrm4mhlm4g"]
 
 [ext_resource type="Script" uid="uid://bjn340ak6i1me" path="res://items/jet_pack/jet_pack.gd" id="1_4j3oo"]
 [ext_resource type="Shader" uid="uid://6r462wvnxl8c" path="res://items/jet_pack/jet_pack.gdshader" id="1_bmnxx"]
@@ -35,6 +35,13 @@ particles_anim_h_frames = 7
 particles_anim_v_frames = 7
 particles_anim_loop = false
 
+[sub_resource type="Gradient" id="Gradient_d7do0"]
+offsets = PackedFloat32Array(0.16981132, 0.6792453, 0.990566)
+colors = PackedColorArray(1, 1, 0.019607844, 1, 1, 0.47843137, 0, 1, 1, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_6sj8w"]
+gradient = SubResource("Gradient_d7do0")
+
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_vuhq0"]
 particle_flag_disable_z = true
 direction = Vector3(0, 1, 0)
@@ -42,6 +49,7 @@ spread = 90.0
 initial_velocity_min = 50.0
 initial_velocity_max = 300.0
 gravity = Vector3(0, 0, 0)
+color_ramp = SubResource("GradientTexture1D_6sj8w")
 
 [node name="JetPack" type="Node2D"]
 z_index = -100
@@ -52,10 +60,12 @@ accl_curve = SubResource("Curve_6sj8w")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 material = SubResource("ShaderMaterial_uejvu")
 position = Vector2(0, 50)
+scale = Vector2(1, 1.5)
 texture = ExtResource("2_ssqh2")
 
 [node name="MovementOverrideComponent" type="Node" parent="."]
 script = ExtResource("5_5fj2d")
+_allows_horizontal_movement = true
 metadata/_custom_type_script = "uid://dmm17nhn1wysy"
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]

@@ -24,8 +24,8 @@ void fragment(){
     float angle = (atan(uv.y, uv.x) + pi) / tau; // [0.5, 1], [0.5, 0]
     angle = (1. - angle); // shifting to go clockwise, starts at -pi
     //col = texture(iChannel0, vec2(angle, length(uv))).xyz;
-    float the_ring = ring(uv, 0.9, 0.5);
-	float aa = fwidth(the_ring);
+    float the_ring = ring(uv, 0.95, 0.6);
+	float aa = fwidth(angle);
     float progress_mask = (1. - smoothstep(progress, progress + aa, angle));
 
     float background_mask = smoothstep(progress, progress + aa, angle);
