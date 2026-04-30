@@ -180,12 +180,11 @@ func wait_for_steam_handshake(id: int, attempts: int = 0):
 	
 	print("Steam Handshake complete for Peer: ", id, " SteamID: ", steam_id)
 	player_registration(id)
+	NetworkGateway.get_avatar(id)
 
 
 # Called on server when a new peer connects
 func player_registration(new_player_id: int) -> void:
-	# -- ui shouldn't know anything about Network readiness
-	NetworkGateway.get_avatar(new_player_id)
 	# -- tell whoever is listening (i.e. a lobby)
 	peer_connected.emit( new_player_id )
 	if multiplayer.is_server():		

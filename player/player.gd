@@ -355,6 +355,10 @@ func current_platform_check(coll: KinematicCollision2D):
 		current_platform = collider
 
 
+@rpc("any_peer", "call_local", "reliable")
+func set_rel_velocity_platform( collider_id ):
+	pass
+
 
 func my_is_on_floor() -> bool:
 	# -- is any downward pointing ray colliding with something?

@@ -16,10 +16,12 @@ var hide_stamina_visual_timer: TickTimer = TickTimer.new(0.5)
 @export var drain_coeff := 2.0 
 
 func _ready() -> void:
+	$Sprite2D.visible = false
 	recharge_wait_timer.timeout.connect( func(): 
 		can_recharge = true)
 	hide_stamina_visual_timer.timeout.connect( func():
 		$Sprite2D.visible = false)
+
 
 func use(b: bool):
 	is_using_stamina = b
@@ -31,7 +33,6 @@ func use(b: bool):
 
 func update_tick( delta ):
 	if $Sprite2D.visible:
-		print("here")
 		if is_using_stamina: 
 			current_stamina = max(0.0, current_stamina - (delta * drain_coeff))
 			can_recharge = false
