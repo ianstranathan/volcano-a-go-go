@@ -9,7 +9,7 @@ Multiplayer authority is decided by item manager at spawn
 @export var reel_in_speed: float = 50
 @export var grapple_change_rate := 200.0
 @export var swing_damping := 1.0
-@export var ray_check_max_distance: float = 800
+@export var ray_check_max_distance: float = 700
 @onready var ray_component = $RaycastItemComponent
 @onready var rope := $Line2D
 

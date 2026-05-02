@@ -17,9 +17,13 @@ class_name TheLava
 # -- float func = 0.3 * sin(0.2 * uv.x - _time);
 # -- 
 # -- the space has to agree => scale of lava has to be the size of the volcano
+@export var game_ref: Node2D
+@onready var dims: Vector2 = game_ref.get_level_dimensions()
+@onready var half_y: float = dims.y / 2.0
+@onready var half_x: float = dims.x / 2.0
 
-@export var level_params: Resource
-@onready var lava_view: Sprite2D = $Sprite2D
+@onready var lava_tile = preload("res://lava/LavaTile/lava_tile.tscn")
+
 var sinusoid_coeffs: Array[Vector3]
 var sinusoid_derivative_coeffs: Array[Vector3]
 var number_of_sines: int = 10
@@ -29,8 +33,6 @@ var some_primes: Array[int] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 4
 
 var t := 0.0 # elapsed time, only counting in physics step
 func _ready() -> void:
-	assert(lava_view)
-	
 	# -- More interesting looking lava -> desmos
 	#for i in range( number_of_sines):
 		#var A = randf() / 100. # -- the amplitude
@@ -50,39 +52,50 @@ func _ready() -> void:
 	sinusoid_coeffs.append(Vector3(A, B, C))
 	sinusoid_derivative_coeffs.append( Vector3(A_d, B, C))
 	
-	lava_view.material.set_shader_parameter("sc", sinusoid_coeffs)
+	generate_tiles()
+	#lava_world_y_offset
+	#lava_view.material.set_shader_parameter("sc", sinusoid_coeffs)
 	#lava_view.material.set_shader_parameter("sdc", sinusoid_derivative_coeffs)
-	scale_to_level()
+	#scale_to_level()
+
 
 
 ## the initial starting position of the lava
-@export var lava_world_y_offset = 300
-func scale_to_level():
-	var dims : Vector2 = level_params.level_dimensions
-	assert(dims)
-	assert( !dims.is_equal_approx( Vector2.ZERO), "level dimensions can't be zero")
+@export var lava_world_y_offset = 1024
+#func scale_to_level():
+	##var dims : Vector2 = level_params.level_dimensions
+	#
+	#half_y = dims.y / 2.0
+	#half_x = dims.x / 2.0
+	#assert(dims)
+	#assert( !dims.is_equal_approx( Vector2.ZERO), "level dimensions can't be zero")
+	#
+	#generate_tiles()
+	#
+	#lava_view.scale = dims / lava_view.texture.get_size()
+	#
+	## -- Only change the lava level in world, shader should scale it
+	## -- I wrote the shader first and don't want to change the sign convention
+	## -- Godot 2D: +tive y is down, shader +tive y is up
+	#lava_view.material.set_shader_parameter("fn_y_offset", 
+		#-lava_world_y_offset / half_y)
 	
-	lava_view.scale = dims / lava_view.texture.get_size()
-	
-	# -- Only change the lava level in world, shader should scale it
-	# -- I wrote the shader first and don't want to change the sign convention
-	# -- Godot 2D: +tive y is down, shader +tive y is up
-	lava_view.material.set_shader_parameter("fn_y_offset", 
-		-lava_world_y_offset / half_y)
-
 
 func execute_tick(delta):
 	t += delta
-	lava_view.material.set_shader_parameter("t", t)
+	# -- for each lava tile, step it's t forward
+	for c in get_children():
+		if c:
+			c.set_shader_parameter_wrapper("t", t)
 
 
 #func _physics_process(delta: float) -> void:
 	#t += delta
 	#lava_view.material.set_shader_parameter("t", t)
 
-
-@onready var half_y: float = level_params.level_dimensions.y / 2.0
-@onready var half_x: float = level_params.level_dimensions.x / 2.0
+#
+#@onready var half_y: float = level_params.level_dimensions.y / 2.0
+#@onready var half_x: float = level_params.level_dimensions.x / 2.0
 func lava_fn( world_x: float) -> float:
 	var fn_ret = 0.0
 	# -- From shader as reference
@@ -107,3 +120,21 @@ func angle_to_lava_fn( world_x: float ) -> float:
 		# -- why the shader time different from the CPU time?
 		dx_fn_ret -= ((A * B) / half_x) * cos((B * x) - t)
 	return atan(dx_fn_ret)
+
+
+func generate_tiles():
+	var tile_size = VolcanoBackgroundTile.tile_size
+	var half_offset = Vector2( tile_size.x / 2., -tile_size.y / 2.)
+	assert( dims )
+	for i in range(num_tiles_from_dist(dims.x, tile_size.x)):
+		var tile = lava_tile.instantiate()
+		add_child( tile )
+		tile.set_level_dimensions( dims )
+		
+		tile.set_shader_parameter_wrapper("sc", sinusoid_coeffs)
+		var pos = Vector2(-dims.x / 2.0, lava_world_y_offset) + half_offset + Vector2(tile_size.x * i, 0.0)
+		tile.global_position = pos
+
+
+func num_tiles_from_dist(dist: float, a_tile_dimension: float) -> int:
+	return int(round(dist / a_tile_dimension))

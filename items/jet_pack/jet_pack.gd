@@ -13,10 +13,10 @@ func _ready() -> void:
 	item_interface.stopped.connect(on_item_stopped)
 	item_interface.destroyed.connect( func():
 		call_deferred("queue_free"))
-
 	if player_ref:
 		g = player_ref.get_g()
 		accl_cut_off_speed = 1.5 * player_ref.TERMINAL_FALL_SPEED
+
 
 var interpolant := 0.0
 @export var delta_increase_rate: float = 1.0
@@ -33,17 +33,20 @@ func tick_update(delta: float, cmd: PlayerCommand):
 		if !started:
 			#player_ref.testing = true
 			on_item_started()
+			# -- we want it to feel stronger, less like asteroids
+			if player_ref and player_ref.velocity.y < 0:
+				player_ref.velocity.y *= 0.2
 			started = true
 
 		if player_ref and player_ref.velocity.y < accl_cut_off_speed:
 			player_ref.velocity.y -= 1.5 * g * accl_sample( delta ) * delta
 	else:
-		on_item_stopped()
-		started = false
+		if started:
+			on_item_stopped()
+			started = false
 
 
 func on_item_started():
-	print("yo")
 	$MovementOverrideComponent.start()
 	toggle_visual( true )
 	show_on_interpolated.rpc( true )
@@ -57,9 +60,7 @@ func on_item_stopped():
 
 
 func toggle_visual(b: bool):
-	$Sprite2D.visible = b
-	$GPUParticles2D.visible = b
-	$GPUParticles2D.emitting = b
+	$Sprite2D.material.set_shader_parameter("using", 1. if b else 0.)
 
 
 @rpc("any_peer", "reliable")

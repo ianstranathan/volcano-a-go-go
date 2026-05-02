@@ -114,13 +114,21 @@ enum MovementStates
 
 @export_category("Scene Heirarchy Stuff")
 
-## the dedicated container in the same scene depth as the player that holds item instances
-@export var items_container: Node2D
+# the dedicated container in the same scene depth as the player that holds item instances
+var items_container: Node2D
 
 #------------------------------------------------------------------- sprite vars
 var color: Color = Color(1., 1., 1., 1.);
 
+var can_run: bool = true
+
 func _ready() -> void:
+	#----------------------------------------------------------- Running signals
+	$StaminaVisual.stamina_depleted.connect( func(): 
+		can_run = false)
+	$StaminaVisual.stamina_started_recharging.connect( func(): 
+		can_run = true)
+	
 	#---------------------------------------------------------------------------
 	$Sprite2D.material.set_shader_parameter("src_col", color)
 	$Sprite2D.material.set_shader_parameter("dummy_burn_timer", 5.0)
@@ -142,7 +150,10 @@ func _ready() -> void:
 	$ItemManager.item_moving_started.connect( func():
 			movement_state_transition_to( MovementStates.ITEM_MOVING))
 	$ItemManager.item_moving_stopped.connect( func():
-			coyote_timer.start())
+			if is_falling():
+				coyote_timer.start()
+			else:
+				movement_state_transition_to( MovementStates.IDLE))
 	# ------------------------------------------------------------ Local signals
 	if is_multiplayer_authority():
 		# -- TODO get_child(0) is terrible
@@ -844,14 +855,18 @@ func apply_command( c: PlayerCommand):
 		velocity.y *= 0.4
 		movement_state_transition_to(MovementStates.FALLING)
 	
-	$StaminaVisual.use( c.sprint_held )
-	if c.sprint_held:
+	var _run_bool = c.sprint_held and can_run
+	$StaminaVisual.use( _run_bool )
+	if _run_bool:
 		if (movement_state == MovementStates.IDLE or
 			movement_state == MovementStates.WALKING):
 			movement_state_transition_to(MovementStates.RUNNING)
 	else:
-		if movement_state == MovementStates.RUNNING:
+		if (movement_state == MovementStates.RUNNING and
+			c.sprint_held):
 			movement_state_transition_to(MovementStates.WALKING)
+		#else:
+			#movement_state_transition_to(MovementStates.IDLE)
 		
 	# -- this is a bit fragile I think, we only have an input manager
 	# -- if we're multiplayer authority

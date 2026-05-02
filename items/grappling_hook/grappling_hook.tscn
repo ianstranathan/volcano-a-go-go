@@ -25,6 +25,7 @@ item_interface = SubResource("Resource_bnf5e")
 script = ExtResource("2_2q40j")
 _allows_jump = true
 _stops_on_floor = true
+_allows_horizontal_movement = true
 metadata/_custom_type_script = "uid://dmm17nhn1wysy"
 
 [node name="Line2D" type="Line2D" parent="."]

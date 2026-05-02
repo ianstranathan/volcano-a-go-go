@@ -18,7 +18,7 @@ var is_in_lava: bool = false
 # TODO
 # -- this needs to be modular (i.e. not fail when shape type changes)
 ## the amound popping out of the lava
-@onready var lava_level_offset = $CollisionShape2D.shape.size.y / 2.
+@onready var lava_level_offset = $CollisionShape2D.shape.size.y
 
 
 func execute_tick(delta: float) -> void:

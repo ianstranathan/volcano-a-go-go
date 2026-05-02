@@ -13,7 +13,7 @@ Does disabling the render keep the shader from pulling in uniforms?
 """
 
 # -- just so I don't have to instance one to get this number
-static var tile_size: Vector2 = Vector2(1024, 1024)
+static var tile_size: Vector2 = Vector2(2048, 2048)
 
 
 func _ready() -> void:
@@ -30,3 +30,10 @@ func _ready() -> void:
 #
 	#$VisibleOnScreenNotifier2D.screen_entered.connect( func():
 		#visible = true)
+
+func set_level_dimensions(dims: Vector2):
+	$Sprite2D.material.set_shader_parameter( "level_dims", dims)
+
+
+func set_shader_parameter_wrapper(str: String, val):
+	$Sprite2D.material.set_shader_parameter(str, val)

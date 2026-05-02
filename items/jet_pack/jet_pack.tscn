@@ -1,55 +1,24 @@
-[gd_scene load_steps=17 format=3 uid="uid://bs8xrm4mhlm4g"]
+[gd_scene load_steps=10 format=3 uid="uid://bs8xrm4mhlm4g"]
 
 [ext_resource type="Script" uid="uid://bjn340ak6i1me" path="res://items/jet_pack/jet_pack.gd" id="1_4j3oo"]
-[ext_resource type="Shader" uid="uid://6r462wvnxl8c" path="res://items/jet_pack/jet_pack.gdshader" id="1_bmnxx"]
 [ext_resource type="Script" uid="uid://du6dcuy4lm2fk" path="res://items/item_interface.gd" id="2_5fj2d"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_ssqh2"]
 [ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_uejvu"]
+[ext_resource type="Shader" uid="uid://rmh3y05hy1ef" path="res://items/jet_pack/jet_pack_v2.gdshader" id="3_5fj2d"]
 [ext_resource type="Script" uid="uid://dmm17nhn1wysy" path="res://items/item_components/movement_override_component.gd" id="5_5fj2d"]
-[ext_resource type="Texture2D" uid="uid://vc4wmewwfixw" path="res://assets/particle_masks/floaty_64.png" id="7_d7do0"]
 
 [sub_resource type="Resource" id="Resource_d7do0"]
 script = ExtResource("2_5fj2d")
 metadata/_custom_type_script = "uid://du6dcuy4lm2fk"
 
 [sub_resource type="Curve" id="Curve_6sj8w"]
-_data = [Vector2(0, 0.1685394), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+_data = [Vector2(0, 0.3820225), 0.0, 2.1556382, 0, 0, Vector2(0.6648649, 1), -0.054701347, 0.0, 0, 0]
 point_count = 2
 
-[sub_resource type="Gradient" id="Gradient_ssqh2"]
-offsets = PackedFloat32Array(0, 0.6779661, 0.8135593, 0.94067794)
-colors = PackedColorArray(1, 0, 0, 1, 1, 0.5921569, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1)
-
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_uejvu"]
-gradient = SubResource("Gradient_ssqh2")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_uejvu"]
-shader = ExtResource("1_bmnxx")
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_d7do0"]
+shader = ExtResource("3_5fj2d")
+shader_parameter/using = 0.0
 shader_parameter/noise_tex = ExtResource("2_uejvu")
-shader_parameter/color_gradient_tex = SubResource("GradientTexture1D_uejvu")
-
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_6sj8w"]
-blend_mode = 1
-particles_animation = true
-particles_anim_h_frames = 7
-particles_anim_v_frames = 7
-particles_anim_loop = false
-
-[sub_resource type="Gradient" id="Gradient_d7do0"]
-offsets = PackedFloat32Array(0.16981132, 0.6792453, 0.990566)
-colors = PackedColorArray(1, 1, 0.019607844, 1, 1, 0.47843137, 0, 1, 1, 0, 0, 1)
-
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_6sj8w"]
-gradient = SubResource("Gradient_d7do0")
-
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_vuhq0"]
-particle_flag_disable_z = true
-direction = Vector3(0, 1, 0)
-spread = 90.0
-initial_velocity_min = 50.0
-initial_velocity_max = 300.0
-gravity = Vector3(0, 0, 0)
-color_ramp = SubResource("GradientTexture1D_6sj8w")
 
 [node name="JetPack" type="Node2D"]
 z_index = -100
@@ -58,8 +27,8 @@ item_interface = SubResource("Resource_d7do0")
 accl_curve = SubResource("Curve_6sj8w")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-material = SubResource("ShaderMaterial_uejvu")
-position = Vector2(0, 50)
+material = SubResource("ShaderMaterial_d7do0")
+position = Vector2(0, 41)
 scale = Vector2(1, 1.5)
 texture = ExtResource("2_ssqh2")
 
@@ -67,11 +36,3 @@ texture = ExtResource("2_ssqh2")
 script = ExtResource("5_5fj2d")
 _allows_horizontal_movement = true
 metadata/_custom_type_script = "uid://dmm17nhn1wysy"
-
-[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
-material = SubResource("CanvasItemMaterial_6sj8w")
-amount = 50
-texture = ExtResource("7_d7do0")
-lifetime = 0.3
-local_coords = true
-process_material = SubResource("ParticleProcessMaterial_vuhq0")

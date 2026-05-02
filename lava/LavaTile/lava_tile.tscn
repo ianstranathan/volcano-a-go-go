@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=3 uid="uid://dd2wsoh332yjx"]
+
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="1_ntugu"]
+[ext_resource type="Script" uid="uid://346hoi575vnn" path="res://VFX/volcano_background_tile/volcano_background_tile.gd" id="1_q0jlr"]
+[ext_resource type="Shader" uid="uid://bfjvvinimftwb" path="res://lava/LavaTile/lava_tile.gdshader" id="2_js0rw"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_34u0f"]
+shader = ExtResource("2_js0rw")
+shader_parameter/fn_y_offset = 0.0
+shader_parameter/t = 0.0
+shader_parameter/sc = PackedVector3Array(0, 0, 0)
+shader_parameter/dummy_pos = Vector2(0, 0)
+shader_parameter/level_dims = Vector2(4000, 4000)
+
+[node name="LavaTile" type="Node2D"]
+script = ExtResource("1_q0jlr")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_34u0f")
+texture = ExtResource("1_ntugu")

@@ -24,8 +24,10 @@ vec2 rotated_UV(vec2 uv, mat2 rota){
 }
 
 const vec3 light_dir = vec3(0., 1., 0.);
+
+uniform vec2 level_dims = vec2(4000, 4000);
 void fragment() {
-	vec2 _UV = world_position / vec2(5000., 5000.);
+	vec2 _UV = world_position / level_dims;
 	
 	// -- rock and diffuse light
 	vec3 normal = texture(normal_map, _UV).xyz;

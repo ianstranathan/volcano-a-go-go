@@ -155,7 +155,7 @@ func rand_skin_tone( seed_val: int) -> int:
 
 # -- hardcoding until someone makes a level
 @export var level_x_length = 10000
-@export var level_y_length = 6000
+@export var level_y_length = 10000
 
 func get_level_dimensions() -> Vector2:
 	return Vector2(level_x_length, level_y_length)

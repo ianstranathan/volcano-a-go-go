@@ -161,7 +161,6 @@ player_ref = NodePath("../..")
 metadata/_custom_type_script = "uid://crnrkpiidg5es"
 
 [node name="StaminaVisual" parent="." instance=ExtResource("9_8t03j")]
-position = Vector2(-40, -59)
 scale = Vector2(0.4, 0.4)
 seconds_of_stamina = 2.0
 drain_coeff = 1.0
@@ -169,5 +168,5 @@ drain_coeff = 1.0
 [node name="PlayerVisualInterpolator" type="Node2D" parent="StaminaVisual" node_paths=PackedStringArray("player_ref")]
 script = ExtResource("9_hg6s5")
 player_ref = NodePath("../..")
-transform_offset = Vector2(-50, -60)
+transform_offset = Vector2(0, -80)
 metadata/_custom_type_script = "uid://crnrkpiidg5es"
