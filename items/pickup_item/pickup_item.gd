@@ -2,11 +2,6 @@
 extends Node2D
 class_name PickupItem
 
-# NOTE
-
-var world_id: int
-
-
 enum ItemType {
 	MOBILITY,
 	CREATION,
@@ -86,19 +81,57 @@ func color_from_type() -> Color:
 	return Color(0.0, 0.0, 0.0, 1.0)
 
 
+@onready var collision_shape: CollisionShape2D = $Area2D/CollisionShape2D
+@onready var spawn_component: ItemSpawnComponent = $ItemSpawnComponent
+
 func _ready() -> void:
-	if not Engine.is_editor_hint():
-		# ensure that the world has given this item an id to reference
-		#assert( world_id, "WorldItems hasn't tagged this item")
-		_update_sprite_color()
-		
-		# -- Pickups should only work on the host's machine
-		$Area2D.body_entered.connect(func(body):
-			if not multiplayer.is_server():
-				return
-			# -- only the host's local version of the client
-			# -- can interact with a pickup
-			if body is Player and body.can_pick_up_item():
-				$Area2D.set_deferred("monitoring", false)
-				NetManager.sync_item_pickup.rpc( world_id, body.name.to_int(), item_lookup )
-		)
+	if Engine.is_editor_hint():
+		return # Stop execution here if we are inside the editor
+	assert( spawn_component != null, "no spawn component on this item")	
+	_update_sprite_color()
+	$Area2D.body_entered.connect(_on_body_entered)
+	$Area2D.body_exited.connect( _on_body_exited)
+
+
+# -- we're assuming all pickup items are in a flat children array in
+# -- world pickup item manager
+@onready var manager = get_parent()
+
+# -- we need to keep a reference to the last player it touched
+# -- for when it spawns
+var last_player_touched: Player
+func _on_body_entered(body: Node2D) -> void:
+	if body.name.to_int() == multiplayer.get_unique_id():
+		if (body is Player and
+			body.can_pick_up_item() and
+			!spawn_component.is_predicted_hidden):
+			if last_player_touched != body:
+				last_player_touched = body
+				spawn_component.predict_hide()
+				manager.predict_pickup(spawn_component.spawn_id, item_lookup)
+			else:
+				last_player_touched = null
+
+
+func _on_body_exited(body: Node2D) -> void:
+	pass
+	#if body is Player and body == last_player_touched:
+		#last_player_touched = null
+
+
+func execute_tick( delta: float ) -> void:
+	# -- fancy falling goes here
+	pass
+
+
+#func _on_prediction_hidden() -> void:
+	## -- would be super cool for some sparklies here or some misc. juice.
+	## -- (e.g. trailing particles fading out smoothly)
+	#if sprite:
+		#sprite.hide()
+
+
+#func _on_prediction_cancelled() -> void:
+	## -- host rejection
+	#if sprite:
+		#sprite.show()

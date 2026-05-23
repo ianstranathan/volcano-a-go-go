@@ -20,5 +20,6 @@ is_falling = true
 shape = SubResource("RectangleShape2D_yn4me")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+z_index = 100
 material = SubResource("ShaderMaterial_2c2d4")
 texture = ExtResource("2_xobjf")

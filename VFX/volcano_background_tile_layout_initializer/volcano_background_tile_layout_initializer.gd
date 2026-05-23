@@ -25,7 +25,8 @@ func _ready() -> void:
 	print( get_parent().name )
 	level_dimenions = game_ref.get_level_dimensions()
 	generate_background()
-
+	# -- NOTE
+	global_position.y += 500
 
 
 func get_volcano_outline_pts() -> void:

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://dyhwphayywyw6"]
+
+[ext_resource type="Script" uid="uid://dyeb80jvkbt4v" path="res://coin_manager/coin_manager.gd" id="1_y05sk"]
+
+[sub_resource type="MultiMesh" id="MultiMesh_y05sk"]
+
+[node name="CoinManager" type="Node2D"]
+script = ExtResource("1_y05sk")
+
+[node name="MultiMeshInstance2D" type="MultiMeshInstance2D" parent="."]
+multimesh = SubResource("MultiMesh_y05sk")

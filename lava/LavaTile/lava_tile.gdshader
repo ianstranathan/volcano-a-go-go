@@ -1,19 +1,26 @@
 shader_type canvas_item;
 
-const vec3 lava_top_col = vec3(1.0, 0.5, 0.25);
-const vec3 lava_body_col = vec3(1., 0.1, 0.2);
+float sdBox( in vec2 p, in vec2 b )
+{
+    vec2 d = abs(p)-b;
+    return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
+}
 
-uniform float fn_y_offset;
-uniform float t;
-//uniform vec2 resolution;
+float smin( float a, float b, float k )
+{
+    k *= 6.0;
+    float h = max( k-abs(a-b), 0.0 )/k;
+    return min(a,b) - h*h*h*k*(1.0/6.0);
+}
 
-// function coefficients
-uniform vec3 sc[1];
-//uniform float fn_y_offset = -0.25;
-
+// -- function coefficients for N superpositions
+uniform vec3 sc[1]; // -- how many things are we superpositioning with?
 uniform vec2 dummy_pos;
-#define DEBUG
 
+// -------------
+//uniform vec2 level_dims = vec2(10000.0);
+uniform float lava_level;
+uniform float t;
 
 varying vec2 world_position;
 
@@ -21,52 +28,45 @@ void vertex() {
     world_position = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy;
 }
 
-uniform vec2 level_dims = vec2(4000, 4000);
+uniform vec4 top_color : source_color = vec4(1.0, 0.9, 0.2, 1.0); // Bright Yellow/White
+uniform vec4 mid_color : source_color = vec4(1.0, 0.3, 0.0, 1.0); // Bright Orange
+uniform vec4 bot_color : source_color = vec4(0.2, 0.0, 0.0, 1.0); // Deep Dark Red
+
+uniform float speed = 2.0;
+uniform float amplitude = 0.05;
+uniform float frequency = 10.0;
+//uniform float glow_thickness = 0.1;
+
 void fragment() {
-	//vec2 _UV = world_position / level_dims;
-	//vec2 uv = 2. * _UV - 1.;
-	vec2 uv =  world_position / (level_dims / 2.);
-	uv.y *= -1.0;
-
-
-	float _time = t;
-	//vec2 resolution = 1. / SCREEN_PIXEL_SIZE;
-	//uv.x *= resolution.x / resolution.y;
-
-
-	float func = 0.0;
+    vec2 p = vec2(world_position.x, -world_position.y);
+    float noise = sin(p.x * 0.01 + TIME * 2.567) * 7.0;
+    noise += sin(p.x * 0.026 - TIME * 1.26) * 4.0; 
+    noise += sin(p.x * 0.057 + TIME * 3.123) * 2.0;
+    
+	float fn = 0.0;
 	for (int i = 0; i < 1; i++)
 	{
-		func +=  sc[i].x * sin((sc[i].y * uv.x) - _time);
+		fn -=  sc[i].x * sin((sc[i].y * p.x) - t);
 	}
+	
+    float sdf = p.y + lava_level + fn + noise;
 
-	func += fn_y_offset;
+    float edge_w = fwidth(sdf);
+    float alpha = smoothstep(edge_w, -edge_w, sdf);
 
+    float glow_thickness = 55.0; 
+    float glow_intensity = 0.8;
+    float dist = max(sdf, 0.0); // Only glow ABOVE the surface
+    float glow = glow_intensity / (1.0 + pow(dist / glow_thickness, 2.0));
 
-	vec2 func_rel_pos = uv - vec2(uv.x, func);
-	float dist_field = length(func_rel_pos);
+    float color_mix = clamp((-p.y - lava_level) / 300.0, 0.0, 1.0);
+	// -- hdr thresholds
+    vec3 orange = vec3(2.5, 0.6, 0.1);
+    vec3 red = vec3(1.5, 0.05, 0.01);
+    vec3 base_color = mix(red, orange, color_mix);
 
-	float dist = 1.0 / dist_field;
-	dist *= 0.02;
-	dist = pow(dist, 0.8);
-	//dist += dist * prod * (1. - step(0.2, abs(uv.y - func)));// add the lava bubbles to the dist func
-	vec3 col = mix(lava_body_col, lava_top_col, dist) * dist;
-	col = 1.0 - exp( -col );
-	vec4 top_lava_layer = vec4(col, dist * dist);
+    vec3 final_rgb = base_color * (alpha + glow);
+    float final_alpha = clamp(alpha + glow, 0.0, 1.0);
 
-	// Lava body
-	float body_mask = 1. - smoothstep(func - 0.01, func, uv.y);
-	float gradient_from_bottom = smoothstep(-1., func, uv.y);
-
-	vec4 lava_body = vec4( mix(lava_top_col, lava_body_col, gradient_from_bottom * body_mask), body_mask);
-
-	COLOR = lava_body + top_lava_layer;
-	//COLOR = vec4(vec3(func_rel_pos, 0.), 1.);
-
-
-	//float circ = smoothstep(0.1, 0.11, length(uv - vec2(dummy_pos.x, func)));
-	//float mask = 1. - smoothstep(func, func+ 0.01, uv.y);
-	//COLOR = vec4(vec3(mask) * circ, mask);
-
-
+    COLOR = vec4(final_rgb, final_alpha);
 }

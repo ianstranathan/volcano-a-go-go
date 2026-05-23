@@ -1,6 +1,7 @@
 extends Node2D
 
 class_name TheLava
+
 # -- this should just be a thin interface between CPU and GPU
 # -- 1
 # --   it has a analytic function (a sinusoid) that it manages
@@ -10,131 +11,99 @@ class_name TheLava
 # -- 3.
 # --   it can send the data that goes into it's CPU managed sinusoid
 # --   correctly to its fragment shader view
- 
+
 # -- In General: y = A sin(B(x - C)) + D
-
-# -- what it looks like in the shader:
-# -- float func = 0.3 * sin(0.2 * uv.x - _time);
-# -- 
-# -- the space has to agree => scale of lava has to be the size of the volcano
 @export var game_ref: Node2D
-@onready var dims: Vector2 = game_ref.get_level_dimensions()
-@onready var half_y: float = dims.y / 2.0
-@onready var half_x: float = dims.x / 2.0
+@export var initial_world_lava_level = 500
 
+@onready var dims: Vector2 = game_ref.get_level_dimensions()
 @onready var lava_tile = preload("res://lava/LavaTile/lava_tile.tscn")
 
-var sinusoid_coeffs: Array[Vector3]
+
+var sinusoid_coeffs: Array[Vector3] #= [Vector3(40.0, 0.007, 0.0)]
 var sinusoid_derivative_coeffs: Array[Vector3]
 var number_of_sines: int = 10
 
-
-var some_primes: Array[int] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71]
-
 var t := 0.0 # elapsed time, only counting in physics step
+
+
 func _ready() -> void:
-	# -- More interesting looking lava -> desmos
-	#for i in range( number_of_sines):
-		#var A = randf() / 100. # -- the amplitude
-		#var B = randf() * PI#some_primes[randi_range(0, some_primes.size() - 1)] # -- the freq
-#
-		#var C = (1.0 if randf() > 0.5 else -1.0) * randf() * TAU # -- the offset
-		#var V = Vector3(A, B, C)
-		##print( V )
-		#sinusoid_coeffs.append( V )
-	
-	#lava_view.material.set_shader_parameter("sc", sinusoid_coeffs)
-	var A = 0.15
-	var B = 1.0
-	var C = 0.0
-	var A_d = A * B
+	# -- coefficients are now in pixels
+	# -- Asin(Bx - c)
+	var A = 65.0
+	var B = 0.001
+	var C = 0.0 # NOTE not currently, using remove if you like
+	var A_d = A * B # NOTE this can be cached, so you don't need do this over and over
 	
 	sinusoid_coeffs.append(Vector3(A, B, C))
 	sinusoid_derivative_coeffs.append( Vector3(A_d, B, C))
 	
 	generate_tiles()
-	#lava_world_y_offset
-	#lava_view.material.set_shader_parameter("sc", sinusoid_coeffs)
-	#lava_view.material.set_shader_parameter("sdc", sinusoid_derivative_coeffs)
-	#scale_to_level()
 
+	global_position.y += initial_world_lava_level
 
+# -- for later, when you're actually increasing the global_position to chase
+# -- players
+func translate_lava_vertically(y_amount: float):
+	global_position.y += y_amount
+	get_children().map( func(tile): 
+		tile.set_shader_parameter_wrapper("lava_level", global_position.y))
 
-## the initial starting position of the lava
-@export var lava_world_y_offset = 1024
-#func scale_to_level():
-	##var dims : Vector2 = level_params.level_dimensions
-	#
-	#half_y = dims.y / 2.0
-	#half_x = dims.x / 2.0
-	#assert(dims)
-	#assert( !dims.is_equal_approx( Vector2.ZERO), "level dimensions can't be zero")
-	#
-	#generate_tiles()
-	#
-	#lava_view.scale = dims / lava_view.texture.get_size()
-	#
-	## -- Only change the lava level in world, shader should scale it
-	## -- I wrote the shader first and don't want to change the sign convention
-	## -- Godot 2D: +tive y is down, shader +tive y is up
-	#lava_view.material.set_shader_parameter("fn_y_offset", 
-		#-lava_world_y_offset / half_y)
-	
 
 func execute_tick(delta):
 	t += delta
+	#translate_lava_vertically( -50. * delta )
+	#print(initial_world_lava_level)
 	# -- for each lava tile, step it's t forward
 	for c in get_children():
 		if c:
 			c.set_shader_parameter_wrapper("t", t)
 
 
-#func _physics_process(delta: float) -> void:
-	#t += delta
-	#lava_view.material.set_shader_parameter("t", t)
-
-#
-#@onready var half_y: float = level_params.level_dimensions.y / 2.0
-#@onready var half_x: float = level_params.level_dimensions.x / 2.0
 func lava_fn( world_x: float) -> float:
 	var fn_ret = 0.0
 	# -- From shader as reference
 	# func +=  sc[i].x * sin(sc[i].y * uv.x + sc[i].y - _time);
 	# func += fn_y_offset;
 	for coeffs in sinusoid_coeffs:
-		var A = coeffs.x * half_y
+		var A = coeffs.x
 		var B = coeffs.y
-		var x = world_x / half_x
+		var x = world_x
 		fn_ret -= A * sin((B * x) - t)
-	
-	fn_ret += lava_world_y_offset
-	return fn_ret
+		#fn_ret += A * sin((B * x) - t)
+		
+	#initial_world_lava_level + fn_ret
+	return fn_ret + global_position.y
 
-## return the derivative
+# -- derivative; note the constant initial_world_lava_level drops
 func angle_to_lava_fn( world_x: float ) -> float:
 	var dx_fn_ret = 0.0
 	for coeffs in sinusoid_coeffs:
-		var A = coeffs.x * half_y
+		var A = coeffs.x
 		var B = coeffs.y
-		var x = world_x / half_x
+		var x = world_x
 		# -- why the shader time different from the CPU time?
-		dx_fn_ret -= ((A * B) / half_x) * cos((B * x) - t)
+		dx_fn_ret -= (A * B) * cos((B * x) - t)
 	return atan(dx_fn_ret)
 
 
 func generate_tiles():
 	var tile_size = VolcanoBackgroundTile.tile_size
-	var half_offset = Vector2( tile_size.x / 2., -tile_size.y / 2.)
-	assert( dims )
+	var start_x = -dims.x / 2.0
+	var tile_center_offset = tile_size.x / 2.0
+	var start_y = initial_world_lava_level 
 	for i in range(num_tiles_from_dist(dims.x, tile_size.x)):
 		var tile = lava_tile.instantiate()
-		add_child( tile )
-		tile.set_level_dimensions( dims )
-		
+		add_child(tile)
+		var x_pos = start_x + tile_center_offset + (tile_size.x * i)
+		tile.global_position = Vector2(x_pos, start_y)
 		tile.set_shader_parameter_wrapper("sc", sinusoid_coeffs)
-		var pos = Vector2(-dims.x / 2.0, lava_world_y_offset) + half_offset + Vector2(tile_size.x * i, 0.0)
-		tile.global_position = pos
+		tile.set_shader_parameter_wrapper("lava_level", initial_world_lava_level)
 
 
 func num_tiles_from_dist(dist: float, a_tile_dimension: float) -> int:
 	return int(round(dist / a_tile_dimension))
+
+
+func get_lava_information() -> Dictionary:
+	return {"sc": sinusoid_coeffs, "lava_level": initial_world_lava_level}

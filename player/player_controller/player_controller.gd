@@ -21,14 +21,14 @@ state variables agree to within a certain margin)
 # -- either RemotePlayerController or LocalPlayerController
 var controller: LocalPlayerController
 
-# -- so we're keeping 60 ticks, or 1 second a 60hz physics sim
+# -- so we're keeping 60 ticks, or 2 second a 60hz physics sim
 var input_and_state_buffer_size: int = 240
 var command_history_buffer: Array[PlayerCommand] = []
 var reconciliation_state_buffer: Array[PlayerState] = []
 
 # -- 
 var interpolation_buffer: Array[PlayerState] = []
-var interpolation_buffer_size: int = 20
+var interpolation_buffer_size: int = 30
 
 # -- 
 var last_command_executed: PlayerCommand = PlayerCommand.new()
@@ -52,18 +52,7 @@ func _ready() -> void:
 	reconciliation_state_buffer.resize( input_and_state_buffer_size )
 	interpolation_buffer.resize( interpolation_buffer_size )
 	recent_cmds.resize(recent_cmd_range)
-	
 	reset_all_buffers()
-	# -- initialize the circular buffers
-	#for i in range(input_and_state_buffer_size):
-		#command_history_buffer[i] = PlayerCommand.new()
-		#reconciliation_state_buffer[i] = PlayerState.new()
-		#
-		## -- size recent cmd buffer
-		#if i < recent_cmd_range:
-			#recent_cmds[i] = PlayerCommand.new()
-		#if i < interpolation_buffer_size:
-			#interpolation_buffer[i] = PlayerState.new()
 
 
 func reset_all_buffers():
@@ -90,11 +79,10 @@ func update_remote_state(host_state: PlayerState):
 	#print("Client received state for: ", host_state.tick, " Buffer size: ", interpolation_buffer.size())
 	var incoming_tick = host_state.tick
 	if incoming_tick <= 0:
-		# -- ignore, chose -1 as intialization value
+		# -- ignore, I chose -1 as intialization value
 		return
 	interpolation_buffer[incoming_tick % interpolation_buffer_size] = host_state
 
-	# -- Keep track of the tick?
 	if incoming_tick > last_confirmed_interpolation_tick:
 		last_confirmed_interpolation_tick = incoming_tick
 
@@ -112,6 +100,9 @@ func on_tick_generated(tick: int, delta: float):
 	# ----------------------------------------------------- record cmd and state
 	var current_command = command_history_buffer[_index]
 	current_command.tick = tick                       # -- timestamp the command
+	# -- reset all transient data
+	current_command.collided_id = -1
+	current_command.impulse = Vector2.ZERO
 	controller.update_command(current_command, delta) # -- update the command
 
 	player.execute_tick(delta, current_command) # -- client prediction
@@ -141,36 +132,31 @@ func on_tick_generated(tick: int, delta: float):
 @onready var current_offset: float = min_offset
 #var shortage_frames: int = 0
 
+# -- maybe this is called "Entity Interpolation" in the literature
 func _process(delta):
+	# -- no interpolating on a client controlled player
 	if is_multiplayer_authority(): 
 		return
-
+	
+	# -- NetManager.current_tick + NetManager.fract_tick is the actual current
+	# -- time on this local client's machine.
+	# -- We shift this time backward (by at least NetManager.tick_lead) to have
+	# -- gaurenteed data from server for these ticks; then we can
+	# -- slide in a continuous manner between them for visual fidelity
 	var render_tick = (NetManager.current_tick + NetManager.fract_tick) - current_offset
 	#print("Client render_tick: ", render_tick, " Buffer has: ", interpolation_buffer.map(func(d): return d.tick))
 	var point_a: PlayerState = null
 	var point_b: PlayerState = null
 
-	# ----------------------------------------------- first, going over whole buffer
-	# -- need two points on either side of our render interpolant
-	#for data in interpolation_buffer:
-		#if data.tick == -1:
-			## -- -1 is an initialization choice, so this is just skipping frames
-			## -- that never took data
-			#continue
-		#
-		#if data.tick <= render_tick:
-			#if point_a == null or data.tick > point_a.tick:
-				#point_a = data
-		#else: # data.tick > render_tick
-			#if point_b == null or data.tick < point_b.tick:
-				#point_b = data
-	 
 	# ----------------------------------------------- OPTIMIZING walking backwards
 	for i in range(interpolation_buffer_size):
+		# -- e.g. last confirmed is 100 => we start at 100 and walk backwards
+		# -- to ~70 or 80 (depending on how large the interpolation buffer is)
 		var check_tick = last_confirmed_interpolation_tick - i
 		var data = interpolation_buffer[check_tick % interpolation_buffer_size]
 		
-		# -- skipping over missed frames
+		# -- skipping over missed/ empty slots (host is sending this data at like 30hz)
+		# -- so not every slot will be filled
 		if data == null or data.tick == -1:
 			continue
 		
@@ -184,9 +170,8 @@ func _process(delta):
 			break 
 		else:
 			point_b = data # This was > render_tick, so it's a candidate for point_b
-
-	# # -----------------------------------------------
-	# -- interpolate position
+			
+	# ------------------------------------------------------------ interpolation
 	player.pos_previous = player.global_position
 	if point_a and point_b:
 		# -- slowly lerp towards the min offset
@@ -196,16 +181,51 @@ func _process(delta):
 		player.global_position = point_a.pos.lerp(point_b.pos, clamp(t, 0.0, 1.0))
 		# -- movement transition won't go unless there's a state mismatch
 		player.movement_state_transition_to( point_a.movement_state )
+	
+	# -- handling case where network lags and there's no future packet
+	# -- 
 	elif point_a:
 		current_offset = min(current_offset + 0.2, max_offset)
 		# -- do something if there's a bunch of shortage frames maybe?
 		# shortage_frames += 1
 		# we don't have enough data to interpolate => stay at the most recent packet
 		player.global_position = point_a.pos
+	
 	player.pos_current = player.global_position
 
+#func _process(delta):
+	#if is_multiplayer_authority(): 
+		#return
+#
+	## 1. Determine exactly what tick we want to be rendering
+	#var render_tick_float = (NetManager.current_tick + NetManager.fract_tick) - current_offset
+	#var tick_a = floori(render_tick_float)
+	#var tick_b = tick_a + 1
+#
+	## 2. Direct Indexing (No searching!)
+	#var data_a = interpolation_buffer[tick_a % interpolation_buffer_size]
+	#var data_b = interpolation_buffer[tick_b % interpolation_buffer_size]
+#
+	## 3. Validation: Ensure these aren't stale data from the last wrap-around
+	## (Check if the tick stored at that index is actually the tick we want)
+	#if data_a.tick == tick_a and data_b.tick == tick_b:
+		#var t = render_tick_float - tick_a
+		#player.global_position = data_a.pos.lerp(data_b.pos, t)
+		#player.movement_state_transition_to(data_a.movement_state)
+		#current_offset = lerp(current_offset, min_offset, 0.1 * delta)
+	#elif data_a.tick == tick_a:
+		## We have the past but not the future (buffer shortage)
+		#player.global_position = data_a.pos
+		#current_offset = min(current_offset + 0.2, max_offset)
+	#else:
+		## Complete desync - we don't even have point A
+		## This usually happens during lag spikes
+		#pass
+#
+	#player.pos_current = player.global_position
+
 # -- where should we put these consts?
-const BASE_POS_TOLERANCE: float = 2.0 # in pixels
+const BASE_POS_TOLERANCE: float = 3.0 # in pixels
 #const ROT_TOLERANCE: float = 0.06 # in radians (i.e. about 3.5 degrees)
 
 
@@ -231,10 +251,11 @@ func reconcile(host_state: PlayerState, _time_in_transit: float):
 	# -- message was being sent, not perfect but seems to fix the hookshot
 	var pos_tolerance = BASE_POS_TOLERANCE + player.velocity.length() * _time_in_transit
 	#pos_tolerance = min() # what's a good min?
-	var pos_error = stored_state.pos.distance_to(host_state.pos)
+	var is_pos_error = (stored_state.pos.distance_squared_to(host_state.pos) >
+						pos_tolerance * pos_tolerance)
 	#var rot_error = abs(angle_difference(stored_state.rot, host_state.rot))
 	var needs_reconciled = (
-		(pos_error > pos_tolerance) or
+		is_pos_error or
 		#rot_error > ROT_TOLERANCE or 
 		stored_state.movement_state != host_state.movement_state
 	)
@@ -245,8 +266,8 @@ func reconcile(host_state: PlayerState, _time_in_transit: float):
 		# -- this is the vector from the old/non-reconciled position
 		# --  to the new/ reconciled position
 		player.reconciled.emit( host_state.pos - player.global_position )
-		
-		print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
+		#print("is_pos_error: ", is_pos_error, "& hosts version's pos:", stored_state.pos, "vs.", host_state.pos )
+		#print("stored_state: ", stored_state.movement_state, "& hosts version's state:", host_state.movement_state)
 		# -- correct the past record to authoritative host
 		var copy_host_state = PlayerState.new()
 		copy_host_state.copy_state(host_state)
@@ -283,37 +304,41 @@ func reconcile(host_state: PlayerState, _time_in_transit: float):
 			replay_tick += 1
 		
 		player.is_replaying = false
+		
+# -- when local client hits a remote player
+#func inject_predicted_state(predicted_vel: Vector2):
+	## -- most recent interpolated state
+	#var last_state = interpolation_buffer[last_confirmed_interpolation_tick % interpolation_buffer_size]
+	#
+	## -- future predicted state from collision
+	#var future_state = PlayerState.new()
+	#future_state.tick = last_confirmed_interpolation_tick + 1
+	#future_state.vel = predicted_vel
+	#future_state.pos = last_state.pos + predicted_vel
+	#future_state.movement_state = last_state.movement_state 
+#
+	#update_remote_state(future_state)
 
+func inject_predicted_state(new_velocity: Vector2):
+	var base_data = interpolation_buffer[last_confirmed_interpolation_tick % interpolation_buffer_size]
+	var base_tick = last_confirmed_interpolation_tick
+	var base_pos = base_data.pos #if base_data.pos != Vector2.ZERO else player.global_position
+	
+	if base_pos == Vector2.ZERO:
+		base_pos = player.global_position
+		
+	for i in range(1, 5):
+		var future_state = PlayerState.new()
+		future_state.tick = base_tick + i
+		future_state.vel = new_velocity
+		# Linear prediction from the point of impact
+		future_state.pos = base_pos + (new_velocity * TICK_RATE * i)
+		future_state.movement_state = base_data.movement_state
+		update_remote_state(future_state)
 
-#if stored_state.tick != host_state.tick or stored_state.tick == -1:
-		#print("Reconcile check: Stored: ", stored_state.tick, " Host: ", host_state.tick)
-		## -- small mismatch
-		#if abs(stored_state.tick - host_state.tick) <= 15:
-			## -- we are searching for a matching tick
-			## -- outwardly from this tick, i.e. one tick less, one tick moree
-			## -- then two ticks less and two ticks more...
-			#var found = false
-			#for i in range(1, 15):
-				#for offset in [-i, i]:
-					#var t = host_state.tick + offset
-					#var idx = get_circular_index(t)
-					#if reconciliation_state_buffer[idx].tick == t:
-						#stored_state = reconciliation_state_buffer[idx]
-						#found = true
-						#break
-				#if found:
-					#break
-			#if not found:
-				#hard_reset(host_state)
-				#return
-
-#func hard_reset(host_state: PlayerState):
-	#player.global_position = host_state.pos
-	#player.velocity = host_state.vel
-	#player.movement_state = host_state.movement_state as Player.MovementStates
-	#NetManager.local_resync_to_host(host_state.tick)
-	#reset_all_buffers()
-	#last_command_executed = PlayerCommand.new()
-	#last_confirmed_interpolation_tick = host_state.tick
-	#reconciliation_state_buffer[get_circular_index(host_state.tick)].set_state(player, host_state.tick)
-	#player.is_replaying = false
+	# 2. THE GUARANTEE: 
+	# If our render clock is too far in the past, we won't see the injection.
+	# We can "heat up" the interpolation by reducing the offset temporarily.
+	# This forces the _process loop to look closer to 'base_tick + i'
+	#current_offset = clamp(current_offset - 1.0, min_offset, max_offset)
+	current_offset = min_offset

@@ -19,8 +19,7 @@ will only have authority from that peer
 @export var player_scene: PackedScene
 @export var players_container: Node2D
 @export var spawn_points: Node2D
-@export var pickup_items_container: Node2D
-@export var spawned_items_container: Node2D
+@export var world_pickup_item_container: WorldPickupItemsManager
 
 
 var player_data_dict:Dictionary = {} # -- id to player_data
@@ -57,14 +56,21 @@ func _ready():
 	#Rock and Roll
 	Events.emit_signal("play_music", AudioDb.MusicTrackId.GAMEPLAY,-10,1)
 	# --------------- TEST
-	$WorldGeometry/FallingPlatform.lava_ref = $WorldGeometry/Lava
-	
+	$WorldGeometry/FallingPlatform.lava_ref = $Lava
+
+
 func execute_tick( delta: float ):
 	for child in $WorldGeometry.get_children():
 		if child.has_method("execute_tick"):
 			child.execute_tick( delta )
 	
+	# -- TODO
+	# -- put this stuff in a container and run execute tick on it
+	$Lava.execute_tick( delta )
+	$PostProcessingQuad.execute_tick( delta )
 	ui.execute_tick( delta )
+	world_pickup_item_container.execute_tick( delta )
+
 
 func _on_player_info_received(peer_id: int, _name: String, spawn_index: int):
 	spawn_player(peer_id, _name, spawn_index)
@@ -78,7 +84,9 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	# -- no duplicates (don't spawn the same id twice)
 	if players_container.has_node( a_players_name ):
 		return
-	# -- 
+	
+	# -- TODO Need to formalize player intialization into its own thing
+	# -- there's too much going on here
 	var a_player = player_scene.instantiate()
 	a_player.name = a_players_name
 	
@@ -113,9 +121,16 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	player_data_dict[peer_id] = a_player_data
 	
 	# ---------------------------------------------
-	a_player.items_container = spawned_items_container
+	a_player.dropped_pickup_item.connect( 
+		world_pickup_item_container.on_player_dropped_pickup_item)
+
+	#
+	# ----------------------------------------------
+	# -- do the stuff client authority
 	if peer_id == multiplayer.get_unique_id():
 		$Camera.target_initialize(a_player)
+		##$PostProcessingQuad.target = a_player
+	
 	players_container.add_child(a_player)
 
 	# -- we need the players to spawn before running this

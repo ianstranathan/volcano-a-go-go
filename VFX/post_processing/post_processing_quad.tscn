@@ -1,0 +1,21 @@
+[gd_scene load_steps=6 format=3 uid="uid://cjuitcyofgqc3"]
+
+[ext_resource type="Script" uid="uid://dxmpk01mcxy4u" path="res://VFX/post_processing/post_processing_quad.gd" id="1_f8chi"]
+[ext_resource type="Shader" uid="uid://bknmw032rabjm" path="res://VFX/post_processing/post_processing_quad.gdshader" id="1_l2s4n"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_8ldvm"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_n4uac"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_n4uac"]
+shader = ExtResource("1_l2s4n")
+shader_parameter/noise_tex = ExtResource("2_8ldvm")
+shader_parameter/camera_world_pos = Vector2(0, 0)
+shader_parameter/lava_level = 0.0
+shader_parameter/distortion_strength = 0.02
+shader_parameter/heat_range = 400.0
+shader_parameter/t = 0.0
+shader_parameter/sc = PackedVector3Array(0, 0, 0)
+
+[node name="PostProcessingQuad" type="Sprite2D"]
+material = SubResource("ShaderMaterial_n4uac")
+texture = ExtResource("2_n4uac")
+script = ExtResource("1_f8chi")

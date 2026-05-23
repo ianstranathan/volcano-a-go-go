@@ -35,5 +35,5 @@ func set_level_dimensions(dims: Vector2):
 	$Sprite2D.material.set_shader_parameter( "level_dims", dims)
 
 
-func set_shader_parameter_wrapper(str: String, val):
-	$Sprite2D.material.set_shader_parameter(str, val)
+func set_shader_parameter_wrapper(s: String, val):
+	$Sprite2D.material.set_shader_parameter(s, val)
