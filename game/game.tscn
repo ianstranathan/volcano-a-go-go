@@ -10,7 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://ctebu6bfyckrw" path="res://platforms/animated_placeholder_platform/animated_placeholder_platform.tscn" id="8_4cobl"]
 [ext_resource type="Script" uid="uid://dae2c8i45te8f" path="res://game/world_effects.gd" id="8_y36n6"]
 [ext_resource type="PackedScene" uid="uid://csxlguu7f4gt6" path="res://items/pickup_item/pickup_item.tscn" id="10_hb504"]
-[ext_resource type="Script" uid="uid://c1o22ooao6lq" path="res://game/world_item_manager.gd" id="11_3vho3"]
+[ext_resource type="Script" uid="uid://c1o22ooao6lq" path="res://game/world_pickup_items_manager.gd" id="11_3vho3"]
 [ext_resource type="Texture2D" uid="uid://s7qk4ylbme1f" path="res://assets/parachute.svg" id="11_4cobl"]
 [ext_resource type="Texture2D" uid="uid://dh12276y8fv5y" path="res://assets/hookshot.svg" id="11_ee6o4"]
 [ext_resource type="PackedScene" uid="uid://btg4x06vjsk5q" path="res://UI/UI.tscn" id="14_b686c"]
@@ -24,12 +24,12 @@ _data = {
 }
 point_count = 2
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "world_pickup_item_container")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "world_pickup_items_container")]
 script = ExtResource("1_dxrkv")
 player_scene = ExtResource("2_4fuuu")
 players_container = NodePath("PlayersContainer")
 spawn_points = NodePath("SpawnPoints")
-world_pickup_item_container = NodePath("WorldPickupItemsManager")
+world_pickup_items_container = NodePath("WorldPickupItemsManager")
 metadata/_edit_group_ = true
 
 [node name="PlayersContainer" type="Node2D" parent="."]

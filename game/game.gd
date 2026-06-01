@@ -19,7 +19,7 @@ will only have authority from that peer
 @export var player_scene: PackedScene
 @export var players_container: Node2D
 @export var spawn_points: Node2D
-@export var world_pickup_item_container: WorldPickupItemsManager
+@export var world_pickup_items_container: Node2D
 
 
 var player_data_dict:Dictionary = {} # -- id to player_data
@@ -69,7 +69,7 @@ func execute_tick( delta: float ):
 	$Lava.execute_tick( delta )
 	$PostProcessingQuad.execute_tick( delta )
 	ui.execute_tick( delta )
-	world_pickup_item_container.execute_tick( delta )
+	#world_pickup_items_container.execute_tick( delta )
 
 
 func _on_player_info_received(peer_id: int, _name: String, spawn_index: int):
@@ -121,9 +121,9 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	player_data_dict[peer_id] = a_player_data
 	
 	# ---------------------------------------------
-	a_player.dropped_pickup_item.connect( 
-		world_pickup_item_container.on_player_dropped_pickup_item)
-
+	#a_player.dropped_pickup_item.connect( 
+		#world_pickup_items_container.on_player_dropped_pickup_item)
+	setup_networked_player_connections(a_player)
 	#
 	# ----------------------------------------------
 	# -- do the stuff client authority
@@ -135,6 +135,12 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 
 	# -- we need the players to spawn before running this
 	$WorldEffects.initialize_recurring_player_vfx()
+
+
+func setup_networked_player_connections(p: Player) -> void:
+	p.dropped_pickup_item.connect(
+		world_pickup_items_container.on_player_dropped_pickup_item
+	)
 
 
 # ------------------------------------------------------------------------ Utils

@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://cq0egx7y64qws" path="res://items/pickup_item/pickup_item.gd" id="1_edkex"]
 [ext_resource type="Shader" uid="uid://bl3t8qr7nbwc" path="res://items/pickup_item/pickup_item_icon.gdshader" id="1_pxpuq"]
 [ext_resource type="Texture2D" uid="uid://c4oflmcqxtgy3" path="res://assets/grappling_hook.svg" id="2_2vdo0"]
-[ext_resource type="Script" uid="uid://c7unbusniug6u" path="res://items/item_components/item_spawn_component.gd" id="4_46m37"]
+[ext_resource type="Script" uid="uid://c7unbusniug6u" path="res://delete_buffer/item_spawn_component.gd" id="4_46m37"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_buahv"]
 radius = 30.0

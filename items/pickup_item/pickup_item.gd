@@ -2,6 +2,9 @@
 extends Node2D
 class_name PickupItem
 
+var spawn_id = -1
+signal prediction_picked_up( id, item_enum )
+
 enum ItemType {
 	MOBILITY,
 	CREATION,
@@ -82,56 +85,51 @@ func color_from_type() -> Color:
 
 
 @onready var collision_shape: CollisionShape2D = $Area2D/CollisionShape2D
-@onready var spawn_component: ItemSpawnComponent = $ItemSpawnComponent
+#@onready var spawn_component: ItemSpawnComponent = $ItemSpawnComponent
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		return # Stop execution here if we are inside the editor
-	assert( spawn_component != null, "no spawn component on this item")	
+	
 	_update_sprite_color()
 	$Area2D.body_entered.connect(_on_body_entered)
-	$Area2D.body_exited.connect( _on_body_exited)
+	#$Area2D.body_exited.connect( _on_body_exited)
 
-
-# -- we're assuming all pickup items are in a flat children array in
-# -- world pickup item manager
-@onready var manager = get_parent()
 
 # -- we need to keep a reference to the last player it touched
 # -- for when it spawns
-var last_player_touched: Player
+var last_peer_that_picked_up: int
 func _on_body_entered(body: Node2D) -> void:
-	if body.name.to_int() == multiplayer.get_unique_id():
+	var peer_id = body.name.to_int()
+	if peer_id == multiplayer.get_unique_id():
 		if (body is Player and
 			body.can_pick_up_item() and
-			!spawn_component.is_predicted_hidden):
-			if last_player_touched != body:
-				last_player_touched = body
-				spawn_component.predict_hide()
-				manager.predict_pickup(spawn_component.spawn_id, item_lookup)
+			visible):
+			if last_peer_that_picked_up != peer_id:
+				last_peer_that_picked_up = peer_id
+				#predict_hide()
+				prediction_picked_up.emit( spawn_id, item_lookup)
 			else:
-				last_player_touched = null
+				last_peer_that_picked_up = -1
 
 
-func _on_body_exited(body: Node2D) -> void:
-	pass
-	#if body is Player and body == last_player_touched:
-		#last_player_touched = null
+#func predict_hide():
+	## -- disable the collision and hide
+	#toggle(false)
+
+
+func toggle(b):
+	$Sprite2D.visible = b
+	$Area2D.set_deferred("monitorable", b)
+	$Area2D.set_deferred("monitoring", b)
+
+
+#func _on_body_exited(body: Node2D) -> void:
+	#var peer_id = body.name.to_int()
+	#if peer_id == last_peer_that_picked_up:
+		#last_peer_that_picked_up = -1
 
 
 func execute_tick( delta: float ) -> void:
 	# -- fancy falling goes here
 	pass
-
-
-#func _on_prediction_hidden() -> void:
-	## -- would be super cool for some sparklies here or some misc. juice.
-	## -- (e.g. trailing particles fading out smoothly)
-	#if sprite:
-		#sprite.hide()
-
-
-#func _on_prediction_cancelled() -> void:
-	## -- host rejection
-	#if sprite:
-		#sprite.show()

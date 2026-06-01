@@ -5,7 +5,7 @@ class_name Player
 # -- emitted from player_controller when reconcilliation happens for
 # -- visual smoothing in the PlayerVisualInterpolator (sprite & item_manager)
 signal reconciled
-signal dropped_pickup_item( item_key: ItemsDb.ItemNames)
+signal dropped_pickup_item( item_key: ItemsDb.ItemNames, item_slot: int, pos: Vector2)
 
 
 @export_group("Kinematics")
@@ -816,15 +816,12 @@ func can_pick_up_item():
 	return $ItemManager.can_pick_up()
 
 
-func take_pickup_item(item_lookup: ItemsDb.ItemNames):
-	$ItemManager.pick_up(item_lookup)
+func take_pickup_item(spawn_id:int, item_lookup: ItemsDb.ItemNames):
+	$ItemManager.pick_up(spawn_id, item_lookup)
 
 
-#@rpc("any_peer", "call_local", "reliable")
-#func drop_pickup_item() -> void:
-	#print("heeeerrrreee")
-	#$ItemManager.drop_item()
-	##emit_signal( "dropped_item", item_key)
+func drop_pickup_item(item_slot_index=null):
+	$ItemManager.drop_item(item_slot_index)
 	
 
 # ------------------------------------------------------------------------------
@@ -838,14 +835,15 @@ func apply_command( c: PlayerCommand):
 		movement_state_transition_to(MovementStates.FALLING)
 	
 	if c.item_dropped:
-		if is_multiplayer_authority():
-			var item_key = $ItemManager.get_current_item_key()
-			if item_key >= 0:
-				# -- need to spawn item on all clients
-				dropped_pickup_item.emit( item_key, global_position )
-				#print("in player: ", name, " w/ pos:", global_position)
-				# -- need to drop item on all clients
-				$ItemManager.drop_item()
+		var item_data = $ItemManager.get_current_item_data()
+		if item_data[0] >= 0: # -- the item db enum
+			# -- signal connected to world_pickup_items_manager:
+			# -- on_player_dropped_pickup_item
+			if is_multiplayer_authority():
+				dropped_pickup_item.emit( item_data[0], item_data[1], global_position )
+			#print("in player: ", name, " w/ pos:", global_position)
+			# -- need to drop item on all clients
+			#drop_pickup_item()
 
 	var _run_bool = c.sprint_held and can_run
 	$StaminaVisual.use( _run_bool )
