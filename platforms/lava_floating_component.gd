@@ -11,14 +11,14 @@ var is_in_lava: bool = false
 
 @export var moveable_component_ref: Node2D
 @onready var p: AnimatableBody2D = get_parent()
-@onready var lava_level_offset = p.get_node("CollisionShape2D").shape.size.y / 2.
+#@onready var lava_level_offset = p.get_node("CollisionShape2D").shape.size.y / 2.
 
 func execute_tick(delta: float) -> void:
 	lava_dist_threshold = lerp(30, 200, moveable_component_ref.velocity.y / moveable_component_ref.TERMINAL_VEL_Y)
 	
 	if lava_ref:
 		if is_in_lava:
-			var y = lava_ref.lava_fn( global_position.x) - lava_level_offset
+			var y = lava_ref.lava_fn( global_position.x)
 			var a = lava_ref.angle_to_lava_fn( global_position.x)
 			
 			p.global_transform = Transform2D(lerp(global_rotation, a, delta),

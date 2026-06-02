@@ -54,7 +54,7 @@ func tick_update(delta: float, cmd: PlayerCommand):
 				rope.set_point_position(1, to_local(target_pos))
 				rope.show()
 				# -- send to everyone but yourself and the host
-				#set_target_on_interpolated.rpc( target_pos )
+				set_target_on_interpolated.rpc( target_pos )
 				$MovementOverrideComponent.start()
 				if is_multiplayer_authority() and not player_ref.is_replaying:
 					Events.emit_signal("play_world_sound",

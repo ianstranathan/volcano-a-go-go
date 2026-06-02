@@ -2,7 +2,8 @@ extends RefCounted
 
 class_name MyPhysicsUtils
 
-static func resolve_collision(A: Player, B: Player,
+static func resolve_collision(A: Player, 
+							  B: Player,
 							  kinematic_collision: KinematicCollision2D) -> Vector2:
 	var contact_normal = kinematic_collision.get_normal()
 	var relative_velocity = A.velocity - B.velocity

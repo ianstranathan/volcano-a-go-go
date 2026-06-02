@@ -20,10 +20,6 @@ func execute_tick(delta: float):
 		velocity.y = min( velocity.y, TERMINAL_VEL_Y)
 
 
-#func get_velocity() -> Vector2:
-	#return velocity
-	
-
 func stop_falling() -> void:
 	velocity = Vector2.ZERO
 	is_falling = false

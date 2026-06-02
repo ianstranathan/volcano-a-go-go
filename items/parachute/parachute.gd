@@ -153,11 +153,12 @@ func set_player_ref(p: Player) -> void:
 	player_ref = p
 
 
-@rpc("reliable")
+@rpc("any_peer", "reliable")
 func show_parachute_on_interpolated_remote(b: bool, _offset: Vector2):
-	if !multiplayer.is_server():
-		# -- initialize the offset if it doesn't exist on interpolated remote
+	# -- we only wanna turn this stuff off on the dummies
+	if !multiplayer.is_server() and !is_multiplayer_authority():
 		if !offset:
+			# -- initialize the offset if it doesn't exist on interpolated remote
 			offset = _offset
 			position = -offset
 		$Sprite2D.visible = b

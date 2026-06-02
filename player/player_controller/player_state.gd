@@ -7,6 +7,7 @@ var rot: float = 0.0
 var movement_state: int = 0
 var tick: int = -1
 
+
 func serialize() -> PackedByteArray:
 	var spb = StreamPeerBuffer.new()
 	spb.put_float(pos.x)
@@ -33,16 +34,25 @@ static func deserialize(byte_arr: PackedByteArray) -> PlayerState:
 	return ps
 
 
-func set_state(player: Player, _tick: int):
+func set_state(player: Player, _tick: int) -> void:
 	pos = player.global_position
 	vel = player.velocity
 	rot = player.global_rotation
 	movement_state = player.movement_state
 	tick = _tick
-	
+
+
 func copy_state(another_state: PlayerState):
 	pos = another_state.pos
 	vel = another_state.vel
 	rot = another_state.rot
 	movement_state = another_state.movement_state
 	tick = another_state.tick
+
+
+func clear_state() -> void:
+	pos = Vector2.ZERO
+	vel = Vector2.ZERO
+	rot = 0.0
+	movement_state = 0
+	tick = -1

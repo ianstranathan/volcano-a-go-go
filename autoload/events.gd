@@ -12,7 +12,7 @@ a hot loop or something that happens a bunch, try to avoid
 signal item_picked_up( world_id: int)
 
 # -- SpawnedItemns connects to this in its _ready
-signal item_spawned( item_key: ItemsDb.ItemNames, fn:Callable)
+#signal item_spawned( item_key: ItemsDb.ItemNames, fn:Callable)
 
 # --  WorldEffects connects to this signal in its _ready
 signal world_effect( player_id: int, effect_type: Effects.EffectNames, pos: Vector2, flip:bool)
@@ -21,7 +21,7 @@ signal world_effect( player_id: int, effect_type: Effects.EffectNames, pos: Vect
 signal inventory_changed(item_db_enums: Array,
 						selected_index: int, 
 						special_item)
-#-- Block Player Input
+# -- Block Player Input
 signal input_blocked(blocked: bool)
 
 # -- AudioManager connects to these signals in its _ready

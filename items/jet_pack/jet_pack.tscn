@@ -17,7 +17,7 @@ point_count = 2
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_d7do0"]
 shader = ExtResource("3_5fj2d")
-shader_parameter/using = 0.0
+shader_parameter/using = 1.0
 shader_parameter/noise_tex = ExtResource("2_uejvu")
 
 [node name="JetPack" type="Node2D"]

@@ -5,6 +5,8 @@ class_name Player
 # -- emitted from player_controller when reconcilliation happens for
 # -- visual smoothing in the PlayerVisualInterpolator (sprite & item_manager)
 signal reconciled
+signal dropped_pickup_item( item_key: ItemsDb.ItemNames, item_slot: int, pos: Vector2)
+
 
 @export_group("Kinematics")
 @export var baseline_speed: float = 380.0
@@ -115,7 +117,7 @@ enum MovementStates
 @export_category("Scene Heirarchy Stuff")
 
 # the dedicated container in the same scene depth as the player that holds item instances
-var items_container: Node2D
+#var items_container: Node2D
 
 #------------------------------------------------------------------- sprite vars
 var color: Color = Color(1., 1., 1., 1.);
@@ -139,8 +141,8 @@ func _ready() -> void:
 	#signal got_tossed( dir: Vector2)
 	#signal got_grabbed( n: Node2D)
 	#---------------------------------------------
-	assert(items_container)
-	$ItemManager.items_container = items_container
+	#assert(items_container)
+	#$ItemManager.items_container = items_container
 	
 	#-------------------------------------------------- Local and remote signals
 	#----------------------------- this controls items being able to move player
@@ -166,7 +168,10 @@ func _ready() -> void:
 		# -------------------------------------------- this controls aiming line
 		input_manager.aim_input_detected.connect( func():
 			aiming_visual.update_aiming_visual())
+			
+		
 		# ------------------------------------------ this controls aiming target
+		
 		$ItemManager.item_targeted_something.connect( func(pos_or_null):
 			aiming_visual.update_target_pos( pos_or_null))
 		$ItemManager.item_ray_target_position_changed.connect( func(pos: Vector2):
@@ -178,16 +183,10 @@ func _ready() -> void:
 				aiming_visual.start_aiming()
 			else:
 				aiming_visual.stop_aiming())
-		#$ItemManager.targeting_item_removed.connect( func():
-			#aiming_visual.stop_aiming( ))
-		#$ItemManager.item_switched.connect( func():
-			#aiming_visual.stop_aiming( ))
-		# -- 
-			
-		$ItemManager.targeting_item_added.connect( func():
-			aiming_visual.start_aiming( ))
+		#$ItemManager.targeting_item_added.connect( func():
+			#aiming_visual.start_aiming( ))
 		input_manager.inventory_slot_selected.connect( func(slot_index: int):
-			$ItemManager.select_inventory_slot(slot_index))
+			$ItemManager.select_inventory_slot.rpc(slot_index))
 
 	coyote_timer.timeout.connect( coyote_time_resolution)
 
@@ -265,17 +264,30 @@ func coyote_time_resolution() -> void:
 				movement_state_transition_to(MovementStates.IDLE)
 	is_on_ground = false
 
+# ------------------------------------------------------------------------------
+var pending_impulses: Array[Vector2] = []
+
+func apply_external_impulse(impulse: Vector2):
+	pending_impulses.append( impulse )
+
+# ------------------------------------------------------------------------------
+
 # -- for itnerpolating sprite / visual smoothing in reconcilliation
 var pos_previous: Vector2 = Vector2.ZERO
 var pos_current: Vector2 = Vector2.ZERO
+var last_collision_impulse := Vector2.ZERO
+var last_collision_id: int = -1
 
-# -- variable set by NetManager to gate initialization
-#var is_ready = false
+
 func execute_tick(delta: float, cmd: PlayerCommand):
-	#if !is_ready:
-		#return
+	if !is_replaying:
+		for impulse in pending_impulses:
+			velocity +=  inv_mass * impulse
+		pending_impulses.clear()
+	if cmd.impulse != Vector2.ZERO:
+		velocity += inv_mass * cmd.impulse
+	
 	pos_previous = global_position
-	#print( "pos: ", global_position, "; vel: ", velocity)
 	apply_command(cmd)
 	$ItemManager.process_item_tick(delta, cmd)
 	
@@ -295,50 +307,43 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	# -- call the movement state function matching the movement_state variable
 	call(MovementStates.keys()[movement_state].to_lower() + "_state_fn", delta)
 
-	#tmp_burn_handle() # TODO # -- temporary burn visual feedbac	
-	
-	# -- velocity verlet update
-	#global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
-	#
-	#if velocity.y < TERMINAL_FALL_SPEED:
-		#velocity.y += get_g() * delta
-#
-	#var collision = move_and_collide(Vector2.ZERO)
-	
 	if current_platform: # -- account for relative velocities
 		#print(current_platform.get_velocity() * delta)
 		velocity += current_platform.get_velocity() * delta
 		move_and_collide(current_platform.get_velocity() * delta)
+
+	# -- virtual collision check for player on player collisions
+	#if !is_replaying and cmd.impulse == Vector2.ZERO:
+		#var coll = move_and_collide(velocity * delta, true)
+		#if coll:
+			#var _collider := coll.get_collider()
+			#if _collider and _collider is Player and !is_replaying:
+				## -- locally predict collision for responsiveness
+				#var impulse      = MyPhysicsUtils.resolve_collision(self, _collider, coll)
+				#cmd.impulse      = impulse
+				## -- cliuent A:
+				## -- locally precict our impulse change
+				#velocity += inv_mass * impulse
+				## -- client B:
+				## -- locally predict remote interpolated client
+				## -- by injecting into their interpolation buffer
+				#_collider.player_controller.inject_predicted_state(
+					#-_collider.inv_mass * impulse
+				#)
+				## -- so we update our command for host processing client B
+				## -- on hosts machine
+				#var _id          = _collider.name.to_int() 
+				#cmd.collided_id  = _id
+				#
+				## -- rpc the client we collided with to tell them to updat their impulse
+				#predict_impact_notification.rpc_id(_collider.name.to_int(), impulse)
 	
-	#if collision:
-		## -- projection of ground normal is mostly vertical
-		#is_on_ground = collision.get_normal().dot(Vector2.UP) > 0.7
-		#if is_on_ground:
-			#current_platform_check( collision )
-			#velocity.y = 0
-	
-	var collision = move_and_collide(velocity * delta, true)
-	if collision:
-		var _collider = collision.get_collider()
-		if _collider is Player:
-			# -- host calculates and applies to both players on its machine
-			if multiplayer.is_server():
-				pass
-				var impulse = MyPhysicsUtils.resolve_collision(self, _collider, collision)
-				velocity += impulse * inv_mass
-				_collider.velocity -= impulse * _collider.inv_mass
-			# # -- local prediction, guess to avoid lag
-			elif int(name) == multiplayer.get_unique_id():
-				var impulse = MyPhysicsUtils.resolve_collision(self, _collider, collision)
-				velocity += impulse * inv_mass
-				
 	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
 	
 	if velocity.y < TERMINAL_FALL_SPEED:
 		velocity.y += get_g() * delta
 
-	
-	collision = move_and_collide(Vector2.ZERO)
+	var collision = move_and_collide(Vector2.ZERO)
 	
 	if collision:
 		var normal = collision.get_normal()
@@ -351,12 +356,22 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	last_move_input = move_input
 	pos_current = global_position
 
+# ------------------------------------------------------------------------------
 
-@rpc("any_peer","unreliable")
-func player_collision_resolution(id: int, impulse: Vector2) -> void:
-	#print( name )
-	if int(name) == id:
-		velocity -= impulse * inv_mass
+@rpc("any_peer", "unreliable")
+func predict_impact_notification( impulse: Vector2):
+	# -- locally predict on the client B now, -tive, equal but opposite
+	velocity -= inv_mass * impulse
+	# -- update interpolated client A now
+	var id = multiplayer.get_remote_sender_id()
+	var caller = NetManager.player_instances_by_player_id.get( id )
+	if caller:
+		# -- it's +tive, equal but opposite
+		caller.player_controller.inject_predicted_state(
+			caller.inv_mass * impulse
+		)
+
+# ------------------------------------------------------------------------------
 
 
 # -- TODO
@@ -366,9 +381,9 @@ func current_platform_check(coll: KinematicCollision2D):
 		current_platform = collider
 
 
-@rpc("any_peer", "call_local", "reliable")
-func set_rel_velocity_platform( collider_id ):
-	pass
+#@rpc("any_peer", "call_local", "reliable")
+#func set_rel_velocity_platform( collider_id ):
+	#pass
 
 
 func my_is_on_floor() -> bool:
@@ -379,10 +394,7 @@ func my_is_on_floor() -> bool:
 
 
 func is_falling():
-	var ret = velocity.y >= 0 and not my_is_on_floor()
-	#if ret:
-		#started_falling.emit()
-	return ret
+	return velocity.y >= 0 and not my_is_on_floor()
 
 
 @onready var rhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/RHS, $WallCheckContainer/RHS1]
@@ -438,6 +450,7 @@ func move_resolution(move_speed_override=null):
 func stop_resolution():
 	current_accel = move_toward(current_accel, MOV_ACCL, DECL)
 
+
 var testing: bool = false
 func move(move_func_override = null) -> void:
 	if testing:
@@ -453,42 +466,6 @@ func move(move_func_override = null) -> void:
 		move_resolution()
 	else:
 		stop_resolution()
-		
-	#if not is_zero_approx(input_x):
-		#var target_speed = input_x * top_speed
-		#
-		##if last_move_input.x * input_x < 0:
-			##side_somersault_timer.start()
-#
-		#var is_turning = input_x * velocity.x < 0
-		#
-		#var target_accel_rate = MOV_ACCL
-		## -- TODO
-		##--  Clean up and put in some game feel juice for turning inertia
-		#if is_turning:
-			#target_accel_rate = TURN_ACCL
-			#
-			## -- TODO
-			#if movement_state == MovementStates.WALKING:
-				#Events.world_effect.emit(
-					#name.to_int(), 
-					#Effects.EffectNames.DIRECTION_CHANGE, 
-					## -- magic number beware, just wanted to offset it
-					#global_position - Vector2(input_x * 20., 0.) , 
-					#true if input_x > 0 else false)
-		#
-		#current_accel = lerp(current_accel, float(target_accel_rate), 0.15)
-#
-		#var is_overspeed = abs(velocity.x) > top_speed
-		#
-		#if is_overspeed and not is_turning:
-			#var _decl = (AIR_DECL if movement_state in [MovementStates.FALLING, MovementStates.JUMPING] else DECL)
-			#velocity.x = move_toward(velocity.x, 0, _decl)
-		#else:
-			#velocity.x = move_toward(velocity.x, target_speed, current_accel)
-	#else:
-		#current_accel = move_toward(current_accel, MOV_ACCL, DECL)
-
 
 
 func check_for_falling() -> bool:
@@ -728,7 +705,6 @@ func ledge_grabbing_state_fn(delta) -> void:
 		movement_state_transition_to( MovementStates.FALLING)
 
 
-# -- wrap this up into a more functional, modular thing to inject states into matches
 func movement_state_transition_to(new_movement_state: MovementStates):
 	if movement_state != new_movement_state:
 		match movement_state:
@@ -840,21 +816,44 @@ func can_parachute() -> bool:
 
 
 func can_pick_up_item():
-	#print("player checking item can_pick_up: ")
 	return $ItemManager.can_pick_up()
+
+
+func take_pickup_item(spawn_id:int, item_lookup: ItemsDb.ItemNames):
+	$ItemManager.pick_up(spawn_id, item_lookup)
+
+
+func drop_pickup_item(item_slot_index=null, delete_now=false):
+	$ItemManager.drop_item(item_slot_index, delete_now)
 	
+func host_confirmed_drop():
+	$ItemManager.host_confirmed_item_deletion()
 
 # ------------------------------------------------------------------------------
 func apply_command( c: PlayerCommand):
 	move_input = c.move_input
 	if c.jump_pressed:
 		jump_buffer_timer.start()
-	#var jump_pressed := false
-	#var jump_released := false
+
 	if c.jump_released and movement_state == MovementStates.JUMPING:
 		velocity.y *= 0.4
 		movement_state_transition_to(MovementStates.FALLING)
 	
+	if c.item_dropped:
+		var item_data = $ItemManager.get_current_item_data()
+		if item_data[0] >= 0: # -- the item db enum
+			# -- signal connected to world_pickup_items_manager:
+			# -- on_player_dropped_pickup_item
+			if is_multiplayer_authority():
+				drop_pickup_item()
+				dropped_pickup_item.emit( item_data[0], item_data[1], global_position )
+				#print("in player: ", name, " w/ pos:", global_position)
+				# -- need to drop item on all clients
+				#if multiplayer.is_server():
+					#drop_pickup_item(null, true)
+				#else:
+				
+
 	var _run_bool = c.sprint_held and can_run
 	$StaminaVisual.use( _run_bool )
 	if _run_bool:
@@ -867,6 +866,18 @@ func apply_command( c: PlayerCommand):
 			movement_state_transition_to(MovementStates.WALKING)
 		#else:
 			#movement_state_transition_to(MovementStates.IDLE)
+
+#@rpc("any_peer", "reliable")
+#func request_inventory_slot_swap(slot_index: int) -> void:
+	#if not multiplayer.is_server():
+		#return
+	#$ItemManager.equip_inventory_slot(slot_index)
+	#broadcast_inventory_slot_swap.rpc(slot_index)
+#
+#
+#@rpc("authority", "call_remote", "reliable")
+#func broadcast_inventory_slot_swap(slot_index: int) -> void:
+		#$ItemManager.equip_item_locally(slot_index)
 		
 	# -- this is a bit fragile I think, we only have an input manager
 	# -- if we're multiplayer authority

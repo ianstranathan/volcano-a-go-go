@@ -96,9 +96,11 @@ func _physics_process(delta: float) -> void:
 				# -- this is sent to the server's client keyed buffer of 
 				# -- tick-marked / saved commands
 				_player.player_controller.on_tick_generated(current_tick, TICK_RATE)
+			
 			# -- go through buffer of tick-marked / saved local player commands
 			elif multiplayer.is_server():
 				host_process_remote_client(id, _player)
+			
 			# -- at a slower Hz, host sends out RPC to give interpolation and
 			# -- reconciliation data for client's local version
 			if multiplayer.is_server() and (current_tick % update_remote_modulo == 0):
@@ -243,6 +245,16 @@ func unregister_player(peer_id: int) -> void:
 	player_instances_by_player_id.erase(peer_id)
 
 
+# -- we're looping through each player, if we're the host, we send out our
+# -- authoritative version of each player to every player (rpc generally)
+# -- if it's not the client controlled player, we give it data to interpolate
+# -- otherwise, we give it a reconcilliation check
+# -- additionally, we're updating our dynamic tick multiplier
+
+# -- NOTE
+# -- we should be avoiding all these calls to PlayerState.new()
+# -- hidden in PlayerState.deserialize( byte_arr )
+# -- just make a local buffer to always put the deserialization in
 @rpc("authority", "unreliable") 
 func sync_player_state(hosts_current_tick: int, id: int, byte_arr: PackedByteArray):
 	var host_versions_state = PlayerState.deserialize( byte_arr )
@@ -263,6 +275,8 @@ func sync_player_state(hosts_current_tick: int, id: int, byte_arr: PackedByteArr
 		return
 	else:
 		if id == multiplayer.get_unique_id():
+			# -- we're adjusting how much our reconcile threshold is in pixels
+			# -- based on the velocity which has to account for this
 			var time_in_transit = average_offset * TICK_RATE
 			_player.player_controller.reconcile( host_versions_state, time_in_transit)               
 		else:
@@ -341,20 +355,22 @@ func host_process_remote_client(id: int, _player: Player):
 	if buffer == null:
 		return
 
-	# -- update the hosts remote version of everyone
-	# -- previous saved command from send_input_to_host
-	var cmd = buffer[current_tick % INPUT_BUFFER_SIZE]
+	var cmd = buffer[current_tick % INPUT_BUFFER_SIZE] as PlayerCommand
+	
 	var _controller =  _player.player_controller
 	var last_command_executed = _controller.last_command_executed
 
 	var buffer_fullness = cmd.tick - current_tick
-	if buffer_fullness > 15: # Too much padding!
+	if buffer_fullness > 15:
 		request_smaller_lead.rpc_id(id)
 	
 	if cmd.tick == current_tick:
-		#print("ooo")
 		_player.execute_tick(TICK_RATE, cmd)
 		_controller.last_command_executed = cmd
+		if cmd.collided_id > 0:
+			var other_player = player_instances_by_player_id.get(cmd.collided_id)
+			if other_player:
+				other_player.apply_external_impulse( -cmd.impulse )
 	else:
 		# -- if it's an initialized player command
 		if cmd.tick > 0:
@@ -400,15 +416,14 @@ func send_input_to_host(byte_arr: PackedByteArray) -> void:
 
 # -- see pickup.gd
 # -- only copy on the host's machine can trigger the pickup
-@rpc("authority", "call_local", "reliable")
-func sync_item_pickup(a_world_id:int, a_peer_id: int, item_lookup_enum: ItemsDb.ItemNames):
-	# -- we want to tell the other players that this pickup exists
-	Events.item_picked_up.emit( a_world_id ) # -- what used to be a callback to delete the pickup
-	var _player = player_instances_by_player_id[ a_peer_id ]
-	if _player:
-		#print("Picking up from id: ", multiplayer.get_unique_id())
-		_player.get_node("ItemManager").pick_up(item_lookup_enum)
-
+#@rpc("authority", "call_local", "reliable")
+#func sync_item_pickup(a_world_id:int, a_peer_id: int, item_lookup_enum: ItemsDb.ItemNames):
+	## -- we want to tell the other players that this pickup exists
+	#Events.item_picked_up.emit( a_world_id ) # -- what used to be a callback to delete the pickup
+	#var _player = player_instances_by_player_id[ a_peer_id ]
+	#if _player:
+		##print("Picking up from id: ", multiplayer.get_unique_id())
+		#_player.get_node("ItemManager").pick_up(item_lookup_enum)
 
 # ------------------------------------------------------------ initial ping test
 # ------------------------------------------------------------ for RRT value
