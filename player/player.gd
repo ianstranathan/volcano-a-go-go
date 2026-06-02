@@ -168,7 +168,10 @@ func _ready() -> void:
 		# -------------------------------------------- this controls aiming line
 		input_manager.aim_input_detected.connect( func():
 			aiming_visual.update_aiming_visual())
+			
+		
 		# ------------------------------------------ this controls aiming target
+		
 		$ItemManager.item_targeted_something.connect( func(pos_or_null):
 			aiming_visual.update_target_pos( pos_or_null))
 		$ItemManager.item_ray_target_position_changed.connect( func(pos: Vector2):
@@ -183,7 +186,7 @@ func _ready() -> void:
 		#$ItemManager.targeting_item_added.connect( func():
 			#aiming_visual.start_aiming( ))
 		input_manager.inventory_slot_selected.connect( func(slot_index: int):
-			$ItemManager.select_inventory_slot(slot_index))
+			$ItemManager.select_inventory_slot.rpc(slot_index))
 
 	coyote_timer.timeout.connect( coyote_time_resolution)
 
@@ -820,9 +823,11 @@ func take_pickup_item(spawn_id:int, item_lookup: ItemsDb.ItemNames):
 	$ItemManager.pick_up(spawn_id, item_lookup)
 
 
-func drop_pickup_item(item_slot_index=null):
-	$ItemManager.drop_item(item_slot_index)
+func drop_pickup_item(item_slot_index=null, delete_now=false):
+	$ItemManager.drop_item(item_slot_index, delete_now)
 	
+func host_confirmed_drop():
+	$ItemManager.host_confirmed_item_deletion()
 
 # ------------------------------------------------------------------------------
 func apply_command( c: PlayerCommand):
@@ -840,10 +845,14 @@ func apply_command( c: PlayerCommand):
 			# -- signal connected to world_pickup_items_manager:
 			# -- on_player_dropped_pickup_item
 			if is_multiplayer_authority():
+				drop_pickup_item()
 				dropped_pickup_item.emit( item_data[0], item_data[1], global_position )
-			#print("in player: ", name, " w/ pos:", global_position)
-			# -- need to drop item on all clients
-			#drop_pickup_item()
+				#print("in player: ", name, " w/ pos:", global_position)
+				# -- need to drop item on all clients
+				#if multiplayer.is_server():
+					#drop_pickup_item(null, true)
+				#else:
+				
 
 	var _run_bool = c.sprint_held and can_run
 	$StaminaVisual.use( _run_bool )
@@ -857,6 +866,18 @@ func apply_command( c: PlayerCommand):
 			movement_state_transition_to(MovementStates.WALKING)
 		#else:
 			#movement_state_transition_to(MovementStates.IDLE)
+
+#@rpc("any_peer", "reliable")
+#func request_inventory_slot_swap(slot_index: int) -> void:
+	#if not multiplayer.is_server():
+		#return
+	#$ItemManager.equip_inventory_slot(slot_index)
+	#broadcast_inventory_slot_swap.rpc(slot_index)
+#
+#
+#@rpc("authority", "call_remote", "reliable")
+#func broadcast_inventory_slot_swap(slot_index: int) -> void:
+		#$ItemManager.equip_item_locally(slot_index)
 		
 	# -- this is a bit fragile I think, we only have an input manager
 	# -- if we're multiplayer authority

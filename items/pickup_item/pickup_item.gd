@@ -100,6 +100,10 @@ func _ready() -> void:
 # -- for when it spawns
 var last_peer_that_picked_up: int
 func _on_body_entered(body: Node2D) -> void:
+	# -- do a bounce and play a clinking sound
+	if body is StaticBody2D:
+		velocity = Vector2.ZERO
+	
 	var peer_id = body.name.to_int()
 	if peer_id == multiplayer.get_unique_id():
 		if (body is Player and
@@ -113,10 +117,9 @@ func _on_body_entered(body: Node2D) -> void:
 				last_peer_that_picked_up = -1
 
 
-#func predict_hide():
-	## -- disable the collision and hide
-	#toggle(false)
-
+# -- inherit the throw velocity of the player
+# -- and fall
+# -- when we hit the ground, we bounce (so some coeff of resitution)
 
 func toggle(b):
 	$Sprite2D.visible = b
@@ -124,12 +127,9 @@ func toggle(b):
 	$Area2D.set_deferred("monitoring", b)
 
 
-#func _on_body_exited(body: Node2D) -> void:
-	#var peer_id = body.name.to_int()
-	#if peer_id == last_peer_that_picked_up:
-		#last_peer_that_picked_up = -1
-
+var velocity: Vector2 = Vector2.ZERO
+var gravity := 980 # -- default, but should steal from player
 
 func execute_tick( delta: float ) -> void:
-	# -- fancy falling goes here
 	pass
+	#global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))

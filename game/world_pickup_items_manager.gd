@@ -118,17 +118,19 @@ func local_despawn(spawn_id_to_remove: int, item_enum: ItemsDb.ItemNames) -> voi
 			#if c.item_dropped:
 				#var item_data = $ItemManager.get_current_item_data()
 				#if item_data[0] >= 0: # -- the item db enum
-					## -- need to spawn item on all clients
-					#dropped_pickup_item.emit( item_data[0], item_data[1], global_position )
-					##print("in player: ", name, " w/ pos:", global_position)
-					## -- need to drop item on all clients
-					#drop_pickup_item()
+					## -- signal connected to world_pickup_items_manager:
+					## -- on_player_dropped_pickup_item
+					#if is_multiplayer_authority():
+						#dropped_pickup_item.emit( item_data[0], item_data[1], global_position )
+						##print("in player: ", name, " w/ pos:", global_position)
+						## -- need to drop item on all clients
+						#drop_pickup_item()
 # -- SO, we're already (predictively) dropping on authority client
 # --     => skip the broadcast the caller 
 func on_player_dropped_pickup_item(item_enum: ItemsDb.ItemNames,
 								   item_slot_index: int,
 								   pos: Vector2) -> void:
-	print("yooo")
+	#print("yooo")
 	if multiplayer.is_server():
 		broadcast_pickup_spawn.rpc( item_enum, 
 									item_slot_index, 
@@ -168,13 +170,14 @@ func broadcast_pickup_spawn(item_enum: ItemsDb.ItemNames,
 	# -- and has the associated remote drop the item
 	# -- except for the local player who has already predicted this in their
 	# -- player script (see above at start of spawn stuff)
-	
-	#if multiplayer.get_unique_id() == successful_peer_id:
-		#return
+
+	local_spawn(item_enum, pos, server_assigned_id)
 	var remote_player_version = NetManager.player_instances_by_player_id[successful_peer_id]
 	if remote_player_version:
-		remote_player_version.drop_pickup_item(item_slot_index)
-	local_spawn(item_enum, pos, server_assigned_id)
+		if multiplayer.get_unique_id() == successful_peer_id:
+			remote_player_version.host_confirmed_drop()
+		else:
+			remote_player_version.drop_pickup_item(item_slot_index, true)
 
 
 func local_spawn(item_enum: ItemsDb.ItemNames, pos: Vector2, spawn_id: int) -> void:

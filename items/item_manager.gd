@@ -44,7 +44,8 @@ func process_item_tick(delta: float, command: PlayerCommand):
 	if is_instance_valid(item_interface):
 		item_interface.tick_update(delta, command)
 
-
+# -- this is called by everyone locally
+# -- however we don't need to keep track of all of this
 func pick_up(spawn_id:int,  item_lookup: ItemsDb.ItemNames) -> void:
 	#if is_multiplayer_authority() or multiplayer.is_server():
 	# -- either a valid index or -1
@@ -63,26 +64,21 @@ func pick_up(spawn_id:int,  item_lookup: ItemsDb.ItemNames) -> void:
 	inventory_items[free_index] = item
 	#item.item_interface.item_depleted.connect( remove_item )
 	
-	# -- set authority to item
-	var owner_id = get_parent().name.to_int()
-	item.set_multiplayer_authority( owner_id )
-	
-	# -- some items require knowledge about the player (e.g. to alter their velocity)
+	item.set_multiplayer_authority( multiplayer.get_unique_id() )
 	if item.has_method("set_player_ref"):
-		# -- FIXME I don't like this
 		item.set_player_ref(player_ref)
-		
-	if owner_id == multiplayer.get_unique_id():
+
+	if is_multiplayer_authority():
 		connect_local_signals(item)
 	else:
 		connect_remote_signals(item)
 
-	# -- case We don't have anything equiped
-	if !is_instance_valid(item_interface):
+	
+	# -- case we don't have anything equiped
+	if (!is_instance_valid(item_interface) and 
+		(is_multiplayer_authority() or multiplayer.is_server())):
 		last_selected_slot = 0
-		equip_item_locally(last_selected_slot)
-
-	emit_inventory_changed()
+		select_inventory_slot(last_selected_slot, true)
 
 	#Play pick up audio - Global?
 	if is_multiplayer_authority() and not player_ref.is_replaying:
@@ -91,68 +87,67 @@ func pick_up(spawn_id:int,  item_lookup: ItemsDb.ItemNames) -> void:
 							global_position,0,1,
 							{}
 							)
+		emit_inventory_changed()
 	
 	call_deferred("add_child", item)
 
+@rpc("any_peer", "call_local", "reliable")
+func select_inventory_slot(slot_index: int, initial_selection=false) -> void:
+	if is_multiplayer_authority() or multiplayer.is_server():
+		if (slot_index < 0 or 
+			slot_index >= inventory_items.size() or
+			(last_selected_slot == slot_index and !initial_selection)):
+			return
 
-func select_inventory_slot(slot_index: int) -> void:
-	if (slot_index < 0 or 
-		slot_index >= inventory_items.size() or
-		last_selected_slot == slot_index):
-		return
+		last_selected_slot = slot_index
+		assert(slot_index >= 0 and slot_index < INV_SIZE)
+		if inventory_items[slot_index] != null:
+			if is_multiplayer_authority():
+				equip_inventory_slot( slot_index, true)
+			elif multiplayer.is_server():
+				equip_inventory_slot( slot_index, false)
 
-	last_selected_slot = slot_index
+
+func equip_inventory_slot(slot_index: int, is_local_player: bool = false) -> void:
+	stop_using_item()
+	item_interface = inventory_items[slot_index].item_interface
+	active_movement_override = get_component(
+		inventory_items[slot_index],
+		func(c): return c is MovementOverrideComponent
+	)
+	if is_local_player:
+		equip_inventory_slot_local_stuff( slot_index )
+
+
+func equip_inventory_slot_local_stuff(slot_index: int):
 	Events.emit_signal("play_local_sound", 
 						AudioDb.LocalSoundId.HOTBAR_TICK, 
 						0.0, 
 						randf_range(0.95, 1.2))#pitch variation
-	assert(slot_index >= 0 and slot_index < INV_SIZE)
-	if inventory_items[slot_index] != null:
-		equip_item_locally.rpc( slot_index )
-		
-
-# --  this has to be an rpc to mirror host's version of client and client
-# --  see above (select_inventory_slot)
-@rpc("call_local", "authority", "reliable")
-func equip_item_locally(slot_index) -> void:
-	#print(multiplayer.get_unique_id())
-	#print("----------------------------")
-	if is_multiplayer_authority() or multiplayer.is_server():
-		stop_using_item()
-		item_interface = inventory_items[slot_index].item_interface
-		active_movement_override = get_component(
-			inventory_items[slot_index],
-			func(c): return c is MovementOverrideComponent
-		)
-		var raycast_comp = get_component(
-			inventory_items[slot_index],
-			func(c): return c is RayCastItemComponent
-		)
-		item_switched.emit(true if raycast_comp else false)
-		emit_inventory_changed()
+	var raycast_comp = get_component(
+		inventory_items[slot_index],
+		func(c): return c is RayCastItemComponent
+	)
+	item_switched.emit(true if raycast_comp else false)
+	emit_inventory_changed()
 
 
 # -- this just tells the UI which handles are taken
 func emit_inventory_changed() -> void:
 	if player_ref.is_multiplayer_authority():
-		#print(inventory_item_handles)
-		#print(last_selected_slot)
 		Events.inventory_changed.emit(inventory_item_handles,
 									  last_selected_slot,
 									  special_item)
 
 
 # -- this is being rpc'd in world_pickup_items_manager
-func drop_item( slot_to_drop ) -> void:
-	print(multiplayer.get_unique_id())
-	print("---------------------------")
-	#var is_local = 
-	#var slot_to_drop = last_selected_slot if is_local else slot
+func drop_item( slot=null, delete_item_now=false ) -> void:
+	var slot_to_drop: int = last_selected_slot if slot == null else slot
 	assert(slot_to_drop != null)
 	
 	if slot_to_drop == -1 or inventory_items[slot_to_drop] == null:
 		return
-
+	
 	inventory_item_handles[ slot_to_drop ] = -1
 	
 	if multiplayer.is_server() or is_multiplayer_authority():
@@ -161,7 +156,7 @@ func drop_item( slot_to_drop ) -> void:
 			select_inventory_slot(next_slot)
 		else:
 			# -- all this is normally hidden in 
-			# -- select_inventory_slot |--> equip_item_locally
+			# -- select_inventory_slot |--> equip_inventory_slot
 			last_selected_slot = -1
 			item_interface = null
 			active_movement_override = null
@@ -169,7 +164,18 @@ func drop_item( slot_to_drop ) -> void:
 			emit_inventory_changed()
 
 	# -- regardless of whether local or remote, we need to delete the rsc
-	free_item_inventory_node( slot_to_drop )
+	# -- but networked scene trees need to syau in sync for rpcs
+	# -- so we shouldn't free rsc until host brocasts on same tick
+	if delete_item_now:
+		free_item_inventory_node( slot_to_drop )
+	else:
+		update_pending_deletion( slot_to_drop )
+
+
+
+func host_confirmed_item_deletion():
+	assert(pending_deletion_slot != -1)
+	free_item_inventory_node( pending_deletion_slot )
 
 
 # ------------------------------------------------------------------------ UTILS
@@ -231,15 +237,6 @@ func stop_using_item():
 		item_interface.stop()
 
 
-#func reset_inventory_vars(slot_dropped: int) -> void:
-	##free_item_inventory_node( slot_dropped )
-	#last_selected_slot = -1
-	#item_interface = null
-	#active_movement_override = null
-	#item_switched.emit( false )
-	#emit_inventory_changed()
-
-
 # -- this guy just walks back in the slots (wrapping) until it fnids something
 func _calculate_fallback_slot(dropped_slot: int) -> int:
 	var arr_size = inventory_items.size()
@@ -249,6 +246,13 @@ func _calculate_fallback_slot(dropped_slot: int) -> int:
 			return wrapped_index
 	return -1
 
+var pending_deletion_slot: int = -1
+func update_pending_deletion(slot: int):
+	# -- immediately update uio
+	inventory_item_handles[ slot ]= -1
+	# -- and mark the slot for deletion
+	pending_deletion_slot = slot
+
 
 func free_item_inventory_node(slot: int) -> void:
 	if inventory_items[slot] != null and is_instance_valid(inventory_items[slot]):
@@ -257,17 +261,12 @@ func free_item_inventory_node(slot: int) -> void:
 		#print("---------------------")
 		inventory_items[slot].call_deferred("queue_free")
 		inventory_items[slot] = null
-		inventory_item_handles[ slot ]= -1
+		#inventory_item_handles[ slot ]= -1
 
 
 func get_current_item_data() -> Array:
 	return [get_current_item_key(), last_selected_slot ]
 
-
-#func get_current_item_name() -> String:
-	#if last_selected_slot != -1:
-		#return inventory_items[last_selected_slot].name
-	#return ""
 
 func get_current_item_key() -> int:
 	var ret = -1
