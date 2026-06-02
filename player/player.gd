@@ -830,6 +830,8 @@ func host_confirmed_drop():
 	$ItemManager.host_confirmed_item_deletion()
 
 # ------------------------------------------------------------------------------
+var max_pickup_item_throw_magnitude := 400
+
 func apply_command( c: PlayerCommand):
 	move_input = c.move_input
 	if c.jump_pressed:
@@ -846,7 +848,11 @@ func apply_command( c: PlayerCommand):
 			# -- on_player_dropped_pickup_item
 			if is_multiplayer_authority():
 				drop_pickup_item()
-				dropped_pickup_item.emit( item_data[0], item_data[1], global_position )
+				dropped_pickup_item.emit( item_data[0], 
+										  item_data[1],
+										  [global_position, 
+										   max_pickup_item_throw_magnitude * c.aiming_input, 
+										   get_g()])
 				#print("in player: ", name, " w/ pos:", global_position)
 				# -- need to drop item on all clients
 				#if multiplayer.is_server():

@@ -69,7 +69,7 @@ func execute_tick( delta: float ):
 	$Lava.execute_tick( delta )
 	$PostProcessingQuad.execute_tick( delta )
 	ui.execute_tick( delta )
-	#world_pickup_items_container.execute_tick( delta )
+	world_pickup_items_container.execute_tick( delta )
 
 
 func _on_player_info_received(peer_id: int, _name: String, spawn_index: int):

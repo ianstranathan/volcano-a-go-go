@@ -72,8 +72,8 @@ func stop():
 	#print("STOPPED")
 	parachute_type = ParachuteTypes.NONE
 	
-	if is_multiplayer_authority():
-		show_parachute_on_interpolated_remote.rpc(false, offset)
+	#if is_multiplayer_authority():
+	show_parachute_on_interpolated_remote.rpc(false, offset)
 	
 	turn_off_coll_and_sprite(true)
 	$MovementOverrideComponent.finish()
@@ -96,8 +96,8 @@ func start(_type: ParachuteTypes):
 	$MovementOverrideComponent.start() # 
 	$Sprite2D.visible = true           #
 	player_ref.velocity = Vector2.ZERO
-	if is_multiplayer_authority():
-		show_parachute_on_interpolated_remote.rpc(true, offset)
+	#if is_multiplayer_authority():
+	show_parachute_on_interpolated_remote.rpc(true, offset)
 	
 	try_timer.stop()                   # stop to prevent timeout callback
 	turn_off_coll_and_sprite( false ) 
@@ -156,12 +156,12 @@ func set_player_ref(p: Player) -> void:
 @rpc("any_peer", "reliable")
 func show_parachute_on_interpolated_remote(b: bool, _offset: Vector2):
 	# -- we only wanna turn this stuff off on the dummies
-	if !multiplayer.is_server() and !is_multiplayer_authority():
-		if !offset:
-			# -- initialize the offset if it doesn't exist on interpolated remote
-			offset = _offset
-			position = -offset
-		$Sprite2D.visible = b
+	#if !is_multiplayer_authority():
+	if !offset:
+		# -- initialize the offset if it doesn't exist on interpolated remote
+		offset = _offset
+		position = -offset
+	$Sprite2D.visible = b
 
 
 func _get_loop_key() -> StringName:

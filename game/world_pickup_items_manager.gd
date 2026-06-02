@@ -28,6 +28,12 @@ func _ready() -> void:
 		active_pickups[i] = c
 
 
+func execute_tick( delta: float) -> void:
+	# -- the whole reason why I actually did this data structue / pattern
+	# -- is so this stuff is contiguous-ish
+	for pickup in active_pickups:
+		pickup.execute_tick( delta )
+	
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------ despawn fns
 # ------------------------------------------------------------------------------
@@ -129,32 +135,32 @@ func local_despawn(spawn_id_to_remove: int, item_enum: ItemsDb.ItemNames) -> voi
 # --     => skip the broadcast the caller 
 func on_player_dropped_pickup_item(item_enum: ItemsDb.ItemNames,
 								   item_slot_index: int,
-								   pos: Vector2) -> void:
+								   player_kinematic_data: Array) -> void:
 	#print("yooo")
 	if multiplayer.is_server():
 		broadcast_pickup_spawn.rpc( item_enum, 
 									item_slot_index, 
-									pos,
+									player_kinematic_data,
 									1,
 									next_id)
-		local_spawn(item_enum, pos, next_id)
+		local_spawn(item_enum, player_kinematic_data, next_id)
 		next_id += 1
 	else:
-		request_host_spawn_pickup.rpc_id(1, item_enum, item_slot_index, pos)
+		request_host_spawn_pickup.rpc_id(1, item_enum, item_slot_index, player_kinematic_data)
 
 
 # -- we need to have handling for rejecting the spawn request
 @rpc("any_peer", "call_local", "reliable")
 func request_host_spawn_pickup(item_enum: ItemsDb.ItemNames, 
 							   item_slot_index: int, # -- to delete on remotes
-							   pos: Vector2) -> void:
+							   player_kinematic_data: Array) -> void:
 	if not multiplayer.is_server(): 
 		return
 	
 	# -- tell everyone to spawn it with the same/ new id so arrays stay same
 	broadcast_pickup_spawn.rpc( item_enum, 
 								item_slot_index, 
-								pos,
+								player_kinematic_data,
 								multiplayer.get_remote_sender_id(),
 								next_id)
 	next_id += 1
@@ -163,7 +169,7 @@ func request_host_spawn_pickup(item_enum: ItemsDb.ItemNames,
 @rpc("authority", "call_local", "reliable")
 func broadcast_pickup_spawn(item_enum: ItemsDb.ItemNames, 
 					 		item_slot_index: int, 
-					 		pos: Vector2, 
+					 		player_kinematic_data: Array,
 							successful_peer_id: int,
 					 		server_assigned_id: int) -> void:
 	# -- everyone spawns the pickup
@@ -171,7 +177,7 @@ func broadcast_pickup_spawn(item_enum: ItemsDb.ItemNames,
 	# -- except for the local player who has already predicted this in their
 	# -- player script (see above at start of spawn stuff)
 
-	local_spawn(item_enum, pos, server_assigned_id)
+	local_spawn(item_enum, player_kinematic_data, server_assigned_id)
 	var remote_player_version = NetManager.player_instances_by_player_id[successful_peer_id]
 	if remote_player_version:
 		if multiplayer.get_unique_id() == successful_peer_id:
@@ -180,7 +186,9 @@ func broadcast_pickup_spawn(item_enum: ItemsDb.ItemNames,
 			remote_player_version.drop_pickup_item(item_slot_index, true)
 
 
-func local_spawn(item_enum: ItemsDb.ItemNames, pos: Vector2, spawn_id: int) -> void:
+func local_spawn(item_enum: ItemsDb.ItemNames,
+				 player_kinematic_data: Array,
+				 spawn_id: int) -> void:
 	var pool: Array = pickup_items_pool[item_enum]
 	var item: Node2D
 	
@@ -194,7 +202,9 @@ func local_spawn(item_enum: ItemsDb.ItemNames, pos: Vector2, spawn_id: int) -> v
 		item = pool.pop_back()
 	
 	item.spawn_id = spawn_id
-	item.global_position = pos
+	item.set_spawn_kinematics( player_kinematic_data )
+	#item.global_position = pos
+	#item.velocity = vel
 	item.toggle(true)
 	
 	active_pickups.append(item)

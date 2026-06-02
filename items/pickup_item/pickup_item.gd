@@ -95,14 +95,25 @@ func _ready() -> void:
 	$Area2D.body_entered.connect(_on_body_entered)
 	#$Area2D.body_exited.connect( _on_body_exited)
 
+var velocity: Vector2 = Vector2.ZERO
+var gravity := 980 # -- default, but should steal from player
+func set_spawn_kinematics(player_kinematic_data: Array):
+	global_position = player_kinematic_data[0]
+	velocity = player_kinematic_data[1]
+	gravity = player_kinematic_data[2]
+
+
+var is_resting: bool = false
+var min_bounce_velocity: float = 60.0 # Velocity threshold to stop bouncing
+var bounce_decay: float = 0.6
 
 # -- we need to keep a reference to the last player it touched
 # -- for when it spawns
 var last_peer_that_picked_up: int
 func _on_body_entered(body: Node2D) -> void:
-	# -- do a bounce and play a clinking sound
 	if body is StaticBody2D:
-		velocity = Vector2.ZERO
+		last_static_body = body
+		bounce_fn()
 	
 	var peer_id = body.name.to_int()
 	if peer_id == multiplayer.get_unique_id():
@@ -116,20 +127,55 @@ func _on_body_entered(body: Node2D) -> void:
 			else:
 				last_peer_that_picked_up = -1
 
+func bounce_fn() -> void:
+	if is_resting:
+		return
+	if velocity.y < min_bounce_velocity:
+		velocity = Vector2.ZERO
+		is_resting = true
+		return
 
-# -- inherit the throw velocity of the player
-# -- and fall
-# -- when we hit the ground, we bounce (so some coeff of resitution)
+	velocity.y = -velocity.y * bounce_decay
+
 
 func toggle(b):
+	last_static_body = null
+	is_resting = !b
+	velocity = Vector2.ZERO
 	$Sprite2D.visible = b
 	$Area2D.set_deferred("monitorable", b)
 	$Area2D.set_deferred("monitoring", b)
 
 
-var velocity: Vector2 = Vector2.ZERO
-var gravity := 980 # -- default, but should steal from player
+
+var TERMINAL_FALL_SPEED = 1400
+
+var last_static_body: StaticBody2D
 
 func execute_tick( delta: float ) -> void:
-	pass
-	#global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
+	print(velocity.y, " : ", gravity)
+	if !$Sprite2D.visible or is_resting:
+		return
+	if velocity.y < TERMINAL_FALL_SPEED:
+		velocity.y += gravity * delta
+	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * gravity))
+	
+	if last_static_body:
+		var penetration = get_penetration_depth(last_static_body)
+		if penetration > 0.0:
+			global_position.y -= penetration
+
+
+func get_penetration_depth(body: Node2D) -> float:
+	var floor_shape_node = body.get_node_or_null("CollisionShape2D")
+	if not floor_shape_node or not (floor_shape_node.shape is RectangleShape2D):
+		return 0.0
+	var my_shape_node = $Area2D/CollisionShape2D
+	if not my_shape_node or not (my_shape_node.shape is CircleShape2D):
+		return 0.0
+	var _radius: float = my_shape_node.shape.radius
+	var floor_rect: RectangleShape2D = floor_shape_node.shape
+	var floor_top_y: float = floor_shape_node.global_position.y - (floor_rect.size.y / 2.0)
+	var bottom_y: float = global_position.y + _radius
+
+	return bottom_y - floor_top_y
