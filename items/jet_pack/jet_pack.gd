@@ -8,6 +8,7 @@ var g
 var accl_cut_off_speed: float
 
 func _ready() -> void:
+	toggle_visual( false )
 	#----------------------------------- item interface / dependency injection
 	item_interface.tick_update_fn = tick_update
 	item_interface.stopped.connect(on_item_stopped)

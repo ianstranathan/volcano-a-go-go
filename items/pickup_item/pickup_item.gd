@@ -100,6 +100,7 @@ var gravity := 980 # -- default, but should steal from player
 func set_spawn_kinematics(player_kinematic_data: Array):
 	global_position = player_kinematic_data[0]
 	velocity = player_kinematic_data[1]
+	velocity *= 0.01
 	gravity = player_kinematic_data[2]
 
 
@@ -153,7 +154,7 @@ var TERMINAL_FALL_SPEED = 1400
 var last_static_body: StaticBody2D
 
 func execute_tick( delta: float ) -> void:
-	print(velocity.y, " : ", gravity)
+	#print(velocity.y, " : ", gravity)
 	if !$Sprite2D.visible or is_resting:
 		return
 	if velocity.y < TERMINAL_FALL_SPEED:

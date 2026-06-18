@@ -28,6 +28,10 @@ var t := 0.0 # elapsed time, only counting in physics step
 
 
 func _ready() -> void:
+	visible = false
+
+
+func start_race():
 	# -- coefficients are now in pixels
 	# -- Asin(Bx - c)
 	var A = 65.0
@@ -37,7 +41,7 @@ func _ready() -> void:
 	
 	sinusoid_coeffs.append(Vector3(A, B, C))
 	sinusoid_derivative_coeffs.append( Vector3(A_d, B, C))
-	
+
 	generate_tiles()
 
 	global_position.y += initial_world_lava_level
@@ -50,6 +54,8 @@ func translate_lava_vertically(y_amount: float):
 		tile.set_shader_parameter_wrapper("lava_level", global_position.y))
 
 
+
+# -- this is just for animating some surface noise
 func execute_tick(delta):
 	t += delta
 	#translate_lava_vertically( -50. * delta )

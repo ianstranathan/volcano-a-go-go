@@ -1,11 +1,25 @@
 extends Sprite2D
 
+#signal transition_finished
 
 @export var cam: Camera2D
 @export var lava_ref: TheLava
 var lava_data: Dictionary
 
+var transition_to_black_timer = TickTimer.new(1)
+var transition_back_timer = TickTimer.new(1)
+
 func _ready() -> void:
+	material.set_shader_parameter("transition_data", 
+		Vector2(0., 1.0))
+		
+	transition_back_timer.timeout.connect( func():
+		material.set_shader_parameter("transition_data", 
+		Vector2(0., 1.0)))
+	# -- transition to black
+	#transition_to_black_timer.timeout.connect( func():
+		#transition_finished.emit())
+
 	assert(cam)
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
 	_scale_to_viewport()
@@ -21,13 +35,14 @@ func _scale_to_viewport() -> void:
 	var tex_size = texture.get_size()
 	scale = v / tex_size
 
-#func _ready() -> void:
-	#assert(cam)
-	## -- scale the quad to be the size of the vp
-	#var viewport_size = get_viewport().size
-	#var v = Vector2(float(viewport_size.x), float(viewport_size.y)) / cam.zoom
-	#var tex_size = texture.get_size()
-	#scale = v / tex_size
+
+func start_transition_anim(rel_pos_to_portal: Vector2):
+	transition_to_black_timer.start()
+	material.set_shader_parameter("rel_pos_portal", rel_pos_to_portal)
+
+
+func start_transition_anim_back():
+	transition_back_timer.start()
 
 
 func execute_tick(_delta: float) -> void:
@@ -37,3 +52,15 @@ func execute_tick(_delta: float) -> void:
 	if lava_ref:
 		material.set_shader_parameter("lava_level", lava_ref.global_position.y)
 		material.set_shader_parameter("sc", lava_ref.sinusoid_coeffs)
+
+	
+	# -- send normalized timer [0, 1]
+	if !transition_to_black_timer.is_stopped():
+		var _t = transition_to_black_timer.normalized_time()
+		material.set_shader_parameter("transition_data", 
+			Vector2(_t * _t, 1.0))
+	
+	if !transition_back_timer.is_stopped():
+		var _t = transition_back_timer.normalized_time()
+		material.set_shader_parameter("transition_data", 
+			Vector2(1. - (_t * _t), 1.0))

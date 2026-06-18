@@ -1,0 +1,124 @@
+[gd_scene load_steps=7 format=3 uid="uid://o0u3yghjby2t"]
+
+[ext_resource type="PackedScene" uid="uid://4d5kvc0vxnc1" path="res://platforms/palceholder_platform/placeholder_platform.tscn" id="1_56p6u"]
+[ext_resource type="PackedScene" uid="uid://camohv0etu6x2" path="res://wind/wind_gust_lift/wind_gust_lift.tscn" id="2_vwq74"]
+[ext_resource type="PackedScene" uid="uid://dcuknsfjt8mbc" path="res://platforms/falling_platform/falling_platform.tscn" id="3_sjnwy"]
+[ext_resource type="PackedScene" uid="uid://ctebu6bfyckrw" path="res://platforms/animated_placeholder_platform/animated_placeholder_platform.tscn" id="4_8ktk5"]
+
+[sub_resource type="Curve2D" id="Curve2D_4cobl"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 0, -4000, 0, 0, 0, 0, 0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve2D" id="Curve2D_ln7ps"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 526, -1228, 28.344978, -65.54776, -28.344978, 65.54776, 530, -136, 0, 0, 0, 0, 435.3629, -81.49701, 39.530704, 158.1228, -39.530704, -158.1228, 295, -202, 155.19461, -11.712801, -155.19461, 11.712801, -184, -203, 86.381905, 1.4641001, -86.381905, -1.4641001, -363, -424, 14.641001, -136.16132, -14.641001, 136.16132, -773, -238, 51.2435, -348.45584, -51.2435, 348.45584, -465, 13)
+}
+point_count = 8
+
+[node name="WorldGeometry" type="Node2D"]
+
+[node name="PlaceholderPlatform" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(0, 70)
+coll_extents = Vector2(6000, 50)
+
+[node name="PlaceholderPlatform2" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(-125, -125)
+coll_extents = Vector2(150, 50)
+
+[node name="PlaceholderPlatform3" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(175, -125)
+coll_extents = Vector2(150, 50)
+
+[node name="PlaceholderPlatform4" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(435, 0)
+coll_extents = Vector2(200, 50)
+
+[node name="RH_Boundary" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(2278, -405)
+coll_extents = Vector2(200, 10000)
+
+[node name="LH_Boundary" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(-2868, -405)
+coll_extents = Vector2(200, 10000)
+
+[node name="LH_WALL" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(-372, -236)
+coll_extents = Vector2(50, 300)
+
+[node name="LH_WALL2" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(-560, -80)
+
+[node name="RH_WALL" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(410, -640)
+coll_extents = Vector2(50, 1000)
+
+[node name="RH_WALL2" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(624, -640)
+rotation = 1.5707964
+coll_extents = Vector2(1000, 50)
+
+[node name="PlaceholderPlatform5" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(-26, -704)
+coll_extents = Vector2(300, 50)
+
+[node name="PlaceholderPlatform6" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(-336, -968)
+coll_extents = Vector2(200, 50)
+
+[node name="WindGustLift" parent="." instance=ExtResource("2_vwq74")]
+position = Vector2(-1039, -441)
+
+[node name="ANGLED" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(146.00003, -1336)
+rotation = -0.63329995
+coll_extents = Vector2(700, 50)
+
+[node name="FallingPlatform" parent="." instance=ExtResource("3_sjnwy")]
+position = Vector2(1173, -977)
+sync_color = Color(0.5836365, 0.40135622, 0.77224404, 1)
+sync_extents = Vector2(400, 400)
+
+[node name="PlaceholderPlatform7" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(1158, -1981)
+coll_extents = Vector2(400, 400)
+
+[node name="PlaceholderPlatform8" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(1765, -970)
+coll_extents = Vector2(400, 400)
+
+[node name="PlaceholderPlatform9" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(1841, -2739)
+coll_extents = Vector2(400, 400)
+
+[node name="PlaceholderPlatform10" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(335, -2739)
+coll_extents = Vector2(400, 400)
+
+[node name="PlaceholderPlatform11" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(335, -2739)
+coll_extents = Vector2(400, 400)
+
+[node name="PlaceholderPlatform12" parent="." instance=ExtResource("1_56p6u")]
+position = Vector2(-425, -3627)
+coll_extents = Vector2(400, 400)
+
+[node name="AnimatedPlaceholderPlatform" parent="." node_paths=PackedStringArray("path_follow") instance=ExtResource("4_8ktk5")]
+position = Vector2(-1449, -100)
+end_pos = Vector2(-2180, -4000)
+path_follow = NodePath("Path2D/PathFollow2D")
+coll_extents = Vector2(300, 100)
+color = Color(0.72448534, 0.23693973, 0.84151685, 1)
+
+[node name="Path2D" type="Path2D" parent="AnimatedPlaceholderPlatform"]
+curve = SubResource("Curve2D_4cobl")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="AnimatedPlaceholderPlatform/Path2D"]
+position = Vector2(0, -4000)
+rotation = 1.5707964
+
+[node name="CoinPaths" type="Node2D" parent="."]
+
+[node name="Path2D" type="Path2D" parent="CoinPaths"]
+curve = SubResource("Curve2D_ln7ps")

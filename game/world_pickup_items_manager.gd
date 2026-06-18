@@ -202,10 +202,10 @@ func local_spawn(item_enum: ItemsDb.ItemNames,
 		item = pool.pop_back()
 	
 	item.spawn_id = spawn_id
-	item.set_spawn_kinematics( player_kinematic_data )
-	#item.global_position = pos
-	#item.velocity = vel
+	
 	item.toggle(true)
+	item.set_spawn_kinematics( player_kinematic_data )
+	
 	
 	active_pickups.append(item)
 

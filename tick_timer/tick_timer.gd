@@ -89,13 +89,21 @@ func seconds_to_ticks(seconds:float) -> int:
 	return int(round(seconds / TICK_RATE))
 
 
+func ticks_left() -> int:
+	return (target_time_ticks - NetManager.current_tick)
+
+
 func get_time_left() -> float:
 	if !running:
 		return 0.0
 	
-	var ticks_left = target_time_ticks - NetManager.current_tick
+	var tl = ticks_left()
 
-	if ticks_left <= 0:
+	if tl <= 0:
 		return 0.0
 
-	return float(ticks_left) / TICK_RATE
+	return float(tl) * TICK_RATE
+
+
+func normalized_time():
+	return 1. - (get_time_left() / wait_time)

@@ -5,6 +5,7 @@ class_name Player
 # -- emitted from player_controller when reconcilliation happens for
 # -- visual smoothing in the PlayerVisualInterpolator (sprite & item_manager)
 signal reconciled
+signal touched_bottom( peer_id: int)
 signal dropped_pickup_item( item_key: ItemsDb.ItemNames, item_slot: int, pos: Vector2)
 
 
@@ -47,8 +48,9 @@ var inv_mass = (1.0 / mass)
 @export var climb_speed = baseline_speed * 0.7
 
 @export var ledge_climb_duration := 0.6
-var ledge_grab_climb_target_pos
-var ledge_grab_start_pos
+#var ledge_grab_position
+var target_ledge_grabbing_climb_pos: Vector2 = Vector2.ZERO
+var ledge_grabbing_starting_player_pos
 var is_ledge_climbing := false
 var ledge_climb_progress := 0.0
 
@@ -110,7 +112,9 @@ enum MovementStates
 	WALL_SLIDING,
 	LEDGE_GRABBING,
 	ITEM_MOVING,
-	CLIMBING
+	CLIMBING,
+	CLOUD,
+	PORTAL
 }
 @export var movement_state: MovementStates = MovementStates.IDLE
 
@@ -397,29 +401,52 @@ func is_falling():
 	return velocity.y >= 0 and not my_is_on_floor()
 
 
-@onready var rhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/RHS, $WallCheckContainer/RHS1]
-@onready var lhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/LHS, $WallCheckContainer/LHS1]
-@onready var ledge_grab_arrs = [rhs_ledge_grab_pair, lhs_ledge_grab_pair]
-func is_ledge_grabbing() -> bool:
-	var arr = lhs_ledge_grab_pair if last_move_input.x < 0 else rhs_ledge_grab_pair
-	var ledge_ray = arr[0]
-	var wall_ray = arr[1]
-	return wall_ray.is_colliding() and !ledge_ray.is_colliding()
+#@onready var rhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/RHS, $WallCheckContainer/RHS1]
+#@onready var lhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/LHS, $WallCheckContainer/LHS1]
+#@onready var ledge_grab_arrs = [rhs_ledge_grab_pair, lhs_ledge_grab_pair]
 
 
-func ledge_grabbing_climb_position():
-	var arr = lhs_ledge_grab_pair if last_move_input.x < 0 else rhs_ledge_grab_pair
-	var ledge_ray = arr[0]
-	var wall_ray = arr[1]
-	# -- the world position of where the ray is pointing right now
-	var ledge_ray_world_pos = ledge_ray.global_position + ledge_ray.target_position
-	# -- there's a small offset due to the height difference between the ledge ray and
-	# -- and the wall ray
-	# -- I'm making this slightly smaller so we're avoid unreachable spots or whatever
-	var ledge_ray_height_diff = 0.9 * (ledge_ray_world_pos.y - wall_ray.global_position.y)
-	var target_pos = ledge_ray_world_pos - Vector2(0., ($CollisionShape2D.shape.height / 2.0 )
-														+ ledge_ray_height_diff)
-	return target_pos
+@onready var lhs_wall_rays:  Array[RayCast2D] = [
+	$WallCheckContainer/LHS1,
+	$WallCheckContainer/LHS2,
+	$WallCheckContainer/LHS3
+]
+@onready var rhs_wall_rays:  Array[RayCast2D] = [
+	$WallCheckContainer/RHS1,
+	$WallCheckContainer/RHS2,
+	$WallCheckContainer/RHS3
+]
+
+# -- NOTE
+# -- this also sets a ledge grabbing position
+# -- and a grabbing_climb_to position
+
+
+func is_ledge_grabbing(_set_global_position=false) -> bool:
+	var grabbing_left = last_move_input.x < 0
+	var wall_arr := lhs_wall_rays if grabbing_left else rhs_wall_rays
+	var top_down_ray := $TopDownRayContainer/LHS if grabbing_left else $TopDownRayContainer/RHS
+	var ledge_ray := $LedgeRayContainer/LHS if grabbing_left else $LedgeRayContainer/RHS
+	# -- if any of the wall rays are colliding and the ledge ray isn't colliding
+	var ret = false
+	var ledge_grab_position: Vector2
+
+	for _ray in wall_arr:
+		if _ray.is_colliding() and !ledge_ray.is_colliding() and top_down_ray.is_colliding():
+			ret = true
+			ledge_grab_position = Vector2(
+				_ray.get_collision_point().x,
+				top_down_ray.get_collision_point().y)
+			# -- taget climb up should be the player just standing on the edge
+			target_ledge_grabbing_climb_pos = (ledge_grab_position +
+				Vector2(sign(last_move_input.x) * $CollisionShape2D.shape.radius,
+						-0.5 * $CollisionShape2D.shape.height))
+	if ret and _set_global_position:
+		# -- magic number is to just make it look slightly more natural (we don't want the very top)
+		# -- of the collshape to be at the ledge
+		global_position.y = ledge_grab_position.y + 0.7 * $CollisionShape2D.shape.height / 2.
+
+	return ret
 
 
 func set_debug_label(new_movement_state: MovementStates) -> void:
@@ -578,12 +605,12 @@ func handle_corner_correction():
 
 
 func can_wall_slide():
-	var input = move_input
+	#var input = move_input
 	var _wall_normal = wall_normal()
 	last_wall_normal = _wall_normal
 	var is_touching_wall = !_wall_normal.is_equal_approx(Vector2.ZERO)
-	var is_pressing_into_wall = _wall_normal.x * input.x < 0
-	return (is_touching_wall and is_pressing_into_wall and input.y > -0.65)
+	var is_pressing_into_wall = _wall_normal.x * move_input.x < 0
+	return (is_touching_wall and is_pressing_into_wall and move_input.y > -0.65)
 
 
 # -- TODO 
@@ -593,18 +620,16 @@ func falling_state_fn(_delta) -> void:
 	# -- falling should always be positive direction
 	hang_time_modifier = hang_time_curve.sample(velocity.y / TERMINAL_FALL_SPEED)
 	handle_platform_fall_near_miss_correction()
-		# -- maybe we wanna go through the air slightly slower?
+	# -- maybe we wanna go through the air slightly slower?
 	
 	move()
 	wall_jump_fast_utility()
 	
-	if is_ledge_grabbing() and ledge_grab_buffer_timer.is_stopped():
-		# -- we stop gravity and falling velocity, save the climbing pos
+	# -- ledge climbing target position is mutated / saved in is_ledge_grabbing()
+	if is_ledge_grabbing(true) and ledge_grab_buffer_timer.is_stopped():
 		velocity = Vector2.ZERO
 		g = 0
-		start_ledge_climb()
-		#ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
-		#movement_state_transition_to(MovementStates.LEDGE_GRABBING)
+		start_ledge_grab()
 	
 	if !wall_jump_coyote_timer.is_stopped():
 		check_for_jump()
@@ -641,7 +666,7 @@ func wall_sliding_state_fn(_delta) -> void:
 	elif is_ledge_grabbing():
 		velocity = Vector2.ZERO
 		g = 0
-		start_ledge_climb()
+		start_ledge_grab()
 
 # -- probably move this elsewhere
 func item_moving_state_fn(_delta) -> void:
@@ -662,7 +687,7 @@ func item_moving_state_fn(_delta) -> void:
 		$ItemManager.stop_using_item()
 		velocity = Vector2.ZERO
 		g = 0
-		start_ledge_climb()
+		start_ledge_grab()
 
 	# -- does this allow me to remove fall check in parachute?
 	if $ItemManager.active_movement_override.stops_on_floor() and my_is_on_floor():
@@ -673,10 +698,9 @@ func item_moving_state_fn(_delta) -> void:
 		start_climbing()
 
 
-func start_ledge_climb():
+func start_ledge_grab():
 	is_ledge_climbing = false # -- the actual motion hasn't started yet
-	ledge_grab_climb_target_pos = ledge_grabbing_climb_position()
-	if ledge_grab_climb_target_pos:
+	if target_ledge_grabbing_climb_pos:
 		ledge_climb_progress = 0.0
 		movement_state_transition_to(MovementStates.LEDGE_GRABBING)
 	else:
@@ -685,24 +709,65 @@ func start_ledge_climb():
 
 func ledge_grabbing_state_fn(delta) -> void:
 	check_for_jump()
-	assert(ledge_grab_climb_target_pos)
+	
+	# -- start climbing if you press up and you can
 	if move_input.y > 0.6 and !is_ledge_climbing:
 		is_ledge_climbing = true
-		ledge_grab_start_pos = global_position
+		$CollisionShape2D.set_deferred("disabled", true)
+		ledge_grabbing_starting_player_pos = global_position
+	
 	if is_ledge_climbing:
-		ledge_climb_progress += delta
-		# -- target position is being lerped from @start climbing pos to @ climb target pos
-		# -- the tween is just an easing function [0, 1]
-		var target_pos : Vector2 = ledge_grab_start_pos.lerp(
-			ledge_grab_climb_target_pos,
+		ledge_climb_progress += 4. * delta
+		global_position = ledge_grabbing_starting_player_pos.lerp(
+			target_ledge_grabbing_climb_pos,
 			ledge_climb_progress * ledge_climb_progress # -- x^2 easing
 		)
-		velocity = (target_pos - global_position) / delta
-		velocity = velocity.clamp( -Vector2(move_speed * move_speed_modifier, move_speed * move_speed_modifier),  Vector2(move_speed * move_speed_modifier, move_speed * move_speed_modifier))
+		#velocity = (target_pos - global_position) / delta
+	
 	
 	if ledge_climb_progress >= 1.0 or move_input.y < -0.6:
+		$CollisionShape2D.set_deferred("disabled", false)
 		ledge_grab_buffer_timer.start()
 		movement_state_transition_to( MovementStates.FALLING)
+
+
+func portal_state_fn( _delta: float ) -> void:
+	# -- maybe do some vfx here
+	pass
+
+
+@onready var floor_checking_rays: Array[RayCast2D] = [$FloorCheckContainer/RHS,
+$FloorCheckContainer/RayCast2D, $FloorCheckContainer/LHS]
+
+func toggle_all_collision_masks(b: bool) -> void:
+	# -- on player capsule
+	set_collision_mask_value(1, b)
+	set_collision_mask_value(2, b)
+	set_collision_mask_value(3, b)
+	set_collision_mask_value(4, b)
+	
+	# -- on floor checking rays
+	for _ray in floor_checking_rays:
+		_ray.set_collision_mask_value(1, b)
+		_ray.set_collision_mask_value(3, b)
+
+
+func start_cloud_descent():
+	toggle_all_collision_masks(false)
+	movement_state_transition_to(MovementStates.CLOUD)
+
+@onready var cloud_move_speed = 2. * baseline_speed
+func cloud_state_fn( _delta: float ) -> void:
+	if !$Cloud.visible:
+		$Cloud.visible = true
+	velocity.y = max(move_toward(velocity.y, -move_input.y * cloud_move_speed, ACCL),
+					0.1 * cloud_move_speed)
+	velocity.x = move_toward(velocity.x, move_input.x * cloud_move_speed, ACCL)
+	if my_is_on_floor():
+		touched_bottom.emit( name.to_int() )
+		$Cloud.visible = false
+		toggle_all_collision_masks(true)
+		movement_state_transition_to( MovementStates.IDLE )
 
 
 func movement_state_transition_to(new_movement_state: MovementStates):
@@ -792,6 +857,19 @@ func gravity_from_state():
 			return jump_gravity
 		MovementStates.CLIMBING:
 			return 0
+		MovementStates.CLOUD:
+			return 0
+		MovementStates.PORTAL:
+			return 0
+
+
+func entered_portal():
+	velocity = Vector2.ZERO
+	movement_state_transition_to( MovementStates.PORTAL )
+
+
+func exited_portal():
+	movement_state_transition_to( MovementStates.IDLE )
 
 
 func slow(b: bool):
@@ -829,8 +907,12 @@ func drop_pickup_item(item_slot_index=null, delete_now=false):
 func host_confirmed_drop():
 	$ItemManager.host_confirmed_item_deletion()
 
+
+func can_collect_coints() -> bool:
+	return movement_state != MovementStates.CLOUD
+
 # ------------------------------------------------------------------------------
-var max_pickup_item_throw_magnitude := 400
+var max_pickup_item_throw_magnitude := 0
 
 func apply_command( c: PlayerCommand):
 	move_input = c.move_input

@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://cma2u0fboy7wr"]
+
+[ext_resource type="Script" uid="uid://cq5cv0u3p33fw" path="res://levels/generator/generator.gd" id="1_g5ra1"]
+[ext_resource type="Script" uid="uid://bo2vw5tl14uk4" path="res://player/player.gd" id="2_bqh3i"]
+
+[node name="GenTestOne" type="Node2D"]
+script = ExtResource("1_g5ra1")
+player_script = ExtResource("2_bqh3i")
