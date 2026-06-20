@@ -53,20 +53,48 @@ func _notification(what: int) -> void:
 
 func bake_level_data() -> void:
 	if level_data and top_marker and bottom_marker:
+		# -- path name for a packed scene
+		level_data.chunk_scene_path = scene_file_path
+		
+		# -- level dimensions
 		# -- we're enforcing that scenes are in model space => abs calc is redundant
 		var height = bottom_marker.global_position.y - top_marker.global_position.y
 		level_data.level_height = height
 		var width = right_marker.global_position.x - left_marker.global_position.x
 		level_data.level_width = width
 		
+		# -- spawn pts
 		var spawn_points_node = get_node_or_null("SpawnPoints")
 		if spawn_points_node:
 			level_data.player_spawn_points = spawn_points_node.get_children().map( func(c): return c.global_position)
+		
+		level_data.offset_to_chunk_origin = top_marker.position.y
+		
+		# -- pickup items:
+		var found_pickups: Array[Dictionary] = []
+		var placeholder_container = get_node_or_null("PickupPlaceholders")
+		if placeholder_container:
+			for child in placeholder_container.get_children():
+				if child is PickupEditorPlaceholder:
+					found_pickups.append({
+						"item_enum": child.item_enum_type,
+						"position": child.position # Using local pos so it easily stacks in world coords
+					})
+		level_data.pickup_definitions = found_pickups
+		
 		# -- from docs:
 		# -- For custom resources, it's recommended to call this method whenever a meaningful change occurs,
-		level_data.emit_changed()
-		ResourceSaver.save(level_data)
-		print("Baked level height, width and spawn points")
+		#level_data.emit_changed()
+		#var save_path = "res://levels/level_data_rscs/" + name.to_snake_case() + "_data.tres"
+		#ResourceSaver.save(level_data)
+		#print("Baked level height, width and spawn points")
+		var save_path = "res://levels/level_data_rscs/" + name.to_snake_case() + "_data.tres"
+		var error = ResourceSaver.save(level_data, save_path)
+
+		if error == OK:
+			print("Successfully baked and saved to: ", save_path)
+		else:
+			push_error("Failed to save resource! Error code: ", error)
 
 
 #func get_height() -> float:

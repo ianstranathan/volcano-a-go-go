@@ -32,6 +32,13 @@ var player_data_dict:Dictionary = {} # -- id to player_data
 @onready var ui = $CanvasLayer/Ui
 
 func _ready():
+	# -- we're gaurenteed that all children (level manager and world pickup items
+	# -- manager) are intialized
+	# ==> can just set the prev. world pickup items ready stuff to here
+	
+	$WorldPickupItemsManager.load_pickup_items_from_level_chunks(
+		$LevelManager.get_all_pickup_item_definitions()
+	)
 	$LevelManager.level_ready.connect( on_oasis_transition_finished )
 	#$PostProcessingQuad.transition_finished.connect( func():
 		 #)
@@ -58,7 +65,7 @@ func _ready():
 
 
 @onready var tickables : Array = [
-	$LevelManager, $Lava, $PostProcessingQuad, $CanvasLayer/Ui
+	$LevelManager, $Lava, $WorldPickupItemsManager, $PostProcessingQuad, $CanvasLayer/Ui
 ]
 
 
@@ -120,6 +127,9 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	
 	# --------------------------------------------------- connect player signals
 	a_player.touched_bottom.connect( on_player_touched_bottom )
+	a_player.dropped_pickup_item.connect(
+		$WorldPickupItemsManager.on_player_dropped_pickup_item
+	)
 	$LevelManager.setup_networked_level_player_connections(a_player)
 
 	if peer_id == multiplayer.get_unique_id():

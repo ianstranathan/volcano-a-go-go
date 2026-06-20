@@ -1,5 +1,5 @@
 @tool
-extends Node2D
+extends CharacterBody2D
 class_name PickupItem
 
 var spawn_id = -1
@@ -55,9 +55,14 @@ func _update_texture():
 
 
 func _update_collision():
-	var coll_shape: CollisionShape2D = get_node_or_null("Area2D/CollisionShape2D")
+	var area_coll = get_node_or_null("Area2D/CollisionShape2D")
+	var coll_shape: CollisionShape2D = get_node_or_null("CollisionShape2D")
 	if coll_shape and coll_shape.shape:
 		coll_shape.shape.radius = _pickup_radius
+	if area_coll and area_coll.shape:
+		# -- let's make it just a slightly bigger to favor player
+		area_coll.shape.radius = 1.1 * _pickup_radius
+
 
 func _update_sprite_scale():
 	if not sprite or not sprite.texture:
@@ -95,7 +100,7 @@ func _ready() -> void:
 	$Area2D.body_entered.connect(_on_body_entered)
 	#$Area2D.body_exited.connect( _on_body_exited)
 
-var velocity: Vector2 = Vector2.ZERO
+
 var gravity := 980 # -- default, but should steal from player
 func set_spawn_kinematics(player_kinematic_data: Array):
 	global_position = player_kinematic_data[0]
@@ -112,46 +117,62 @@ var bounce_decay: float = 0.6
 # -- for when it spawns
 var last_peer_that_picked_up: int
 func _on_body_entered(body: Node2D) -> void:
-	if body is StaticBody2D:
-		last_static_body = body
-		bounce_fn()
-	
-	var peer_id = body.name.to_int()
-	if peer_id == multiplayer.get_unique_id():
-		if (body is Player and
-			body.can_pick_up_item() and
-			visible):
-			if last_peer_that_picked_up != peer_id:
-				last_peer_that_picked_up = peer_id
-				#predict_hide()
-				prediction_picked_up.emit( spawn_id, item_lookup)
-			else:
-				last_peer_that_picked_up = -1
+	#if body is StaticBody2D or body is TileMapLayer or body is TileMap:
+		#last_static_body = body
+		#bounce_fn()
+	if body is Player:
+		var peer_id = body.name.to_int()
+		if peer_id == multiplayer.get_unique_id():
+			if body.can_pick_up_item() and visible:
+				if last_peer_that_picked_up != peer_id:
+					last_peer_that_picked_up = peer_id
+					#predict_hide()
+					prediction_picked_up.emit( spawn_id, item_lookup)
+				else:
+					last_peer_that_picked_up = -1
 
-func bounce_fn() -> void:
+#func bounce_fn() -> void:
+	#if is_resting:
+		#return
+	#if velocity.y < min_bounce_velocity:
+		#velocity = Vector2.ZERO
+		#is_resting = true
+		#return
+#
+	#velocity.y = -velocity.y * bounce_decay
+func bounce_fn(collision: KinematicCollision2D) -> void:
 	if is_resting:
 		return
+	# -- downward speed is below the threshold => come to a rest
 	if velocity.y < min_bounce_velocity:
 		velocity = Vector2.ZERO
 		is_resting = true
 		return
 
-	velocity.y = -velocity.y * bounce_decay
-
+	# Natively bounce off whatever surface we hit (StaticBody or TileMap)
+	# using the surface normal provided by Godot's physics engine
+	velocity = velocity.bounce(collision.get_normal()) * bounce_decay
 
 func toggle(b):
-	last_static_body = null
 	is_resting = !b
 	velocity = Vector2.ZERO
 	$Sprite2D.visible = b
-	$Area2D.set_deferred("monitorable", b)
+	$CollisionShape2D.set_deferred("disabled", !b) 
 	$Area2D.set_deferred("monitoring", b)
+
+#func toggle(b):
+	#last_static_body = null
+	#is_resting = !b
+	#velocity = Vector2.ZERO
+	#$Sprite2D.visible = b
+	#$Area2D.set_deferred("monitorable", b)
+	#$Area2D.set_deferred("monitoring", b)
 
 
 
 var TERMINAL_FALL_SPEED = 1400
 
-var last_static_body: StaticBody2D
+#var last_static_body: Node2D
 
 func execute_tick( delta: float ) -> void:
 	#print(velocity.y, " : ", gravity)
@@ -160,23 +181,25 @@ func execute_tick( delta: float ) -> void:
 	if velocity.y < TERMINAL_FALL_SPEED:
 		velocity.y += gravity * delta
 	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * gravity))
-	
-	if last_static_body:
-		var penetration = get_penetration_depth(last_static_body)
-		if penetration > 0.0:
-			global_position.y -= penetration
+	var collision_info = move_and_collide(velocity * delta)
+	if collision_info:
+		bounce_fn(collision_info)
+	#if last_static_body:
+		#var penetration = get_penetration_depth(last_static_body)
+		#if penetration > 0.0:
+			#global_position.y -= penetration
 
 
-func get_penetration_depth(body: Node2D) -> float:
-	var floor_shape_node = body.get_node_or_null("CollisionShape2D")
-	if not floor_shape_node or not (floor_shape_node.shape is RectangleShape2D):
-		return 0.0
-	var my_shape_node = $Area2D/CollisionShape2D
-	if not my_shape_node or not (my_shape_node.shape is CircleShape2D):
-		return 0.0
-	var _radius: float = my_shape_node.shape.radius
-	var floor_rect: RectangleShape2D = floor_shape_node.shape
-	var floor_top_y: float = floor_shape_node.global_position.y - (floor_rect.size.y / 2.0)
-	var bottom_y: float = global_position.y + _radius
-
-	return bottom_y - floor_top_y
+#func get_penetration_depth(body: Node2D) -> float:
+	#var floor_shape_node = body.get_node_or_null("CollisionShape2D")
+	#if not floor_shape_node or not (floor_shape_node.shape is RectangleShape2D):
+		#return 0.0
+	#var my_shape_node = $Area2D/CollisionShape2D
+	#if not my_shape_node or not (my_shape_node.shape is CircleShape2D):
+		#return 0.0
+	#var _radius: float = my_shape_node.shape.radius
+	#var floor_rect: RectangleShape2D = floor_shape_node.shape
+	#var floor_top_y: float = floor_shape_node.global_position.y - (floor_rect.size.y / 2.0)
+	#var bottom_y: float = global_position.y + _radius
+#
+	#return bottom_y - floor_top_y

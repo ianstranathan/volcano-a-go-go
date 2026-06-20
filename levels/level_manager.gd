@@ -11,14 +11,10 @@ uses a LevelChunk class
 (where a level chunk class knows how big it is)
 """
 
+# -- TODO rename this to first level ready or something
 signal level_ready(spawn_points )
 
-
-const LEVEL_CHUNK_DB: Dictionary = {
-	0: "res://levels/chunks/level_chunk_top.tscn",
-	1: "res://levels/chunks/level_chunk_bottom.tscn",
-}
-
+var LEVEL_CHUNK_DB: Dictionary # -- at initialization, this 
 const BUFFER_CHUNKS: int = 1 
 
 # --TODO
@@ -38,6 +34,40 @@ var next_spawn_y: float = LEVEL_TOP_Y
 @export var player_container_ref: Node2D
 
 var current_chunk_idx: int = 0
+
+func _ready() -> void:
+	_load_level_chunks_globally()
+
+
+func _load_level_chunks_globally() -> void:
+	var path = "res://levels/level_data_rscs/"
+	var dir = DirAccess.open(path)
+	
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		var index = 0
+		
+		while file_name != "":
+			# Ignore folders and ensure it's a resource file
+			# Note: Godot exports convert .tres to .remap or .res, so we check for extensions starting with .tre or .re
+			if not dir.current_is_dir() and (file_name.ends_with(".tres") or file_name.ends_with(".res") or file_name.ends_with(".tres.remap")):
+				# Clean the file name if it has an export suffix (.remap)
+				var clean_name = file_name.replace(".remap", "")
+				var full_path = path + clean_name
+				
+				var resource = load(full_path)
+				if resource is LevelChunkData:
+					assert(resource.level_index >= 0)
+					LEVEL_CHUNK_DB[resource.level_index] = resource
+					print("Loaded chunk index ", index, ": ", clean_name)
+					index += 1
+
+			file_name = dir.get_next()
+		dir.list_dir_end()
+	else:
+		push_error("An error occurred when trying to access the path: ", path)
+
 
 func execute_tick(_delta: float) -> void:
 	# -- if there's a chunk waiting to load from another thread, load it
@@ -112,11 +142,8 @@ func _maintain_chunks(required_range: Vector2i, lava_y: float) -> void:
 		# -- load it on another thread
 		if not instantiated_chunks.has(idx) and not chunk_idx_is_loading.has(idx):
 			_request_chunk_load(idx)
-	
-	# 2. Direct iteration over active elements to avoid garbage array allocations
-	# Fix: Duplicate the keys into an array or lookups safely because we erase while iterating
-	#var active_keys = instantiated_chunks.keys()
-	
+
+
 	for idx in active_chunk_idxs:
 		var chunk_bounds = chunk_positions[idx]
 		
@@ -131,33 +158,49 @@ func _request_chunk_load(idx: int) -> void:
 	# -- load the packedscene on another thread
 	# -- from docs, load_threaded_request return type is of type Error 
 	# -- which is an enum, so OK
-	if ResourceLoader.load_threaded_request(LEVEL_CHUNK_DB[idx], "PackedScene", false, 1) == OK:
+	var chunk_data = LEVEL_CHUNK_DB[idx] as LevelChunkData
+	if ResourceLoader.load_threaded_request(chunk_data.chunk_scene_path, "PackedScene", false, 1) == OK:
 		chunk_idx_is_loading[idx] = true
-
+	#if ResourceLoader.load_threaded_request(LEVEL_CHUNK_DB[idx], "PackedScene", false, 1) == OK:
+		#chunk_idx_is_loading[idx] = true
 
 func _poll_threaded_loads() -> void:
 	var active_loading_chunk_indices = chunk_idx_is_loading.keys()
 	for idx in active_loading_chunk_indices:
-		var scene_path = LEVEL_CHUNK_DB[idx]
-		var status = ResourceLoader.load_threaded_get_status(scene_path)
+		var chunk_data = LEVEL_CHUNK_DB[idx] as LevelChunkData
+		var scene_path = chunk_data.chunk_scene_path
 		
+		# Edge case safety guard
+		if scene_path.is_empty():
+			push_error("Chunk Data at index ", idx, " has an empty chunk_scene_path! Re-bake your level.")
+			chunk_idx_is_loading.erase(idx)
+			continue
+
+		var status = ResourceLoader.load_threaded_get_status(scene_path)
+
 		if status == ResourceLoader.THREAD_LOAD_LOADED:
 			var packed_scene = ResourceLoader.load_threaded_get(scene_path) as PackedScene
-			_instantiate_chunk(idx, packed_scene)
+			
+			if packed_scene == null:
+				push_error("Thread loaded successfully but PackedScene returned null for path: ", scene_path)
+			else:
+				_instantiate_chunk(idx, packed_scene)
+				
 			chunk_idx_is_loading.erase(idx)
 			break
 			
 		elif status == ResourceLoader.THREAD_LOAD_FAILED or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
-			push_error("Failed to load chunk at index: ", idx)
+			push_error("Failed to thread-load chunk at index: ", idx, " Path: ", scene_path)
 			chunk_idx_is_loading.erase(idx)
 			break
 
 
+
 func _instantiate_chunk(idx: int, packed_scene: PackedScene) -> void:
-	# -- 
 	var chunk_instance = packed_scene.instantiate() as LevelChunk
 	# -- so, next_spawn_y starts at top of volcano and steps down by chunk height
-	chunk_instance.global_position = Vector2(0, next_spawn_y)
+	chunk_instance.global_position = Vector2(0, 
+		next_spawn_y - chunk_instance.level_data.offset_to_chunk_origin)
 	chunk_instance.players_container_ref = player_container_ref
 	chunk_container.add_child(chunk_instance)
 	
@@ -186,11 +229,13 @@ func _unload_and_clear_chunk(idx: int) -> void:
 	chunk_idx_is_loading.erase(idx) # Clears it out regardless of whether it was active or loading
 	chunks_to_tick = chunk_container.get_chilren()
 
+
 func start_level() -> void:
 	instantiated_chunks.clear()
 	
 	# -- no thread-load chunk 0 because the game can't start without it
-	var first_chunk_scene = load(LEVEL_CHUNK_DB[0]) as PackedScene
+	var chunk_data = LEVEL_CHUNK_DB[0] as LevelChunkData
+	var first_chunk_scene = load(chunk_data.chunk_scene_path) as PackedScene
 	_instantiate_chunk(0, first_chunk_scene)
 	
 	var markers = instantiated_chunks[0].get_node_or_null("SpawnPoints").get_children()
@@ -201,3 +246,40 @@ func start_level() -> void:
 
 	# -- start loading chunk 1 in the background
 	_request_chunk_load(1)
+
+
+# -- NOTE
+# -- we're kind of repeating ourselves (do the same treadmill height increments)
+# -- but I don't see how else to do this in advance at runtime
+# -- (we're doing the same incr math as in _instantiate_chunk)
+
+func get_all_pickup_item_definitions() -> Array[ Dictionary ]:
+	var ret : Array[ Dictionary] = []
+	var _local_next_spawn_y = LEVEL_TOP_Y
+
+	assert(!LEVEL_CHUNK_DB.is_empty())
+	
+	# -- since we're filling our LEVEL_CHUNK_DB
+	# -- automatically from a folder, the layout can vary (dir fns do things
+	# -- alphabetically, so we need to gaurentee that we're doing things
+	# -- dequentially
+	var sorted_indices = LEVEL_CHUNK_DB.keys()
+	sorted_indices.sort()
+	
+	for chunk_index in sorted_indices:
+		var level_chunk_data = LEVEL_CHUNK_DB[chunk_index]
+		
+		if (level_chunk_data.pickup_definitions is Array and 
+			!level_chunk_data.pickup_definitions.is_empty()):
+			var _chunk_global_position = Vector2(0, 
+					_local_next_spawn_y - level_chunk_data.offset_to_chunk_origin)
+			
+			for pickup_definition in level_chunk_data.pickup_definitions:
+				var p = {"global_position": 
+						 _chunk_global_position + pickup_definition["position"],
+						 "item_enum": pickup_definition["item_enum"]}
+				ret.append(p)
+				
+		_local_next_spawn_y += level_chunk_data.level_height
+		
+	return ret

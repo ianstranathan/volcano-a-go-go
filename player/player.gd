@@ -114,7 +114,8 @@ enum MovementStates
 	ITEM_MOVING,
 	CLIMBING,
 	CLOUD,
-	PORTAL
+	PORTAL,
+	SLIDING,
 }
 @export var movement_state: MovementStates = MovementStates.IDLE
 

@@ -2,13 +2,16 @@
 
 [ext_resource type="Texture2D" uid="uid://bhsoxu716q2y6" path="res://assets/tile_sets/TinyRocks/TinyRocks.png" id="1_ns4w1"]
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_xj7i1"]
-[ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/level_chunk_data.gd" id="2_mgbfs"]
+[ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_mgbfs"]
 
 [sub_resource type="Resource" id="Resource_re8k8"]
 script = ExtResource("2_mgbfs")
+level_index = 0
 level_height = 4379.0
+offset_to_chunk_origin = -1196.0
 level_width = 4580.0
 player_spawn_points = [Vector2(-1079, -189.99997), Vector2(-1747, -178), Vector2(1122, -192), Vector2(1750, -203)]
+chunk_scene_path = "res://levels/chunks/level_chunk_top.tscn"
 metadata/_custom_type_script = "uid://cptvpu01udgc8"
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_xj7i1"]
@@ -140,6 +143,7 @@ texture_region_size = Vector2i(64, 64)
 [sub_resource type="TileSet" id="TileSet_1m6gb"]
 tile_size = Vector2i(64, 64)
 physics_layer_0/collision_layer = 1
+physics_layer_0/collision_mask = 11
 sources/0 = SubResource("TileSetAtlasSource_xj7i1")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ns4w1"]
