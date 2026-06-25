@@ -8,55 +8,23 @@ signal reconciled
 signal touched_bottom( peer_id: int)
 signal dropped_pickup_item( item_key: ItemsDb.ItemNames, item_slot: int, pos: Vector2)
 
-
-@export_group("Kinematics")
-@export var baseline_speed: float = 380.0
-var v_x_peak_2_fall = baseline_speed * 0.65
-@onready var move_speed: float = baseline_speed
-@export var mass = 1.0
-var inv_mass = (1.0 / mass)
-@export var ACCL := 50.0
-
-# ------------------------------ turning game feel
-@export var TURN_ACCL: = 500.0
-#@export var friction = 250.0      
-#@export var responsiveness = 15.0
-
-# ------------------------------
-@onready var MOV_ACCL := ACCL
+@export var kd: PlayerKinematicData
+@onready var move_speed: float = kd.baseline_speed
 @onready var current_accel = 0.0
-@export var DECL := 40.0
-@export var AIR_DECL := 10.0
-@export var TERMINAL_FALL_SPEED = 1400
+@onready var g: float = kd.jump_gravity
 
-@export var jump_height: float = 200;
-@export var jump_distance_to_peak: float = 120
-@export var fall_distance_from_peak: float = 100
-## is a coeeficient of the jump velocity, so jump speed * this
-@export var somersault_factor = 1.2
+# -- aliases of kinematic data for reference to player (e.g. items need this)
+@onready var TERMINAL_FALL_SPEED = kd.TERMINAL_FALL_SPEED
 
-# -- NOTE: these are all kinematically decided, i.e. functions
-# -------- of jump_height, jump_distance_to_peak, baseline_speed
-@onready var time_to_peak = jump_distance_to_peak / baseline_speed
-@onready var time_to_ground = fall_distance_from_peak / v_x_peak_2_fall
 
-@onready var jump_gravity = 2 * jump_height / (time_to_peak * time_to_peak);
-@onready var fall_gravity = 2 * jump_height / (time_to_ground * time_to_ground);
-@onready var wall_slide_gravity = fall_gravity / 100.0
-
-@onready var jump_speed = -2 * jump_height / time_to_peak;
-@export var climb_speed = baseline_speed * 0.7
-
-@export var ledge_climb_duration := 0.6
-#var ledge_grab_position
+# --------------------------------------------------------- ledge grabbing stuff
 var target_ledge_grabbing_climb_pos: Vector2 = Vector2.ZERO
 var ledge_grabbing_starting_player_pos
 var is_ledge_climbing := false
 var ledge_climb_progress := 0.0
 
-@onready var g: float = jump_gravity
 
-# -------------------------------------------------- Movement Modifiers
+# ----------------------------------------------------------- movement modifiers
 var move_speed_modifier = 1.0
 var jump_speed_modifier = 1.0
 var gravity_modifier = 1.0
@@ -79,27 +47,26 @@ var ledge_grab_buffer_timer: TickTimer = TickTimer.new(0.30)
 #var side_somersault_timer: TickTimer   = TickTimer.new(0.25)
 
 
-## The number of frames where you can't move horizontally after wall jump 
+# -- The number of frames where you can't move horizontally after wall jump 
 var manual_wall_jump_frame_counter: int = 0
 @export var num_frame_you_cant_move_after_wall_jump :int = 6
 
-# -- misc
+# ------------------------------------------------------------------------- misc
 var can_climb := false
-var is_on_ground := true # -- our "truth" about being on the ground (e.g. slightly off ledge)
+# -- our "truth" about being on the ground (e.g. slightly off ledge)
+var is_on_ground := true 
+
 
 #@export var lava_ref: Node2D
 
-# ----------------------------------------------------- multiplayer specific var
 var input_manager: LocalPlayerController
 @onready var player_controller = $PlayerController
 var is_replaying: bool = false
-#signal local_controller_added( lc_ref: LocalPlayerController )
-#signal started_falling
-# ----------------------------------------------------
 
 
 # --------------------------------------------------- state sprite effects stuff
 var last_tocuhing_surface_state: MovementStates
+
 
 enum MovementStates
 {
@@ -222,24 +189,24 @@ func check_for_jump() -> void:
 		elif movement_state == MovementStates.CLIMBING:
 			do_jump(JumpTypes.REGULAR)
 
-@onready var wall_jump_scale: Vector2 = Vector2(jump_speed / 2.0,
-					 							jump_speed / 1.3)
+#@onready var kd.wall_jump_scale: Vector2 = Vector2(kd.jump_speed / 2.0,
+					 							#kd.jump_speed / 1.3)
 func do_jump(jump_type, velocity_override=null):
 	# -- logic of what to do for a specific jump
 	jump_buffer_timer.stop()
 	match jump_type:
 		JumpTypes.REGULAR:
-			velocity.y = jump_speed
+			velocity.y = kd.jump_speed
 		#JumpTypes.SOMERSAULT_FLIP:
-			#velocity.y = jump_speed * jump_speed_modifier * somersault_factor
+			#velocity.y = kd.jump_speed * jump_speed_modifier * somersault_factor
 			#var tween = create_tween()
 			#tween.tween_property(self, 
 						#"global_rotation",
 						#global_rotation + sign(last_move_input.x) * TAU, time_to_peak)
 		JumpTypes.WALL:
 			if !velocity_override:
-				velocity = Vector2(-last_wall_normal.x * wall_jump_scale.x,
-									wall_jump_scale.y)
+				velocity = Vector2(-last_wall_normal.x * kd.wall_jump_scale.x,
+									kd.wall_jump_scale.y)
 			else:
 				velocity = velocity_override
 			# -- maybe want both components to be affected?
@@ -287,10 +254,10 @@ var last_collision_id: int = -1
 func execute_tick(delta: float, cmd: PlayerCommand):
 	if !is_replaying:
 		for impulse in pending_impulses:
-			velocity +=  inv_mass * impulse
+			velocity +=  kd.inv_mass * impulse
 		pending_impulses.clear()
 	if cmd.impulse != Vector2.ZERO:
-		velocity += inv_mass * cmd.impulse
+		velocity += kd.inv_mass * cmd.impulse
 	
 	pos_previous = global_position
 	apply_command(cmd)
@@ -328,12 +295,12 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 				#cmd.impulse      = impulse
 				## -- cliuent A:
 				## -- locally precict our impulse change
-				#velocity += inv_mass * impulse
+				#velocity += kd.inv_mass * impulse
 				## -- client B:
 				## -- locally predict remote interpolated client
 				## -- by injecting into their interpolation buffer
 				#_collider.player_controller.inject_predicted_state(
-					#-_collider.inv_mass * impulse
+					#-_collider.kd.inv_mass * impulse
 				#)
 				## -- so we update our command for host processing client B
 				## -- on hosts machine
@@ -345,7 +312,7 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	
 	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
 	
-	if velocity.y < TERMINAL_FALL_SPEED:
+	if velocity.y < kd.TERMINAL_FALL_SPEED:
 		velocity.y += get_g() * delta
 
 	var collision = move_and_collide(Vector2.ZERO)
@@ -366,14 +333,14 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 @rpc("any_peer", "unreliable")
 func predict_impact_notification( impulse: Vector2):
 	# -- locally predict on the client B now, -tive, equal but opposite
-	velocity -= inv_mass * impulse
+	velocity -= kd.inv_mass * impulse
 	# -- update interpolated client A now
 	var id = multiplayer.get_remote_sender_id()
 	var caller = NetManager.player_instances_by_player_id.get( id )
 	if caller:
 		# -- it's +tive, equal but opposite
 		caller.player_controller.inject_predicted_state(
-			caller.inv_mass * impulse
+			caller.kd.inv_mass * impulse
 		)
 
 # ------------------------------------------------------------------------------
@@ -464,19 +431,19 @@ func move_resolution(move_speed_override=null):
 	var is_turning := move_input.x * velocity.x < 0
 	var is_overspeed : bool = abs(velocity.x) > abs(target_speed)
 	
-	var target_accel_rate = TURN_ACCL if is_turning else MOV_ACCL
+	var target_accel_rate = kd.TURN_ACCL if is_turning else kd.MOV_ACCL
 	current_accel = lerp(current_accel, float(target_accel_rate), 0.15)
 
 	if is_overspeed and not is_turning:
 		var _is_in_air = movement_state in [MovementStates.FALLING, MovementStates.JUMPING]
-		var decl_weight = AIR_DECL if _is_in_air else DECL
+		var decl_weight = kd.AIR_DECL if _is_in_air else kd.DECL
 		velocity.x = move_toward(velocity.x, 0, decl_weight)
 	else:
 		velocity.x = move_toward(velocity.x, target_speed, current_accel)
 
 
 func stop_resolution():
-	current_accel = move_toward(current_accel, MOV_ACCL, DECL)
+	current_accel = move_toward(current_accel, kd.MOV_ACCL, kd.DECL)
 
 
 var testing: bool = false
@@ -503,7 +470,7 @@ func check_for_falling() -> bool:
 # -- consolidate the stuff that's always true on the ground
 func idle_state_fn(_delta) -> void:
 	check_for_jump()
-	velocity.x = move_toward(velocity.x, 0.0, MOV_ACCL)
+	velocity.x = move_toward(velocity.x, 0.0, kd.MOV_ACCL)
 	if !is_zero_approx(move_input.x):
 		movement_state_transition_to( MovementStates.WALKING)
 	if check_for_falling():
@@ -532,13 +499,13 @@ func wall_jump_fast_utility():
 	if !jump_buffer_timer.is_stopped():
 		var _normal := wall_normal()
 		if _normal != Vector2.ZERO:
-			do_jump(JumpTypes.WALL,  wall_jump_scale * Vector2(-_normal.x, 1.))
+			do_jump(JumpTypes.WALL,  kd.wall_jump_scale * Vector2(-_normal.x, 1.))
 
 
 func jumping_state_fn(_delta) -> void:
 	# -- be careful, I consciously took away an absolute value check
 	# -- jumping should always be a negative direction
-	hang_time_modifier = hang_time_curve.sample(1. - (velocity.y / jump_speed))
+	hang_time_modifier = hang_time_curve.sample(1. - (velocity.y / kd.jump_speed))
 	
 	handle_corner_correction()
 	move()
@@ -560,7 +527,7 @@ func start_climbing() -> void:
 
 var climb_move_override: Callable = (func():
 	var _inverted_y_move_input = Vector2(move_input.x, -move_input.y)
-	velocity = velocity.move_toward(_inverted_y_move_input * climb_speed * move_speed_modifier, MOV_ACCL))
+	velocity = velocity.move_toward(_inverted_y_move_input * kd.climb_speed * move_speed_modifier, kd.MOV_ACCL))
 
 
 func climbing_state_fn(_delta):
@@ -568,7 +535,7 @@ func climbing_state_fn(_delta):
 	check_for_jump() # -- will change to jump state
 	move( climb_move_override )
 	if !can_climb:
-		g = fall_gravity
+		g = kd.fall_gravity
 		movement_state_transition_to(MovementStates.FALLING)
 
 # -- Utility functions to make platforming easier
@@ -619,7 +586,7 @@ func can_wall_slide():
 func falling_state_fn(_delta) -> void:
 	# -- be carefule, I consciously took away an absolute value check
 	# -- falling should always be positive direction
-	hang_time_modifier = hang_time_curve.sample(velocity.y / TERMINAL_FALL_SPEED)
+	hang_time_modifier = hang_time_curve.sample(velocity.y / kd.TERMINAL_FALL_SPEED)
 	handle_platform_fall_near_miss_correction()
 	# -- maybe we wanna go through the air slightly slower?
 	
@@ -673,13 +640,13 @@ func wall_sliding_state_fn(_delta) -> void:
 func item_moving_state_fn(_delta) -> void:
 	if $ItemManager.active_movement_override.allows_horizontal_movement():
 		if !move_input.is_zero_approx():
-			velocity.x = move_toward(velocity.x, move_input.x * move_speed * move_speed_modifier, MOV_ACCL / 3.0)
+			velocity.x = move_toward(velocity.x, move_input.x * move_speed * move_speed_modifier, kd.MOV_ACCL / 3.0)
 		else:
-			velocity.x = move_toward(velocity.x, 0.0, DECL / 12.0)
+			velocity.x = move_toward(velocity.x, 0.0, kd.DECL / 12.0)
 
 	if $ItemManager.active_movement_override.allows_jump() and !jump_buffer_timer.is_stopped():
 			$ItemManager.stop_using_item()
-			velocity.y += jump_speed * jump_speed_modifier
+			velocity.y += kd.jump_speed * jump_speed_modifier
 			movement_state_transition_to(MovementStates.JUMPING)
 	if ($ItemManager.active_movement_override.allows_ledge_grab() and 
 		is_ledge_grabbing() and 
@@ -757,14 +724,15 @@ func start_cloud_descent():
 	toggle_all_collision_masks(false)
 	movement_state_transition_to(MovementStates.CLOUD)
 
-@onready var cloud_move_speed = 2. * baseline_speed
+@onready var cloud_move_speed = 2. * kd.baseline_speed
 func cloud_state_fn( _delta: float ) -> void:
-	if !$Cloud.visible:
-		$Cloud.visible = true
-	velocity.y = max(move_toward(velocity.y, -move_input.y * cloud_move_speed, ACCL),
+	#if !$Cloud.visible:
+		#$Cloud.visible = true
+	velocity.y = max(move_toward(velocity.y, -move_input.y * cloud_move_speed, kd.MOV_ACCL),
 					0.1 * cloud_move_speed)
-	velocity.x = move_toward(velocity.x, move_input.x * cloud_move_speed, ACCL)
+	velocity.x = move_toward(velocity.x, move_input.x * cloud_move_speed, kd.MOV_ACCL)
 	if my_is_on_floor():
+		print(name.to_int())
 		touched_bottom.emit( name.to_int() )
 		$Cloud.visible = false
 		toggle_all_collision_masks(true)
@@ -796,8 +764,11 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 				hang_time_modifier = 1.0
 				var play_landing_effect = false
 				match new_movement_state:
+					MovementStates.CLOUD:
+						$Cloud.visible = true
+						#print(multiplayer.get_unique_id())
 					MovementStates.IDLE:
-						g = fall_gravity
+						g = kd.fall_gravity
 						play_landing_effect = true
 					MovementStates.WALL_SLIDING:
 						velocity = velocity.clamp(Vector2(0., 50), Vector2(0., 150))
@@ -839,23 +810,23 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 func gravity_from_state():
 	match movement_state:
 		MovementStates.IDLE:
-			return jump_gravity
+			return kd.jump_gravity
 		MovementStates.WALKING:
-			return  jump_gravity
+			return  kd.jump_gravity
 		MovementStates.RUNNING:
-			return  jump_gravity
+			return  kd.jump_gravity
 		MovementStates.JUMPING:
-			return jump_gravity
+			return kd.jump_gravity
 		MovementStates.FALLING:
-			return fall_gravity
+			return kd.fall_gravity
 		MovementStates.CROUCHING:
-			return jump_gravity
+			return kd.jump_gravity
 		MovementStates.WALL_SLIDING:
-			return fall_gravity / 100.0
+			return kd.fall_gravity / 100.0
 		MovementStates.LEDGE_GRABBING:
 			return 0
 		MovementStates.ITEM_MOVING:
-			return jump_gravity
+			return kd.jump_gravity
 		MovementStates.CLIMBING:
 			return 0
 		MovementStates.CLOUD:
@@ -913,7 +884,7 @@ func can_collect_coints() -> bool:
 	return movement_state != MovementStates.CLOUD
 
 # ------------------------------------------------------------------------------
-var max_pickup_item_throw_magnitude := 0
+var max_pickup_item_throw_magnitude := 1000
 
 func apply_command( c: PlayerCommand):
 	move_input = c.move_input
@@ -923,7 +894,14 @@ func apply_command( c: PlayerCommand):
 	if c.jump_released and movement_state == MovementStates.JUMPING:
 		velocity.y *= 0.4
 		movement_state_transition_to(MovementStates.FALLING)
+	#print("aiming dir from cmd: ", c.aiming_input)
 	
+	# -- FIXME in local player controller
+	# -- I'm accounting for this in dropped_pickup_item
+	# -- this is cruft from the aiming visuals and needs to be corrected
+	#func aiming_pos() -> Vector2:
+	#	return (aiming_vector() + global_position)
+
 	if c.item_dropped:
 		var item_data = $ItemManager.get_current_item_data()
 		if item_data[0] >= 0: # -- the item db enum
@@ -933,15 +911,12 @@ func apply_command( c: PlayerCommand):
 				drop_pickup_item()
 				dropped_pickup_item.emit( item_data[0], 
 										  item_data[1],
-										  [global_position, 
-										   max_pickup_item_throw_magnitude * c.aiming_input, 
+										  [global_position,
+										   Vector2.ZERO,
+										   #max_pickup_item_throw_magnitude * 
+										  #(c.aiming_input - global_position).normalized(), 
 										   get_g()])
-				#print("in player: ", name, " w/ pos:", global_position)
-				# -- need to drop item on all clients
-				#if multiplayer.is_server():
-					#drop_pickup_item(null, true)
-				#else:
-				
+
 
 	var _run_bool = c.sprint_held and can_run
 	$StaminaVisual.use( _run_bool )

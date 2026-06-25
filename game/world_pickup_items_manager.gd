@@ -122,6 +122,7 @@ func broadcast_pickup_despawn( spawn_id_to_remove: int,
 func local_despawn(spawn_id_to_remove: int, item_enum: ItemsDb.ItemNames) -> void:
 	var target_index: int = id_to_index[spawn_id_to_remove]
 	active_pickups[target_index].toggle(false)
+	active_pickups[target_index].make_kinematic()
 	var item_to_pool = active_pickups[target_index]
 	pickup_items_pool[item_enum].append(item_to_pool)
 

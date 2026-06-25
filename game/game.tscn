@@ -53,7 +53,7 @@ scale = Vector2(1e-05, 1e-05)
 position = Vector2(-16700001, -35600000)
 
 [node name="Marker2D2" type="Marker2D" parent="InitialSpawnPoints"]
-position = Vector2(-92900000, 60300004)
+position = Vector2(28700008, -34500000)
 
 [node name="Marker2D3" type="Marker2D" parent="InitialSpawnPoints"]
 position = Vector2(22100000, 52800000)

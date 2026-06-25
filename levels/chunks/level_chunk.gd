@@ -83,7 +83,6 @@ func bake_level_data() -> void:
 		level_data.pickup_definitions = found_pickups
 		
 		# -- from docs:
-		# -- For custom resources, it's recommended to call this method whenever a meaningful change occurs,
 		#level_data.emit_changed()
 		#var save_path = "res://levels/level_data_rscs/" + name.to_snake_case() + "_data.tres"
 		#ResourceSaver.save(level_data)
@@ -95,29 +94,3 @@ func bake_level_data() -> void:
 			print("Successfully baked and saved to: ", save_path)
 		else:
 			push_error("Failed to save resource! Error code: ", error)
-
-
-#func get_height() -> float:
-	## Fallback: If the @onready variable hasn't been initialized yet, 
-	## fetch it manually using get_node()
-	#var b_marker = bottom_marker if bottom_marker else get_node_or_null("BottomMarker")
-	#var t_marker = top_marker if top_marker else get_node_or_null("TopMarker")
-	#
-	#if b_marker and t_marker:
-		## Distance between top and bottom markers gives you the absolute height, 
-		## regardless of where the root chunk origin (0,0) is placed.
-		#return abs(t_marker.position.y - b_marker.position.y)
-	#elif b_marker:
-		## If you only want to use the bottom marker relative to the chunk origin
-		#return abs(b_marker.position.y)
-	#else:
-		#push_error("Markers are missing during get_height() execution!")
-		#return 1000.0 # Secure fallback height so the game doesn't crash
-
-
-#func _get_configuration_warnings() -> PackedStringArray:
-	#if not level_data:
-		#return ["Please assign a LevelData resource."]
-	#if not top_marker or not bottom_marker:
-		#return ["Please assign both Top and Bottom Marker2D nodes."]
-	#return []

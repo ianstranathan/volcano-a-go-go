@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=4 uid="uid://bdnhs0ma01nru"]
+[gd_scene load_steps=17 format=4 uid="uid://bdnhs0ma01nru"]
 
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_p2mn1"]
 [ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_rhh5g"]
@@ -8,12 +8,14 @@
 [ext_resource type="PackedScene" uid="uid://dcuknsfjt8mbc" path="res://platforms/falling_platform/falling_platform.tscn" id="5_o8udg"]
 [ext_resource type="Script" uid="uid://dfndtocpf6lff" path="res://levels/pickup_editor_placeholder.gd" id="7_obtet"]
 [ext_resource type="PackedScene" uid="uid://camohv0etu6x2" path="res://wind/wind_gust_lift/wind_gust_lift.tscn" id="8_rhh5g"]
+[ext_resource type="PackedScene" uid="uid://dxvt8fbol7y6b" path="res://fire_column/fire_column.tscn" id="9_a1uxq"]
+[ext_resource type="Resource" uid="uid://d1duxkgjr66nm" path="res://levels/level_data_rscs/level_chunk_bottom_data.tres" id="10_o7bos"]
 
 [sub_resource type="Resource" id="Resource_a1uxq"]
 script = ExtResource("2_rhh5g")
 level_index = 1
-level_height = 2689.0
-offset_to_chunk_origin = -2494.0
+level_height = 2633.0
+offset_to_chunk_origin = -2438.0
 level_width = 3649.0
 pickup_definitions = Array[Dictionary]([{
 "item_enum": 3,
@@ -376,7 +378,7 @@ sync_color = Color(0.5836365, 0.40135622, 0.77224404, 1)
 sync_extents = Vector2(400, 400)
 
 [node name="top" type="Marker2D" parent="."]
-position = Vector2(0, -2494)
+position = Vector2(0, -2438)
 
 [node name="bottom" type="Marker2D" parent="."]
 position = Vector2(0, 195)
@@ -423,3 +425,6 @@ metadata/_custom_type_script = "uid://dfndtocpf6lff"
 
 [node name="WindGustLift" parent="." instance=ExtResource("8_rhh5g")]
 position = Vector2(1468, -403)
+
+[node name="FireColumn" parent="." instance=ExtResource("9_a1uxq")]
+level_chunk_data = ExtResource("10_o7bos")

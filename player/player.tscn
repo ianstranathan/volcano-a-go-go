@@ -1,8 +1,9 @@
-[gd_scene load_steps=18 format=3 uid="uid://by5kd51cixxgu"]
+[gd_scene load_steps=19 format=3 uid="uid://by5kd51cixxgu"]
 
 [ext_resource type="Script" uid="uid://bo2vw5tl14uk4" path="res://player/player.gd" id="1_yf0e5"]
 [ext_resource type="Shader" uid="uid://bx8fp0q38t35n" path="res://player/testing/capsule_player.gdshader" id="2_g1dw6"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_rkbax"]
+[ext_resource type="Resource" uid="uid://dhmx6u1dpspmo" path="res://player/kinematic_data_rscs/default_player_kinematic_data.tres" id="2_yllr7"]
 [ext_resource type="Script" uid="uid://c0bg2g4soysfi" path="res://player/grab_manager.gd" id="7_boad6"]
 [ext_resource type="Script" uid="uid://bkmykxgvovkdg" path="res://items/item_manager.gd" id="7_hg6s5"]
 [ext_resource type="Script" uid="uid://cyisxpb4cr1db" path="res://player/player_controller/player_controller.gd" id="7_rgyib"]
@@ -40,10 +41,9 @@ shader_parameter/speed = 1.0
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
-collision_mask = 79
+collision_mask = 15
 script = ExtResource("1_yf0e5")
-jump_distance_to_peak = 125.0
-fall_distance_from_peak = 80.0
+kd = ExtResource("2_yllr7")
 hang_time_curve = SubResource("Curve_rgyib")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

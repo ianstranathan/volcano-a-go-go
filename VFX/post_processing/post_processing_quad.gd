@@ -1,6 +1,6 @@
 extends Sprite2D
 
-#signal transition_finished
+signal transition_finished
 
 @export var cam: Camera2D
 @export var lava_ref: TheLava
@@ -17,8 +17,8 @@ func _ready() -> void:
 		material.set_shader_parameter("transition_data", 
 		Vector2(0., 1.0)))
 	# -- transition to black
-	#transition_to_black_timer.timeout.connect( func():
-		#transition_finished.emit())
+	transition_to_black_timer.timeout.connect( func():
+		transition_finished.emit())
 
 	assert(cam)
 	get_viewport().size_changed.connect(_on_viewport_size_changed)

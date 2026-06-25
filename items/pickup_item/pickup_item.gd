@@ -103,12 +103,18 @@ func _ready() -> void:
 
 var gravity := 980 # -- default, but should steal from player
 func set_spawn_kinematics(player_kinematic_data: Array):
+	# -- what player is passing in drop
+	# [global_position, 
+	# max_pickup_item_throw_magnitude * c.aiming_input, 
+	# get_g()]
 	global_position = player_kinematic_data[0]
 	velocity = player_kinematic_data[1]
-	velocity *= 0.01
 	gravity = player_kinematic_data[2]
 
-
+var can_execute_tick := false
+func make_kinematic():
+	can_execute_tick = true
+	
 var is_resting: bool = false
 var min_bounce_velocity: float = 60.0 # Velocity threshold to stop bouncing
 var bounce_decay: float = 0.6
@@ -117,9 +123,6 @@ var bounce_decay: float = 0.6
 # -- for when it spawns
 var last_peer_that_picked_up: int
 func _on_body_entered(body: Node2D) -> void:
-	#if body is StaticBody2D or body is TileMapLayer or body is TileMap:
-		#last_static_body = body
-		#bounce_fn()
 	if body is Player:
 		var peer_id = body.name.to_int()
 		if peer_id == multiplayer.get_unique_id():
@@ -131,26 +134,17 @@ func _on_body_entered(body: Node2D) -> void:
 				else:
 					last_peer_that_picked_up = -1
 
-#func bounce_fn() -> void:
-	#if is_resting:
-		#return
-	#if velocity.y < min_bounce_velocity:
-		#velocity = Vector2.ZERO
-		#is_resting = true
-		#return
-#
-	#velocity.y = -velocity.y * bounce_decay
+
 func bounce_fn(collision: KinematicCollision2D) -> void:
 	if is_resting:
 		return
 	# -- downward speed is below the threshold => come to a rest
-	if velocity.y < min_bounce_velocity:
+	if velocity.y < min_bounce_velocity and is_on_floor():
 		velocity = Vector2.ZERO
 		is_resting = true
 		return
 
-	# Natively bounce off whatever surface we hit (StaticBody or TileMap)
-	# using the surface normal provided by Godot's physics engine
+	# -- DONT WRITE IN GDSCRIPT WHAT CAN BE WRITTEN IN C++
 	velocity = velocity.bounce(collision.get_normal()) * bounce_decay
 
 func toggle(b):
@@ -160,46 +154,17 @@ func toggle(b):
 	$CollisionShape2D.set_deferred("disabled", !b) 
 	$Area2D.set_deferred("monitoring", b)
 
-#func toggle(b):
-	#last_static_body = null
-	#is_resting = !b
-	#velocity = Vector2.ZERO
-	#$Sprite2D.visible = b
-	#$Area2D.set_deferred("monitorable", b)
-	#$Area2D.set_deferred("monitoring", b)
-
-
 
 var TERMINAL_FALL_SPEED = 1400
 
-#var last_static_body: Node2D
 
 func execute_tick( delta: float ) -> void:
-	#print(velocity.y, " : ", gravity)
-	if !$Sprite2D.visible or is_resting:
+	if !$Sprite2D.visible or is_resting or !can_execute_tick:
 		return
+	
 	if velocity.y < TERMINAL_FALL_SPEED:
 		velocity.y += gravity * delta
 	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * gravity))
 	var collision_info = move_and_collide(velocity * delta)
 	if collision_info:
 		bounce_fn(collision_info)
-	#if last_static_body:
-		#var penetration = get_penetration_depth(last_static_body)
-		#if penetration > 0.0:
-			#global_position.y -= penetration
-
-
-#func get_penetration_depth(body: Node2D) -> float:
-	#var floor_shape_node = body.get_node_or_null("CollisionShape2D")
-	#if not floor_shape_node or not (floor_shape_node.shape is RectangleShape2D):
-		#return 0.0
-	#var my_shape_node = $Area2D/CollisionShape2D
-	#if not my_shape_node or not (my_shape_node.shape is CircleShape2D):
-		#return 0.0
-	#var _radius: float = my_shape_node.shape.radius
-	#var floor_rect: RectangleShape2D = floor_shape_node.shape
-	#var floor_top_y: float = floor_shape_node.global_position.y - (floor_rect.size.y / 2.0)
-	#var bottom_y: float = global_position.y + _radius
-#
-	#return bottom_y - floor_top_y

@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1_d2dfl")
 level_index = 1
-level_height = 2689.0
-offset_to_chunk_origin = -2494.0
+level_height = 2633.0
+offset_to_chunk_origin = -2438.0
 level_width = 3649.0
 pickup_definitions = Array[Dictionary]([{
 "item_enum": 3,

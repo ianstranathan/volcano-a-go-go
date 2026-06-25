@@ -35,11 +35,13 @@ func _ready():
 	# -- we're gaurenteed that all children (level manager and world pickup items
 	# -- manager) are intialized
 	# ==> can just set the prev. world pickup items ready stuff to here
-	
+	$PostProcessingQuad.transition_finished.connect(
+		func(): $LevelManager.call_deferred("start_level")
+	)
 	$WorldPickupItemsManager.load_pickup_items_from_level_chunks(
 		$LevelManager.get_all_pickup_item_definitions()
 	)
-	$LevelManager.level_ready.connect( on_oasis_transition_finished )
+	$LevelManager.level_ready.connect( on_level_manager_loaded_first_chunk )
 	#$PostProcessingQuad.transition_finished.connect( func():
 		 #)
 	
@@ -195,10 +197,10 @@ func on_oasis_portal_entered( body, portal_pos: Vector2 ) -> void:
 		# -- relative vector for origin of transition point; can change or w/e
 		$PostProcessingQuad.start_transition_anim(
 			(portal_pos  - $Camera.global_position))
-		$LevelManager.call_deferred("start_level")
+		#$LevelManager.call_deferred("start_level")
 
 
-func on_oasis_transition_finished( _spawn_points: Array ):
+func on_level_manager_loaded_first_chunk( _spawn_points: Array ):
 	var idx = 0 # -- python enumerate would be nice or lisp macro to do two arr at once
 	for id in id_2_spawn_index:
 		var _player = NetManager.player_instances_by_player_id[ id ]
@@ -208,9 +210,7 @@ func on_oasis_transition_finished( _spawn_points: Array ):
 	$PostProcessingQuad.start_transition_anim_back()
 
 
-var bottom_tally: Array[int]
-func on_player_touched_bottom( player_id):
-	bottom_tally.append( player_id )
-	if bottom_tally.size() == $PlayersContainer.get_children().size():
-		race_started = true
-		ui.visible = true
+
+func on_player_touched_bottom( _player_id):
+	race_started = true
+	ui.visible = true
