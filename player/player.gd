@@ -34,7 +34,7 @@ var hang_time_modifier = 1.0
 @export var hang_time_curve: Curve
 
 # -------------------------------------------------- Utils var for platforming
-var current_platform = null # -- for calculating relative velocities
+var current_platform_displacement_ref = null # -- for moving platforms displacement
 var move_input: Vector2 = Vector2.ZERO
 var last_move_input: Vector2 = Vector2.ZERO
 var last_wall_normal: Vector2 = Vector2.ZERO
@@ -250,16 +250,21 @@ var pos_current: Vector2 = Vector2.ZERO
 var last_collision_impulse := Vector2.ZERO
 var last_collision_id: int = -1
 
+@onready var movement_states_keys = MovementStates.keys()
 
 func execute_tick(delta: float, cmd: PlayerCommand):
-	if !is_replaying:
-		for impulse in pending_impulses:
-			velocity +=  kd.inv_mass * impulse
-		pending_impulses.clear()
-	if cmd.impulse != Vector2.ZERO:
-		velocity += kd.inv_mass * cmd.impulse
-	
+	#if !is_replaying:
+		#for impulse in pending_impulses:
+			#velocity +=  kd.inv_mass * impulse
+		#pending_impulses.clear()
+	#if cmd.impulse != Vector2.ZERO:
+		#velocity += kd.inv_mass * cmd.impulse
+	#
 	pos_previous = global_position
+	# -- we guarenteed that we ticked through all the world geometry that can move
+	if current_platform_displacement_ref:
+		global_position += current_platform_displacement_ref.displacement
+	
 	apply_command(cmd)
 	$ItemManager.process_item_tick(delta, cmd)
 	
@@ -279,10 +284,10 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	# -- call the movement state function matching the movement_state variable
 	call(MovementStates.keys()[movement_state].to_lower() + "_state_fn", delta)
 
-	if current_platform: # -- account for relative velocities
-		#print(current_platform.get_velocity() * delta)
-		velocity += current_platform.get_velocity() * delta
-		move_and_collide(current_platform.get_velocity() * delta)
+	#if current_platform_displacement_ref: # -- account for relative velocities
+		##print(current_platform_displacement_ref.get_velocity() * delta)
+		#velocity += current_platform_displacement_ref.get_velocity() * delta
+		#move_and_collide(current_platform_displacement_ref.get_velocity() * delta)
 
 	# -- virtual collision check for player on player collisions
 	#if !is_replaying and cmd.impulse == Vector2.ZERO:
@@ -319,9 +324,9 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	
 	if collision:
 		var normal = collision.get_normal()
-		is_on_ground = normal.dot(Vector2.UP) > 0.7
+		is_on_ground = normal.dot(Vector2.UP) > 0.9
 		if is_on_ground:
-			current_platform_check( collision )
+			current_platform_displacement_ref_check( collision )
 			if velocity.y > 0:
 				velocity.y = 0
 				
@@ -347,14 +352,14 @@ func predict_impact_notification( impulse: Vector2):
 
 
 # -- TODO
-func current_platform_check(coll: KinematicCollision2D):
+func current_platform_displacement_ref_check(coll: KinematicCollision2D):
 	var collider = coll.get_collider()
-	if collider and collider.is_in_group("lava-bodies"):
-		current_platform = collider
+	if collider and collider.is_in_group("moving_platforms"):
+		current_platform_displacement_ref = collider.get_node_or_null("MovingPlatformComponent")
 
 
 #@rpc("any_peer", "call_local", "reliable")
-#func set_rel_velocity_platform( collider_id ):
+#func platform_displacement( collider_id ):
 	#pass
 
 
@@ -745,15 +750,15 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 			MovementStates.IDLE:
 				match new_movement_state:
 					MovementStates.JUMPING:
-						current_platform = null
+						current_platform_displacement_ref = null
 					MovementStates.FALLING:
-						current_platform = null
+						current_platform_displacement_ref = null
 			MovementStates.WALKING:
 				match new_movement_state:
 					MovementStates.JUMPING:
-						current_platform = null
+						current_platform_displacement_ref = null
 					MovementStates.FALLING:
-						current_platform = null
+						current_platform_displacement_ref = null
 			MovementStates.JUMPING:
 				match new_movement_state:
 					MovementStates.FALLING:

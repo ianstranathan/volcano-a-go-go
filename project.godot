@@ -46,6 +46,7 @@ folder_colors={
 [global_group]
 
 lava-bodies=""
+moving_platforms=""
 
 [input]
 

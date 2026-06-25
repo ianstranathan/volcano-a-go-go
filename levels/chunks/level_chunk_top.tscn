@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=4 uid="uid://c23v6suw4eike"]
+[gd_scene load_steps=13 format=4 uid="uid://c23v6suw4eike"]
 
 [ext_resource type="Texture2D" uid="uid://bhsoxu716q2y6" path="res://assets/tile_sets/TinyRocks/TinyRocks.png" id="1_ns4w1"]
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_xj7i1"]
 [ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_mgbfs"]
 [ext_resource type="PackedScene" uid="uid://dxvt8fbol7y6b" path="res://fire_column/fire_column.tscn" id="4_pwrgd"]
 [ext_resource type="Resource" uid="uid://ub60nq8a6tk7" path="res://levels/level_data_rscs/level_chunk_top_data.tres" id="5_q630d"]
+[ext_resource type="PackedScene" uid="uid://ctebu6bfyckrw" path="res://platforms/animated_placeholder_platform/animated_placeholder_platform.tscn" id="6_q630d"]
 
 [sub_resource type="Resource" id="Resource_re8k8"]
 script = ExtResource("2_mgbfs")
@@ -154,8 +155,15 @@ size = Vector2(2000, 532)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xj7i1"]
 size = Vector2(500, 500)
 
-[node name="LevelChunkTop" type="Node2D" node_paths=PackedStringArray("bottom_marker", "top_marker", "left_marker", "right_marker")]
+[sub_resource type="Curve2D" id="Curve2D_q630d"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, -2512, -525, 0, 0, 0, 0, -2134, -741, 0, 0, 0, 0, -1813, -806, 0, 0, 0, 0, -1614, -810, 0, 0, 0, 0, -1303, -368, 0, 0, 0, 0, -1609, -103, 0, 0, 0, 0, -2205, -116, 0, 0, 0, 0, -2459, -292, 0, 0, 0, 0, -2517, -464)
+}
+point_count = 9
+
+[node name="LevelChunkTop" type="Node2D" node_paths=PackedStringArray("tickable_geometry_container", "bottom_marker", "top_marker", "left_marker", "right_marker")]
 script = ExtResource("1_xj7i1")
+tickable_geometry_container = NodePath("tickables_container")
 bottom_marker = NodePath("BottomMarker")
 top_marker = NodePath("TopMarker")
 left_marker = NodePath("LeftMarker")
@@ -211,3 +219,20 @@ position = Vector2(2250, 0)
 
 [node name="FireColumn" parent="." instance=ExtResource("4_pwrgd")]
 level_chunk_data = ExtResource("5_q630d")
+
+[node name="Path2D" type="Path2D" parent="."]
+position = Vector2(212, -26)
+curve = SubResource("Curve2D_q630d")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="Path2D"]
+position = Vector2(-2512, -525)
+rotation = -0.51914614
+
+[node name="tickables_container" type="Node2D" parent="."]
+
+[node name="AnimatedPlaceholderPlatform" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
+position = Vector2(-2085, -561)
+speed = 50.0
+path_follow = NodePath("../../Path2D/PathFollow2D")
+coll_extents = Vector2(150, 50)
+color = Color(0.86776215, 0.20296296, 0.40637302, 1)

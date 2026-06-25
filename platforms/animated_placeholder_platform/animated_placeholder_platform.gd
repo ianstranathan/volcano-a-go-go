@@ -8,13 +8,18 @@ extends Node2D
 
 @export var path_follow: PathFollow2D
 
+
 func _ready() -> void:
+	
 	if path_follow:
 		$AnimatableBody2D/MovingPlatformComponent._path_follower = path_follow
 
+
 func execute_tick(delta: float):
 	$AnimatableBody2D/MovingPlatformComponent.execute_tick(delta)
-	
+
+
+
 # Exported property in parent with setter/getter forwarding
 @export var coll_extents: Vector2:
 	set(value):
