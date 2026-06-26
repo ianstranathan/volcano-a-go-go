@@ -10,9 +10,9 @@
 [sub_resource type="Resource" id="Resource_re8k8"]
 script = ExtResource("2_mgbfs")
 level_index = 0
-level_height = 4379.0
+level_height = 4078.0
 offset_to_chunk_origin = -1196.0
-level_width = 4580.0
+level_width = 4574.0
 player_spawn_points = [Vector2(-1079, -189.99997), Vector2(-1747, -178), Vector2(1122, -192), Vector2(1750, -203)]
 chunk_scene_path = "res://levels/chunks/level_chunk_top.tscn"
 metadata/_custom_type_script = "uid://cptvpu01udgc8"
@@ -206,16 +206,16 @@ position = Vector2(112200010, -19200000)
 position = Vector2(175000000, -20300000)
 
 [node name="BottomMarker" type="Marker2D" parent="."]
-position = Vector2(167, 3183)
+position = Vector2(4, 2882)
 
 [node name="TopMarker" type="Marker2D" parent="."]
 position = Vector2(0, -1196)
 
 [node name="LeftMarker" type="Marker2D" parent="."]
-position = Vector2(-2330, 0)
+position = Vector2(-2452, 0)
 
 [node name="RightMarker" type="Marker2D" parent="."]
-position = Vector2(2250, 0)
+position = Vector2(2122, 0)
 
 [node name="FireColumn" parent="." instance=ExtResource("4_pwrgd")]
 level_chunk_data = ExtResource("5_q630d")

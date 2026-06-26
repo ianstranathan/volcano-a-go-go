@@ -250,6 +250,8 @@ var pos_current: Vector2 = Vector2.ZERO
 var last_collision_impulse := Vector2.ZERO
 var last_collision_id: int = -1
 
+# -- small optimization, no need to make a new array that's ghoing to repeate
+# -- itself / never change
 @onready var movement_states_keys = MovementStates.keys()
 
 func execute_tick(delta: float, cmd: PlayerCommand):
@@ -282,7 +284,7 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 		manual_wall_jump_frame_counter -= 1
 	
 	# -- call the movement state function matching the movement_state variable
-	call(MovementStates.keys()[movement_state].to_lower() + "_state_fn", delta)
+	call(movement_states_keys[movement_state].to_lower() + "_state_fn", delta)
 
 	#if current_platform_displacement_ref: # -- account for relative velocities
 		##print(current_platform_displacement_ref.get_velocity() * delta)
@@ -324,11 +326,16 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	
 	if collision:
 		var normal = collision.get_normal()
-		is_on_ground = normal.dot(Vector2.UP) > 0.9
+		is_on_ground = normal.dot(Vector2.UP) > 0.1 # TODO expose this
 		if is_on_ground:
+			# -- we want to be really exact, we can keep an explicit reference
+			# -- to a tangent and only move in that direction
+			# -- slide is good enough for now
+			#platform_tangent = normal.orthogonal()
 			current_platform_displacement_ref_check( collision )
-			if velocity.y > 0:
-				velocity.y = 0
+			#if velocity.y > 0:
+				#velocity.y = 0
+			velocity = velocity.slide(normal)
 				
 	last_move_input = move_input
 	pos_current = global_position
@@ -427,6 +434,8 @@ func set_debug_label(new_movement_state: MovementStates) -> void:
 
 
 #------------------------------------------------- movement state fns
+
+#var platform_tangent: Vector2 = Vector2.ZERO  SEE NOTE AT BOTTOM OF EXECUTE TICK
 func move_resolution(move_speed_override=null):
 	var target_speed
 	if move_speed_override:
@@ -455,6 +464,9 @@ var testing: bool = false
 func move(move_func_override = null) -> void:
 	if testing:
 		return
+		
+	# -- we're entirely skipping the move_resolution 
+	# -- if moving under an item
 	if move_func_override:
 		move_func_override.call()
 		return
@@ -640,6 +652,15 @@ func wall_sliding_state_fn(_delta) -> void:
 		velocity = Vector2.ZERO
 		g = 0
 		start_ledge_grab()
+
+
+func crouch_state_fn():
+	# -- it's walking with a slower speed override
+	check_for_jump()
+	move()
+	if check_for_falling():
+		coyote_timer.start()
+
 
 # -- probably move this elsewhere
 func item_moving_state_fn(_delta) -> void:
@@ -976,3 +997,21 @@ func apply_command( c: PlayerCommand):
 	## -- going back accross lava threshold after getting burned
 	#if !can_burn and hit_lava:
 		#can_burn = true
+
+# -- NOTE we're kind of mandating that this is only one layer deep for Node2d
+# --      children
+func toggle_raycast2d(c: RayCast2D, is_enabled: bool):
+	c.enabled = is_enabled
+	if not is_enabled:
+		c.clear_exceptions()
+
+func set_container_raycasts_enabled(container: Node2D, is_enabled: bool) -> void:
+	container.set_physics_process(is_enabled)
+	for child in container.get_children():
+		if child is RayCast2D:
+			toggle_raycast2d( child, is_enabled)
+		else:
+			for nested_child in child:
+				if child is RayCast2D:
+					toggle_raycast2d( child, is_enabled)
+		

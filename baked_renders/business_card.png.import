@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://k0dj1g4x8arf"
-path="res://.godot/imported/baked.png-8536f12615589afa2cf1f8f2e07f7f58.ctex"
+uid="uid://bsbkyg5idn405"
+path="res://.godot/imported/business_card.png-fb016d88415d409ad42da239baec2b11.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://baked_renders/baked.png"
-dest_files=["res://.godot/imported/baked.png-8536f12615589afa2cf1f8f2e07f7f58.ctex"]
+source_file="res://baked_renders/business_card.png"
+dest_files=["res://.godot/imported/business_card.png-fb016d88415d409ad42da239baec2b11.ctex"]
 
 [params]
 

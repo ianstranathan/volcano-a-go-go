@@ -27,15 +27,17 @@ offset_bottom = 409.0
 theme_override_constants/separation = 4
 
 [node name="name" type="Label" parent="SubViewport/Sprite2D/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("4_wmufm")
 theme_override_font_sizes/font_size = 56
-text = "Ceramica Mariola"
+text = "Mariol Ceramics"
 
 [node name="email" type="Label" parent="SubViewport/Sprite2D/VBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("4_wmufm")
 theme_override_font_sizes/font_size = 36
-text = "email@ceramicamariola.com"
+text = "email@mariolceramics.com"
