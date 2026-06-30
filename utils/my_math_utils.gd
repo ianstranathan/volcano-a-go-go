@@ -128,3 +128,18 @@ static func is_circle_overlapping_capsule(
 	# 5. Check if the distance to the closest point is less than the combined radius
 	var distance_squared := local_circle_center.distance_squared_to(closest_point)
 	return distance_squared <= (combined_radius * combined_radius)
+
+# ------------------------------------------------------------------------------
+## Easing curves
+static func inverted_parabola(t: float):
+	assert(t <= 1 and t >= 0)
+	return -pow((2 * t - 1.), 2.) + 1
+
+func bounce(t: float) -> float:
+	return 1.0 - abs(sin(t * PI * 2.5)) * (1.0 - t)
+
+func linear(t: float) -> float:
+	return clamp(t, 0.0, 1.0)
+	
+static func heavy_impact_curve(t: float) -> float:
+	return sin(t * PI / 2.0) # Smooth start, aggressive finish

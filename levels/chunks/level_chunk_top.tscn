@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=4 uid="uid://c23v6suw4eike"]
+[gd_scene load_steps=15 format=4 uid="uid://c23v6suw4eike"]
 
 [ext_resource type="Texture2D" uid="uid://bhsoxu716q2y6" path="res://assets/tile_sets/TinyRocks/TinyRocks.png" id="1_ns4w1"]
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_xj7i1"]
@@ -157,9 +157,21 @@ size = Vector2(500, 500)
 
 [sub_resource type="Curve2D" id="Curve2D_q630d"]
 _data = {
-"points": PackedVector2Array(0, 0, 0, 0, -2512, -525, 0, 0, 0, 0, -2134, -741, 0, 0, 0, 0, -1813, -806, 0, 0, 0, 0, -1614, -810, 0, 0, 0, 0, -1303, -368, 0, 0, 0, 0, -1609, -103, 0, 0, 0, 0, -2205, -116, 0, 0, 0, 0, -2459, -292, 0, 0, 0, 0, -2517, -464)
+"points": PackedVector2Array(0, 0, 0, 0, -2512, -525, 0, 0, 0, 0, -2330, -711, 0, 0, 0, 0, -2182, -789, 0, 0, 0, 0, -1932, -810, 0, 0, 0, 0, -1694, -643, 0, 0, 0, 0, -1686, -434, 0, 0, 0, 0, -1728, -222, 0, 0, 0, 0, -1939, -112, 0, 0, 0, 0, -2205, -116, 0, 0, 0, 0, -2459, -292, 0, 0, 0, 0, -2517, -464, 0, 0, 0, 0, -2512, -525)
 }
-point_count = 9
+point_count = 12
+
+[sub_resource type="Curve2D" id="Curve2D_t4eux"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, -1140, -184, 0, 0, 0, 0, -1140, -425, 0, 0, 0, 0, -1140, -808)
+}
+point_count = 3
+
+[sub_resource type="Curve2D" id="Curve2D_pn6oq"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, -433, -635, 0, 0, 0, 0, 425, -631)
+}
+point_count = 2
 
 [node name="LevelChunkTop" type="Node2D" node_paths=PackedStringArray("tickable_geometry_container", "bottom_marker", "top_marker", "left_marker", "right_marker")]
 script = ExtResource("1_xj7i1")
@@ -220,19 +232,50 @@ position = Vector2(2122, 0)
 [node name="FireColumn" parent="." instance=ExtResource("4_pwrgd")]
 level_chunk_data = ExtResource("5_q630d")
 
-[node name="Path2D" type="Path2D" parent="."]
+[node name="tickables_container" type="Node2D" parent="."]
+
+[node name="BigCirclePlatform" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
+position = Vector2(-2248, -561)
+speed = 500.0
+path_follow = NodePath("../../Paths/loopBigCircle/PathFollow2D")
+movement_type = 1
+coll_extents = Vector2(150, 50)
+color = Color(0.86776215, 0.20296296, 0.40637302, 1)
+
+[node name="ElevatorModPlatform" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
+position = Vector2(-1144, -184)
+speed = 400.0
+path_follow = NodePath("../../Paths/ModuloElevator/PathFollow2D")
+movement_type = 2
+coll_extents = Vector2(150, 50)
+
+[node name="OscillatingPlatform" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
+position = Vector2(-430, -636)
+speed = 300.0
+path_follow = NodePath("../../Paths/Oscillating/PathFollow2D")
+movement_type = 0
+coll_extents = Vector2(150, 50)
+
+[node name="Paths" type="Node2D" parent="."]
+
+[node name="loopBigCircle" type="Path2D" parent="Paths"]
 position = Vector2(212, -26)
 curve = SubResource("Curve2D_q630d")
 
-[node name="PathFollow2D" type="PathFollow2D" parent="Path2D"]
+[node name="PathFollow2D" type="PathFollow2D" parent="Paths/loopBigCircle"]
 position = Vector2(-2512, -525)
-rotation = -0.51914614
+rotation = -0.7962673
 
-[node name="tickables_container" type="Node2D" parent="."]
+[node name="ModuloElevator" type="Path2D" parent="Paths"]
+curve = SubResource("Curve2D_t4eux")
 
-[node name="AnimatedPlaceholderPlatform" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
-position = Vector2(-2085, -561)
-speed = 50.0
-path_follow = NodePath("../../Path2D/PathFollow2D")
-coll_extents = Vector2(150, 50)
-color = Color(0.86776215, 0.20296296, 0.40637302, 1)
+[node name="PathFollow2D" type="PathFollow2D" parent="Paths/ModuloElevator"]
+position = Vector2(-1140, -184)
+rotation = -1.5707964
+
+[node name="Oscillating" type="Path2D" parent="Paths"]
+curve = SubResource("Curve2D_pn6oq")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="Paths/Oscillating"]
+position = Vector2(-433, -635)
+rotation = 0.0046619712

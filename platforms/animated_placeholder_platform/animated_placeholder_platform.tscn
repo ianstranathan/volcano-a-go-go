@@ -17,6 +17,7 @@ size = Vector2(50, 50)
 [node name="AnimatedPlaceholderPlatform" type="Node2D" node_paths=PackedStringArray("sync_component")]
 script = ExtResource("1_2wtfk")
 sync_component = NodePath("SpriteCollisionSync")
+movement_type = null
 coll_extents = Vector2(50, 50)
 color = Color(0.5, 0.5, 0.5, 1)
 
@@ -40,5 +41,6 @@ collision_mask = 2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AnimatableBody2D"]
 shape = SubResource("RectangleShape2D_2wtfk")
 
-[node name="MovingPlatformComponent" parent="AnimatableBody2D" node_paths=PackedStringArray("target_to_move") instance=ExtResource("4_gf50o")]
+[node name="MovingPlatformComponent" parent="AnimatableBody2D" node_paths=PackedStringArray("target_to_move", "_root") instance=ExtResource("4_gf50o")]
 target_to_move = NodePath("..")
+_root = NodePath("../..")

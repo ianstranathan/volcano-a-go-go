@@ -265,7 +265,12 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	pos_previous = global_position
 	# -- we guarenteed that we ticked through all the world geometry that can move
 	if current_platform_displacement_ref:
-		global_position += current_platform_displacement_ref.displacement
+		var disp = current_platform_displacement_ref.displacement
+		if ledge_grabbing_starting_player_pos:
+			ledge_grabbing_starting_player_pos += disp
+		if target_ledge_grabbing_climb_pos:
+			target_ledge_grabbing_climb_pos += disp
+		global_position += disp
 	
 	apply_command(cmd)
 	$ItemManager.process_item_tick(delta, cmd)
@@ -285,11 +290,6 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	
 	# -- call the movement state function matching the movement_state variable
 	call(movement_states_keys[movement_state].to_lower() + "_state_fn", delta)
-
-	#if current_platform_displacement_ref: # -- account for relative velocities
-		##print(current_platform_displacement_ref.get_velocity() * delta)
-		#velocity += current_platform_displacement_ref.get_velocity() * delta
-		#move_and_collide(current_platform_displacement_ref.get_velocity() * delta)
 
 	# -- virtual collision check for player on player collisions
 	#if !is_replaying and cmd.impulse == Vector2.ZERO:
@@ -414,6 +414,10 @@ func is_ledge_grabbing(_set_global_position=false) -> bool:
 	for _ray in wall_arr:
 		if _ray.is_colliding() and !ledge_ray.is_colliding() and top_down_ray.is_colliding():
 			ret = true
+			
+			var _coll =  _ray.get_collider()
+			if _coll.is_in_group("moving_platforms") and _coll !=current_platform_displacement_ref:
+				current_platform_displacement_ref = _coll.get_node_or_null("MovingPlatformComponent")
 			ledge_grab_position = Vector2(
 				_ray.get_collision_point().x,
 				top_down_ray.get_collision_point().y)
@@ -621,6 +625,9 @@ func falling_state_fn(_delta) -> void:
 	elif can_wall_slide():
 		movement_state_transition_to(MovementStates.WALL_SLIDING)
 	elif my_is_on_floor():
+		if velocity.y / TERMINAL_FALL_SPEED > 0/9:
+			var land_shake = ShakeInstance.new(0.5, 0.1, Vector2.DOWN, MyMathUtils.inverted_parabola, false)
+			Events.shake_cam.emit(land_shake)
 		movement_state_transition_to(MovementStates.IDLE)
 
 
@@ -758,7 +765,7 @@ func cloud_state_fn( _delta: float ) -> void:
 					0.1 * cloud_move_speed)
 	velocity.x = move_toward(velocity.x, move_input.x * cloud_move_speed, kd.MOV_ACCL)
 	if my_is_on_floor():
-		print(name.to_int())
+		#print(name.to_int())
 		touched_bottom.emit( name.to_int() )
 		$Cloud.visible = false
 		toggle_all_collision_masks(true)
@@ -943,41 +950,19 @@ func apply_command( c: PlayerCommand):
 										  #(c.aiming_input - global_position).normalized(), 
 										   get_g()])
 
-
+	# -- can_run, because there needs to be a cue from running out of stamina
 	var _run_bool = c.sprint_held and can_run
 	$StaminaVisual.use( _run_bool )
+	#print(_run_bool)
 	if _run_bool:
 		if (movement_state == MovementStates.IDLE or
 			movement_state == MovementStates.WALKING):
 			movement_state_transition_to(MovementStates.RUNNING)
 	else:
-		if (movement_state == MovementStates.RUNNING and
-			c.sprint_held):
+		# -- we were running and we just let off of run
+		if movement_state == MovementStates.RUNNING:
 			movement_state_transition_to(MovementStates.WALKING)
-		#else:
-			#movement_state_transition_to(MovementStates.IDLE)
 
-#@rpc("any_peer", "reliable")
-#func request_inventory_slot_swap(slot_index: int) -> void:
-	#if not multiplayer.is_server():
-		#return
-	#$ItemManager.equip_inventory_slot(slot_index)
-	#broadcast_inventory_slot_swap.rpc(slot_index)
-#
-#
-#@rpc("authority", "call_remote", "reliable")
-#func broadcast_inventory_slot_swap(slot_index: int) -> void:
-		#$ItemManager.equip_item_locally(slot_index)
-		
-	# -- this is a bit fragile I think, we only have an input manager
-	# -- if we're multiplayer authority
-	#$ItemManager.use_item(c.item_use_pressed)
-	#var aim_dir: Vector2 = Vector2.ZERO
-	#var using_controller := false
-	#var carrying_item := false
-
-	# -- client side predication stuff
-	#var sequence_id := 0
 # ------------------------------------------------------------------------------
 #
 #--TODO

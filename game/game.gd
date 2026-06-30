@@ -1,51 +1,38 @@
 extends Node2D
 
-#@export var player: CharacterBody2D
-#@onready var player_initial_position = player.global_position
-
-#@export var lava: Node2D
-#@export var lava_bodies_manager: Node2D
+"""
 
 """
-It's important for your mental model to be correct
-In this networking model (i.e. Godot's multiplayer's API)
-Authority is per node not per peer/ machine
-
-So, a player assigned to a peer id:
-	a_player.set_multiplayer_authority(id)
-will only have authority from that peer
-"""
+# -- TODO
+var player_data_dict:Dictionary = {} # -- id to player_data
 
 @export var player_scene: PackedScene
 @export var players_container: Node2D
-
-# -- game needs to own this, as respawning is going to be a thing
 @export var spawn_points: Node2D
-
-
-var player_data_dict:Dictionary = {} # -- id to player_data
-
-# -- TODO
-
-#var tickables : Array = []
-# ------------------------------------------------------------------------------
-@onready var ui = $CanvasLayer/Ui
+@export var ui: Control
+@export var post_processing_quad: Sprite2D
+@export var world_pickup_items_manager: Node2D
+@export var world_level_manager: Node2D
+@export var oasis: Node2D
+@export var lava: TheLava
+@export var camera: Camera2D
+@export var world_effects_container: Node2D
 
 func _ready():
 	# -- we're gaurenteed that all children (level manager and world pickup items
 	# -- manager) are intialized
 	# ==> can just set the prev. world pickup items ready stuff to here
-	$PostProcessingQuad.transition_finished.connect(
-		func(): $LevelManager.call_deferred("start_level")
+	post_processing_quad.transition_finished.connect(
+		func(): world_level_manager.call_deferred("start_level")
 	)
-	$WorldPickupItemsManager.load_pickup_items_from_level_chunks(
-		$LevelManager.get_all_pickup_item_definitions()
+	world_pickup_items_manager.load_pickup_items_from_level_chunks(
+		world_level_manager.get_all_pickup_item_definitions()
 	)
-	$LevelManager.level_ready.connect( on_level_manager_loaded_first_chunk )
-	#$PostProcessingQuad.transition_finished.connect( func():
+	world_level_manager.level_ready.connect( on_level_manager_loaded_first_chunk )
+	#post_processing_quad.transition_finished.connect( func():
 		 #)
 	
-	$Oasis.portal_entered.connect( on_oasis_portal_entered )
+	oasis.portal_entered.connect( on_oasis_portal_entered )
 	
 	assert(spawn_points)
 	assert(players_container)
@@ -64,17 +51,19 @@ func _ready():
 	ui.game_ref = self
 
 	Events.emit_signal("play_music", AudioDb.MusicTrackId.GAMEPLAY,-10,1)
-
+	
+	test_death_tv()
+	#print( get_tree_string_pretty() )
 
 @onready var tickables : Array = [
-	$LevelManager, $Lava, $WorldPickupItemsManager, $PostProcessingQuad, $CanvasLayer/Ui
+	world_level_manager, lava, world_pickup_items_manager, post_processing_quad, ui
 ]
 
 
 var race_started := false
 
 func execute_tick( delta: float ):
-	$PostProcessingQuad.execute_tick( delta )
+	post_processing_quad.execute_tick( delta )
 	if race_started:
 		for tickable in tickables:
 			tickable.execute_tick( delta )
@@ -82,7 +71,7 @@ func execute_tick( delta: float ):
 
 func _on_player_info_received(peer_id: int, _name: String, spawn_index: int):
 	spawn_player(peer_id, _name, spawn_index)
-
+	
 
 # -- we're just piping this ID from the NetManager
 var id_2_spawn_index: Dictionary = {}
@@ -130,18 +119,18 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	# --------------------------------------------------- connect player signals
 	a_player.touched_bottom.connect( on_player_touched_bottom )
 	a_player.dropped_pickup_item.connect(
-		$WorldPickupItemsManager.on_player_dropped_pickup_item
+		world_pickup_items_manager.on_player_dropped_pickup_item
 	)
-	$LevelManager.setup_networked_level_player_connections(a_player)
+	world_level_manager.setup_networked_level_player_connections(a_player)
 
 	if peer_id == multiplayer.get_unique_id():
-		$Camera.target_initialize(a_player)
+		camera.target_initialize(a_player)
 
 	players_container.add_child(a_player)
 
 	# -- we need the players to spawn before running this
-	$WorldEffects.initialize_recurring_player_vfx()
-
+	world_effects_container.initialize_recurring_player_vfx()
+	
 
 func get_spawn_point_from_child_node(spawn_points_node: Node2D, peer_id: int) -> Vector2:
 	var points_count = spawn_points_node.get_child_count()
@@ -155,7 +144,7 @@ func ordered_players_by_height() -> Array:
 	Used in UI to decide relative heights of players
 	sorts players by global_position.y and returns an array of their ids
 	"""
-	var ret = $PlayersContainer.get_children()
+	var ret = players_container.get_children()
 	# -- sort_custom sorts in place
 	ret.sort_custom( func(a: Player, b: Player):
 		if abs(a.global_position.y - b.global_position.y) < 1:
@@ -193,11 +182,11 @@ func on_oasis_portal_entered( body, portal_pos: Vector2 ) -> void:
 	if body is Player:
 		num_players_initialized += 1
 		body.entered_portal() # -- state and vfx stuff
-	if num_players_initialized == $PlayersContainer.get_children().size():
+	if num_players_initialized == players_container.get_children().size():
 		# -- relative vector for origin of transition point; can change or w/e
-		$PostProcessingQuad.start_transition_anim(
-			(portal_pos  - $Camera.global_position))
-		#$LevelManager.call_deferred("start_level")
+		post_processing_quad.start_transition_anim(
+			(portal_pos  - camera.global_position))
+		#world_level_manager.call_deferred("start_level")
 
 
 func on_level_manager_loaded_first_chunk( _spawn_points: Array ):
@@ -207,10 +196,15 @@ func on_level_manager_loaded_first_chunk( _spawn_points: Array ):
 		_player.global_position = _spawn_points[ idx]
 		idx += 1
 	race_started = true
-	$PostProcessingQuad.start_transition_anim_back()
+	post_processing_quad.start_transition_anim_back()
 
 
 
 func on_player_touched_bottom( _player_id):
 	race_started = true
 	ui.visible = true
+
+
+func test_death_tv():
+	$DeathTv.set_subviewports_game_world( $World.get_world_2d() )
+	$DeathTv.target_player = players_container.get_children()[0]

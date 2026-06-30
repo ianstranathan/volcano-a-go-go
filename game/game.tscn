@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=13 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -7,59 +7,74 @@
 [ext_resource type="Script" uid="uid://dae2c8i45te8f" path="res://game/world_effects.gd" id="8_y36n6"]
 [ext_resource type="PackedScene" uid="uid://bg5gcggjlxqdx" path="res://levels/oasis/oasis.tscn" id="10_j8tme"]
 [ext_resource type="Script" uid="uid://c1o22ooao6lq" path="res://game/world_pickup_items_manager.gd" id="11_3vho3"]
+[ext_resource type="PackedScene" uid="uid://dx5h54g76yy6a" path="res://levels/oasis/death_tv/death_tv.tscn" id="12_qf6n1"]
 [ext_resource type="PackedScene" uid="uid://btg4x06vjsk5q" path="res://UI/UI.tscn" id="14_b686c"]
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
 [ext_resource type="PackedScene" uid="uid://dv6yjtu0iucn2" path="res://levels/level_manager.tscn" id="16_4cobl"]
 [ext_resource type="PackedScene" uid="uid://dkb4hsfhvjgih" path="res://UI/options_window/options_window.tscn" id="16_ee6o4"]
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "lava", "camera", "world_effects_container")]
 script = ExtResource("1_dxrkv")
 player_scene = ExtResource("2_4fuuu")
-players_container = NodePath("PlayersContainer")
-spawn_points = NodePath("InitialSpawnPoints")
+players_container = NodePath("World/PlayersContainer")
+spawn_points = NodePath("World/InitialSpawnPoints")
+ui = NodePath("World/CanvasLayer/Ui")
+post_processing_quad = NodePath("World/PostProcessingQuad")
+world_pickup_items_manager = NodePath("World/WorldPickupItemsManager")
+world_level_manager = NodePath("World/LevelManager")
+oasis = NodePath("World/Oasis")
+lava = NodePath("World/Lava")
+camera = NodePath("World/Camera")
+world_effects_container = NodePath("World/WorldEffects")
 metadata/_edit_group_ = true
 
-[node name="LevelManager" parent="." node_paths=PackedStringArray("lava_ref", "player_container_ref") instance=ExtResource("16_4cobl")]
+[node name="World" type="Node2D" parent="."]
+
+[node name="LevelManager" parent="World" node_paths=PackedStringArray("lava_ref", "player_container_ref") instance=ExtResource("16_4cobl")]
 lava_ref = NodePath("../Lava")
 player_container_ref = NodePath("../PlayersContainer")
 
-[node name="PlayersContainer" type="Node2D" parent="."]
+[node name="PlayersContainer" type="Node2D" parent="World"]
 
-[node name="Camera" parent="." instance=ExtResource("2_vasa2")]
+[node name="Camera" parent="World" instance=ExtResource("2_vasa2")]
 
-[node name="WorldEffects" type="Node2D" parent="." node_paths=PackedStringArray("players_container")]
+[node name="WorldEffects" type="Node2D" parent="World" node_paths=PackedStringArray("players_container")]
 script = ExtResource("8_y36n6")
 players_container = NodePath("../PlayersContainer")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="World"]
 
-[node name="Ui" parent="CanvasLayer" instance=ExtResource("14_b686c")]
+[node name="Ui" parent="World/CanvasLayer" instance=ExtResource("14_b686c")]
+metadata/_edit_use_anchors_ = true
 
-[node name="OptionsWindow" parent="CanvasLayer" instance=ExtResource("16_ee6o4")]
+[node name="OptionsWindow" parent="World/CanvasLayer" instance=ExtResource("16_ee6o4")]
 
-[node name="Oasis" parent="." instance=ExtResource("10_j8tme")]
+[node name="Oasis" parent="World" instance=ExtResource("10_j8tme")]
 
-[node name="Lava" parent="." node_paths=PackedStringArray("game_ref") instance=ExtResource("15_hb504")]
-game_ref = NodePath("..")
+[node name="Lava" parent="World" node_paths=PackedStringArray("game_ref") instance=ExtResource("15_hb504")]
+game_ref = NodePath("../..")
 
-[node name="PostProcessingQuad" parent="." node_paths=PackedStringArray("cam", "lava_ref") instance=ExtResource("4_ee6o4")]
+[node name="PostProcessingQuad" parent="World" node_paths=PackedStringArray("cam", "lava_ref") instance=ExtResource("4_ee6o4")]
 cam = NodePath("../Camera")
 lava_ref = NodePath("../Lava")
 
-[node name="InitialSpawnPoints" type="Node2D" parent="."]
+[node name="InitialSpawnPoints" type="Node2D" parent="World"]
 scale = Vector2(1e-05, 1e-05)
 
-[node name="Marker2D" type="Marker2D" parent="InitialSpawnPoints"]
+[node name="Marker2D" type="Marker2D" parent="World/InitialSpawnPoints"]
 position = Vector2(-16700001, -35600000)
 
-[node name="Marker2D2" type="Marker2D" parent="InitialSpawnPoints"]
+[node name="Marker2D2" type="Marker2D" parent="World/InitialSpawnPoints"]
 position = Vector2(28700008, -34500000)
 
-[node name="Marker2D3" type="Marker2D" parent="InitialSpawnPoints"]
+[node name="Marker2D3" type="Marker2D" parent="World/InitialSpawnPoints"]
 position = Vector2(22100000, 52800000)
 
-[node name="Marker2D4" type="Marker2D" parent="InitialSpawnPoints"]
+[node name="Marker2D4" type="Marker2D" parent="World/InitialSpawnPoints"]
 position = Vector2(-67900000, 59800000)
 
-[node name="WorldPickupItemsManager" type="Node2D" parent="."]
+[node name="WorldPickupItemsManager" type="Node2D" parent="World"]
 script = ExtResource("11_3vho3")
+
+[node name="DeathTv" parent="." instance=ExtResource("12_qf6n1")]
+position = Vector2(-568, 405)

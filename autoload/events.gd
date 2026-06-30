@@ -8,6 +8,9 @@ I think there's a lot of pointer indirection in this pattern, so if it's
 a hot loop or something that happens a bunch, try to avoid
 """
 
+# -- camera connects to this in its _ready
+signal shake_cam(shake: ShakeInstance)
+
 # -- PickupItems connects to this signal in its _ready
 signal item_picked_up( world_id: int)
 

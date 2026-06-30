@@ -2,17 +2,22 @@
 extends Node2D
 
 @export var sync_component: SpriteCollisionSync
-@export var end_pos: Vector2
 @export var speed: float = 100
-@onready var start_pos: Vector2 = global_position
 
 @export var path_follow: PathFollow2D
 
+enum MoveType{
+	OSCILLATE,
+	LOOP,
+	MODULO
+}
+
+@export var movement_type:MoveType = MoveType.LOOP
 
 func _ready() -> void:
-	
-	if path_follow:
-		$AnimatableBody2D/MovingPlatformComponent._path_follower = path_follow
+	assert(path_follow)
+	assert($AnimatableBody2D/MovingPlatformComponent)
+	$AnimatableBody2D/MovingPlatformComponent._path_follower = path_follow
 
 
 func execute_tick(delta: float):
