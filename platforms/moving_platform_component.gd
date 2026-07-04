@@ -1,5 +1,9 @@
 extends Node2D
 
+class_name MovingPlatformComponent
+
+var network_id = -1
+
 @export var target_to_move: AnimatableBody2D
 @export var _root: Node2D
 
@@ -26,25 +30,12 @@ func _ready() -> void:
 	target_to_move.add_to_group("moving_platforms")
 
 
-#func execute_tick(delta: float):
-	#if not is_active or not _path_follower or not target_to_move:
-		#return
-	#_time += delta
-	#var t = 0.5 * (cos(0.09 * _time) + 1.0)
-	#_path_follower.progress_ratio = t
-	#target_to_move.global_position = _path_follower.global_position
-#
-	#displacement = target_to_move.global_position - last_pos
-	#last_pos = global_position
 func execute_tick(delta: float):
-	# Pull variables dynamically from the parent scope
-	# .get() provides safe fallbacks if the parent lacks the property
 	if not target_to_move or not _path_follower or not _root:
 		return
 
 	_time += delta * (speed / path_length)
 
-	# We match against the enum definition residing on the parent's script type
 	match movement_type:
 		movement_types.OSCILLATE:
 			_path_follower.progress_ratio = pingpong(_time, 1.0)

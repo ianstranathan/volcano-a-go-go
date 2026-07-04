@@ -1,10 +1,13 @@
 @tool
 extends Node2D
 
+class_name MovingPlatformPlaceholder
 @export var sync_component: SpriteCollisionSync
 @export var speed: float = 100
 
 @export var path_follow: PathFollow2D
+
+@onready var moving_platform_component: MovingPlatformComponent = $AnimatableBody2D/MovingPlatformComponent
 
 enum MoveType{
 	OSCILLATE,
@@ -17,7 +20,8 @@ enum MoveType{
 func _ready() -> void:
 	assert(path_follow)
 	assert($AnimatableBody2D/MovingPlatformComponent)
-	$AnimatableBody2D/MovingPlatformComponent._path_follower = path_follow
+	if path_follow != null:
+		$AnimatableBody2D/MovingPlatformComponent._path_follower = path_follow
 
 
 func execute_tick(delta: float):

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=4 uid="uid://c23v6suw4eike"]
+[gd_scene load_steps=16 format=4 uid="uid://c23v6suw4eike"]
 
 [ext_resource type="Texture2D" uid="uid://bhsoxu716q2y6" path="res://assets/tile_sets/TinyRocks/TinyRocks.png" id="1_ns4w1"]
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_xj7i1"]
@@ -173,6 +173,12 @@ _data = {
 }
 point_count = 2
 
+[sub_resource type="Curve2D" id="Curve2D_bnv6i"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, -2151, -184, 0, 0, 0, 0, -1498, -176)
+}
+point_count = 2
+
 [node name="LevelChunkTop" type="Node2D" node_paths=PackedStringArray("tickable_geometry_container", "bottom_marker", "top_marker", "left_marker", "right_marker")]
 script = ExtResource("1_xj7i1")
 tickable_geometry_container = NodePath("tickables_container")
@@ -235,10 +241,9 @@ level_chunk_data = ExtResource("5_q630d")
 [node name="tickables_container" type="Node2D" parent="."]
 
 [node name="BigCirclePlatform" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
-position = Vector2(-2248, -561)
+position = Vector2(-1837, -826)
 speed = 500.0
 path_follow = NodePath("../../Paths/loopBigCircle/PathFollow2D")
-movement_type = 1
 coll_extents = Vector2(150, 50)
 color = Color(0.86776215, 0.20296296, 0.40637302, 1)
 
@@ -256,10 +261,16 @@ path_follow = NodePath("../../Paths/Oscillating/PathFollow2D")
 movement_type = 0
 coll_extents = Vector2(150, 50)
 
+[node name="RHSOscillatingBumpingTest" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
+position = Vector2(-1757, -178)
+path_follow = NodePath("../../Paths/Path2D/PathFollow2D")
+movement_type = 0
+coll_extents = Vector2(300, 50)
+
 [node name="Paths" type="Node2D" parent="."]
 
 [node name="loopBigCircle" type="Path2D" parent="Paths"]
-position = Vector2(212, -26)
+position = Vector2(212, -411)
 curve = SubResource("Curve2D_q630d")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="Paths/loopBigCircle"]
@@ -279,3 +290,10 @@ curve = SubResource("Curve2D_pn6oq")
 [node name="PathFollow2D" type="PathFollow2D" parent="Paths/Oscillating"]
 position = Vector2(-433, -635)
 rotation = 0.0046619712
+
+[node name="Path2D" type="Path2D" parent="Paths"]
+curve = SubResource("Curve2D_bnv6i")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="Paths/Path2D"]
+position = Vector2(-2151, -184)
+rotation = 0.012250535

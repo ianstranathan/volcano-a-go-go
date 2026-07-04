@@ -254,6 +254,7 @@ var last_collision_id: int = -1
 # -- itself / never change
 @onready var movement_states_keys = MovementStates.keys()
 
+var disp_threshold_squared = 25000 # -- i.e. 50 px
 func execute_tick(delta: float, cmd: PlayerCommand):
 	#if !is_replaying:
 		#for impulse in pending_impulses:
@@ -265,13 +266,16 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	pos_previous = global_position
 	# -- we guarenteed that we ticked through all the world geometry that can move
 	if current_platform_displacement_ref:
-		var disp = current_platform_displacement_ref.displacement
-		if ledge_grabbing_starting_player_pos:
-			ledge_grabbing_starting_player_pos += disp
-		if target_ledge_grabbing_climb_pos:
-			target_ledge_grabbing_climb_pos += disp
-		global_position += disp
-	
+		var disp: Vector2 = current_platform_displacement_ref.displacement
+		if disp.length_squared() < disp_threshold_squared:
+			if ledge_grabbing_starting_player_pos:
+				ledge_grabbing_starting_player_pos += disp
+			if target_ledge_grabbing_climb_pos:
+				target_ledge_grabbing_climb_pos += disp
+			global_position += disp
+		else:
+			current_platform_displacement_ref = null
+			
 	apply_command(cmd)
 	$ItemManager.process_item_tick(delta, cmd)
 	
@@ -368,6 +372,10 @@ func current_platform_displacement_ref_check(coll: KinematicCollision2D):
 #@rpc("any_peer", "call_local", "reliable")
 #func platform_displacement( collider_id ):
 	#pass
+
+func current_platform_for_remote_interpolating() -> void:
+	if my_is_on_floor():
+		current_platform_displacement_ref_check(move_and_collide(Vector2.ZERO, true))
 
 
 func my_is_on_floor() -> bool:

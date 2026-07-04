@@ -17,7 +17,6 @@ size = Vector2(50, 50)
 [node name="AnimatedPlaceholderPlatform" type="Node2D" node_paths=PackedStringArray("sync_component")]
 script = ExtResource("1_2wtfk")
 sync_component = NodePath("SpriteCollisionSync")
-movement_type = null
 coll_extents = Vector2(50, 50)
 color = Color(0.5, 0.5, 0.5, 1)
 

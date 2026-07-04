@@ -3,7 +3,7 @@ extends Node2D
 
 class_name LevelChunk
 
-
+signal moveable_platform_made( c: MovingPlatformComponent, fn: Callable )
 @onready var players_container_ref: Node2D
 @export var coin_manager: Node2D
 @export var tickable_geometry_container: Node2D
@@ -26,13 +26,25 @@ func execute_tick( delta: float ):
 
 var has_started_cloud_list: Array[Player]
 
+#var moving_platform_network_id_tag_fn = func( id:int, c: MovingPlatformComponent): 
+	#c.network_id = id
+
 func _ready() -> void:
+	
 	if !Engine.is_editor_hint():
 		assert(players_container_ref)
 		
 		if tickable_geometry_container:
 			tickable_geometry = tickable_geometry_container.get_children()
-		
+			
+			#var moveable_plats = tickable_geometry.filter( func(c: Node2D):
+				#return c is MovingPlatformPlaceholder)
+			#for 
+			for c in tickable_geometry:
+				if c is MovingPlatformPlaceholder:
+					#assert(c.moving_platform_component )
+					#print("Here's the component: ", c.moving_platform_component )
+					moveable_platform_made.emit( c.moving_platform_component )
 		#var cm =  get_node_or_null("CoinManager")
 		if coin_manager:
 			coin_manager.players_container_ref = players_container_ref

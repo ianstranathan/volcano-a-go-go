@@ -55,8 +55,13 @@ func _ready():
 	test_death_tv()
 	#print( get_tree_string_pretty() )
 
-@onready var tickables : Array = [
-	world_level_manager, lava, world_pickup_items_manager, post_processing_quad, ui
+var world_is_ticking := false
+@onready var world_tickables : Array = [
+	world_level_manager, 
+	lava, 
+	world_pickup_items_manager, 
+	post_processing_quad, 
+	ui
 ]
 
 
@@ -64,8 +69,9 @@ var race_started := false
 
 func execute_tick( delta: float ):
 	post_processing_quad.execute_tick( delta )
-	if race_started:
-		for tickable in tickables:
+	#if race_started:
+	if world_is_ticking:
+		for tickable in world_tickables:
 			tickable.execute_tick( delta )
 
 
@@ -88,6 +94,8 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	var a_player = player_scene.instantiate()
 	a_player.name = a_players_name
 	
+	# --
+	a_player.get_node_or_null("PlayerController").moving_platform_components_dict = world_level_manager.moving_platform_components_dict
 	# -- Spawn index has to be deterministic
 	# -- The Host must be the one to decide that
 	var points_count = spawn_points.get_child_count()
@@ -195,9 +203,8 @@ func on_level_manager_loaded_first_chunk( _spawn_points: Array ):
 		var _player = NetManager.player_instances_by_player_id[ id ]
 		_player.global_position = _spawn_points[ idx]
 		idx += 1
-	race_started = true
 	post_processing_quad.start_transition_anim_back()
-
+	world_is_ticking = true
 
 
 func on_player_touched_bottom( _player_id):

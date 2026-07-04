@@ -367,10 +367,10 @@ func host_process_remote_client(id: int, _player: Player):
 	if cmd.tick == current_tick:
 		_player.execute_tick(TICK_RATE, cmd)
 		_controller.last_command_executed = cmd
-		if cmd.collided_id > 0:
-			var other_player = player_instances_by_player_id.get(cmd.collided_id)
-			if other_player:
-				other_player.apply_external_impulse( -cmd.impulse )
+		#if cmd.collided_id > 0:
+			#var other_player = player_instances_by_player_id.get(cmd.collided_id)
+			#if other_player:
+				#other_player.apply_external_impulse( -cmd.impulse )
 	else:
 		# -- if it's an initialized player command
 		if cmd.tick > 0:

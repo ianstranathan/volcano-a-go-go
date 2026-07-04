@@ -35,9 +35,12 @@ var next_spawn_y: float = LEVEL_TOP_Y
 
 var current_chunk_idx: int = 0
 
+var moving_platform_network_id = 0
+
+# ------------------------------------------------------------------------------
 func _ready() -> void:
 	_load_level_chunks_globally()
-
+	
 
 func _load_level_chunks_globally() -> void:
 	var path = "res://levels/level_data_rscs/"
@@ -74,7 +77,8 @@ func execute_tick(_delta: float) -> void:
 	_poll_threaded_loads()
 	
 	for c in chunks_to_tick:
-		c.execute_tick( _delta )
+		if is_instance_valid( c ):
+			c.execute_tick( _delta )
 	# -- we don't need to check chunk math every frame
 	# -- this is just low hanging optimization / heuristic, idk what's best
 	if NetManager.current_tick % 10 == 0:
@@ -195,6 +199,7 @@ func _poll_threaded_loads() -> void:
 			break
 
 
+var moving_platform_components_dict : Dictionary = {}
 
 func _instantiate_chunk(idx: int, packed_scene: PackedScene) -> void:
 	var chunk_instance = packed_scene.instantiate() as LevelChunk
@@ -202,6 +207,14 @@ func _instantiate_chunk(idx: int, packed_scene: PackedScene) -> void:
 	chunk_instance.global_position = Vector2(0, 
 		next_spawn_y - chunk_instance.level_data.offset_to_chunk_origin)
 	chunk_instance.players_container_ref = player_container_ref
+	
+	# -- the chunk's callback takes care of whatever (like tagging the object)
+	# -- we just need to increment the global network id
+	chunk_instance.moveable_platform_made.connect( func(c: MovingPlatformComponent):
+		moving_platform_components_dict[moving_platform_network_id] = c
+		c.network_id = moving_platform_network_id
+		moving_platform_network_id += 1)
+	
 	chunk_container.add_child(chunk_instance)
 	
 	var height = chunk_instance.level_data.level_height
@@ -227,7 +240,7 @@ func _unload_and_clear_chunk(idx: int) -> void:
 		
 	instantiated_chunks.erase(idx)
 	chunk_idx_is_loading.erase(idx) # Clears it out regardless of whether it was active or loading
-	chunks_to_tick = chunk_container.get_chilren()
+	chunks_to_tick = chunk_container.get_children()
 
 
 func start_level() -> void:
