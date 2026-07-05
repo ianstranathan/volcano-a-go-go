@@ -190,14 +190,25 @@ func _process(delta):
 		# -- we're not interpolating the player's world position while they're on a moving platform.
 		# -- wee're interpolating their position relative to the platform, then reconstructing their world position 
 		# -- using the platform's current transform
+		
+		# -- same mathematical idea used throughout computer graphics with hierarchical transforms (parent/child transforms), 
+		# -- except we're applying it to network interpolation.
+		
+		# Local-space snapshot interpolation for moving platforms. 
+		# While attached to a moving platform, player snapshots store the player's 
+		# position in the platform's local coordinate space. 
+		# Clients interpolate this local-space position and 
+		# reconstruct world-space positions each render frame using the platform's current transform
+		
 		if point_a.is_on_platform and point_b.is_on_platform and point_a.platform_id == point_b.platform_id:
 			var platform = point_a.platform
 			#print("id: ", point_a.platform_id, "and instance:", platform)
 			if platform:
 				# Interpolate in local space relative to the platform
 				var interpolated_local_pos = point_a.local_pos.lerp(point_b.local_pos, t)
-				# Bring it into the present world space using the platform's CURRENT position
-				
+				# Bring it into the present world space using the platform's current position
+				# so, where is this local coordinate right now, using the platform's current transform
+				# (we're using platform's present position, not the one from either network snapshot)
 				player.global_position = platform.to_global(interpolated_local_pos)
 			else:
 				# Fallback if the platform was destroyed or not found

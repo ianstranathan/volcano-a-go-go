@@ -6,15 +6,17 @@ class_name MovingPlatformPlaceholder
 @export var speed: float = 100
 
 @export var path_follow: PathFollow2D
-
 @onready var moving_platform_component: MovingPlatformComponent = $AnimatableBody2D/MovingPlatformComponent
 
 enum MoveType{
 	OSCILLATE,
 	LOOP,
-	MODULO
+	MODULO,
+	ONE_SHOT
 }
 
+@export var transition_type: Tween.TransitionType = Tween.TRANS_LINEAR
+@export var easing_type: Tween.EaseType = Tween.EASE_IN
 @export var movement_type:MoveType = MoveType.LOOP
 
 func _ready() -> void:
@@ -29,13 +31,13 @@ func execute_tick(delta: float):
 
 
 
-# Exported property in parent with setter/getter forwarding
+# setter/getter forwarding
 @export var coll_extents: Vector2:
 	set(value):
 		if sync_component:
 			sync_component.coll_extents = value  # forward to child
 	get:
-		return sync_component.coll_extents if sync_component else Vector2(50, 50)
+		return sync_component.coll_extents if sync_component else Vector2(200, 100)
 
 @export var color: Color:
 	set(value):

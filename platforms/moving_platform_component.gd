@@ -22,6 +22,12 @@ var path_length: float
 @onready var speed = _root.speed
 @onready var movement_types = _root.MoveType
 
+var transition_type: Tween.TransitionType:
+	get: return _root.transition_type
+
+var easing_type: Tween.EaseType:
+	get: return _root.easing_type
+	
 func _ready() -> void:
 	assert(target_to_move)
 	last_pos = target_to_move.global_position
@@ -33,20 +39,44 @@ func _ready() -> void:
 func execute_tick(delta: float):
 	if not target_to_move or not _path_follower or not _root:
 		return
-
+	
+	if movement_type == movement_types.ONE_SHOT and _time >= 1.0:
+		displacement = Vector2.ZERO
+		return
+	# -- icnr normalized time
 	_time += delta * (speed / path_length)
-
+	
+	# -- handle timeline wrapping based on movement type before tweening
+	var tween_time = _time
+	
 	match movement_type:
 		movement_types.OSCILLATE:
-			_path_follower.progress_ratio = pingpong(_time, 1.0)
+			tween_time = pingpong(_time, 1.0)
 		movement_types.LOOP:
+			_time = wrapf(_time, 0.0, 1.0)
 			_path_follower.loop = true
-			_path_follower.progress += speed * delta
-			
+			tween_time = _time
 		movement_types.MODULO:
 			_path_follower.loop = false
-			_path_follower.progress_ratio = wrapf(_time, 0.0, 1.0)
+			_time = wrapf(_time, 0.0, 1.0)
+			tween_time = _time
+			
+		movement_types.ONE_SHOT:
+			_time = clamp(_time, 0.0, 1.0)
+			tween_time = _time
+			
+	# -- if looping, force linear so it doesn't warp or change speed at the wrap point
+	var current_trans = transition_type
+	var current_ease = easing_type
 
+	if movement_type == movement_types.LOOP:
+		current_trans = Tween.TRANS_LINEAR
+		current_ease = Tween.EASE_IN_OUT
+	var ratio = Tween.interpolate_value(0.0, 1.0, tween_time, 1.0, current_trans, current_ease)
+	
+	_path_follower.progress_ratio = ratio
+	
 	target_to_move.global_position = _path_follower.global_position
+
 	displacement = target_to_move.global_position - last_pos
 	last_pos = target_to_move.global_position
