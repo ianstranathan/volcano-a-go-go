@@ -18,6 +18,11 @@ state variables agree to within a certain margin)
 
 @onready var TICK_RATE = NetManager.TICK_RATE
 @onready var player: Player = get_parent()
+
+# -- a reference to the level managers moving_platform_components dictionary
+# -- for state assignment in update remote state
+var moving_platform_components_dict
+
 # -- either RemotePlayerController or LocalPlayerController
 var controller: LocalPlayerController
 
@@ -81,6 +86,8 @@ func update_remote_state(host_state: PlayerState):
 	if incoming_tick <= 0:
 		# -- ignore, I chose -1 as intialization value
 		return
+	if host_state.platform_id != -1:
+		host_state.platform = moving_platform_components_dict.get(host_state.platform_id)
 	interpolation_buffer[incoming_tick % interpolation_buffer_size] = host_state
 
 	if incoming_tick > last_confirmed_interpolation_tick:
@@ -170,27 +177,60 @@ func _process(delta):
 			break 
 		else:
 			point_b = data # This was > render_tick, so it's a candidate for point_b
-			
-	# ------------------------------------------------------------ interpolation
+
 	player.pos_previous = player.global_position
 	if point_a and point_b:
 		# -- slowly lerp towards the min offset
 		current_offset = lerp(current_offset, min_offset, 0.1 * delta)
-		# -- this is just normalizing (0, 1) t
+		# -- normalize (0, 1) t
 		var t = (render_tick - point_a.tick) / float(point_b.tick - point_a.tick)
-		player.global_position = point_a.pos.lerp(point_b.pos, clamp(t, 0.0, 1.0))
-		# -- movement transition won't go unless there's a state mismatch
-		player.movement_state_transition_to( point_a.movement_state )
-	
+		t = clamp(t, 0.0, 1.0)
+
+		# -- NOTE
+		# -- we're not interpolating the player's world position while they're on a moving platform.
+		# -- wee're interpolating their position relative to the platform, then reconstructing their world position 
+		# -- using the platform's current transform
+		
+		# -- same mathematical idea used throughout computer graphics with hierarchical transforms (parent/child transforms), 
+		# -- except we're applying it to network interpolation.
+		
+		# Local-space snapshot interpolation for moving platforms. 
+		# While attached to a moving platform, player snapshots store the player's 
+		# position in the platform's local coordinate space. 
+		# Clients interpolate this local-space position and 
+		# reconstruct world-space positions each render frame using the platform's current transform
+		
+		if point_a.is_on_platform and point_b.is_on_platform and point_a.platform_id == point_b.platform_id:
+			var platform = point_a.platform
+			#print("id: ", point_a.platform_id, "and instance:", platform)
+			if platform:
+				# Interpolate in local space relative to the platform
+				var interpolated_local_pos = point_a.local_pos.lerp(point_b.local_pos, t)
+				# Bring it into the present world space using the platform's current position
+				# so, where is this local coordinate right now, using the platform's current transform
+				# (we're using platform's present position, not the one from either network snapshot)
+				player.global_position = platform.to_global(interpolated_local_pos)
+			else:
+				# Fallback if the platform was destroyed or not found
+				player.global_position = point_a.pos.lerp(point_b.pos, t)
+		else:
+			# Fallback to standard global interpolation (transitioning on/off platforms, or on the ground)
+			player.global_position = point_a.pos.lerp(point_b.pos, t)
+			
+		player.movement_state_transition_to(point_a.movement_state)
+
 	# -- handling case where network lags and there's no future packet
-	# -- 
 	elif point_a:
 		current_offset = min(current_offset + 0.2, max_offset)
-		# -- do something if there's a bunch of shortage frames maybe?
-		# shortage_frames += 1
-		# we don't have enough data to interpolate => stay at the most recent packet
-		player.global_position = point_a.pos
-	
+		if point_a.is_on_platform:
+			var platform = point_a.platform
+			if platform:
+				player.global_position = platform.to_global(point_a.local_pos)
+			else:
+				player.global_position = point_a.pos
+		else:
+			player.global_position = point_a.pos
+
 	player.pos_current = player.global_position
 
 #func _process(delta):

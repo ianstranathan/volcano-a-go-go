@@ -1,0 +1,38 @@
+[gd_scene load_steps=10 format=3 uid="uid://bs8xrm4mhlm4g"]
+
+[ext_resource type="Script" uid="uid://bjn340ak6i1me" path="res://items/jet_pack/jet_pack.gd" id="1_4j3oo"]
+[ext_resource type="Script" uid="uid://du6dcuy4lm2fk" path="res://items/item_interface.gd" id="2_5fj2d"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_ssqh2"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_uejvu"]
+[ext_resource type="Shader" uid="uid://rmh3y05hy1ef" path="res://items/jet_pack/jet_pack_v2.gdshader" id="3_5fj2d"]
+[ext_resource type="Script" uid="uid://dmm17nhn1wysy" path="res://items/item_components/movement_override_component.gd" id="5_5fj2d"]
+
+[sub_resource type="Resource" id="Resource_d7do0"]
+script = ExtResource("2_5fj2d")
+metadata/_custom_type_script = "uid://du6dcuy4lm2fk"
+
+[sub_resource type="Curve" id="Curve_6sj8w"]
+_data = [Vector2(0, 0.3820225), 0.0, 2.1556382, 0, 0, Vector2(0.6648649, 1), -0.054701347, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_d7do0"]
+shader = ExtResource("3_5fj2d")
+shader_parameter/using = 1.0
+shader_parameter/noise_tex = ExtResource("2_uejvu")
+
+[node name="JetPack" type="Node2D"]
+z_index = -100
+script = ExtResource("1_4j3oo")
+item_interface = SubResource("Resource_d7do0")
+accl_curve = SubResource("Curve_6sj8w")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_d7do0")
+position = Vector2(0, 41)
+scale = Vector2(1, 1.5)
+texture = ExtResource("2_ssqh2")
+
+[node name="MovementOverrideComponent" type="Node" parent="."]
+script = ExtResource("5_5fj2d")
+_allows_horizontal_movement = true
+metadata/_custom_type_script = "uid://dmm17nhn1wysy"

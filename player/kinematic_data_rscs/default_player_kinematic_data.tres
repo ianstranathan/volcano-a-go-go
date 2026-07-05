@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="PlayerKinematicData" load_steps=2 format=3 uid="uid://dhmx6u1dpspmo"]
+
+[ext_resource type="Script" uid="uid://c4quu318cviv6" path="res://player/player_kinematic_data.gd" id="1_qs240"]
+
+[resource]
+script = ExtResource("1_qs240")
+metadata/_custom_type_script = "uid://c4quu318cviv6"

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://dv6yjtu0iucn2"]
+
+[ext_resource type="Script" uid="uid://c8ncf2ojbw8cf" path="res://levels/level_manager.gd" id="1_x4ns8"]
+
+[node name="LevelManager" type="Node2D"]
+script = ExtResource("1_x4ns8")
+
+[node name="ChunkContainer" type="Node2D" parent="."]

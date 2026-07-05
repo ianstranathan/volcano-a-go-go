@@ -1,0 +1,66 @@
+[gd_scene load_steps=11 format=3 uid="uid://tpumo6ph2m3j"]
+
+[ext_resource type="Script" uid="uid://ppbwk80qmhly" path="res://utils/level_design/player_platform_placement_visual/player_platform_placement_visual.gd" id="1_hrbk4"]
+[ext_resource type="Resource" uid="uid://dhmx6u1dpspmo" path="res://player/kinematic_data_rscs/default_player_kinematic_data.tres" id="2_2pupy"]
+[ext_resource type="Shader" uid="uid://3g5c5lxuhqpp" path="res://utils/level_design/player_platform_placement_visual/jump_arc_visual.gdshader" id="3_jdjta"]
+[ext_resource type="Shader" uid="uid://bx8fp0q38t35n" path="res://player/testing/capsule_player.gdshader" id="3_uhcfi"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="4_aveob"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jdjta"]
+shader = ExtResource("3_jdjta")
+shader_parameter/src_col = Color(0.19607843, 0, 0.39215687, 0.64705884)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_aveob"]
+shader = ExtResource("3_uhcfi")
+shader_parameter/dummy_burn_timer = 0.0
+shader_parameter/radius = 0.0
+shader_parameter/height = 0.355
+shader_parameter/src_col = Color(0, 0.50980395, 0.69411767, 0.5372549)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hdfnd"]
+shader = ExtResource("3_jdjta")
+shader_parameter/src_col = Color(0.5411765, 0.41568628, 0.1764706, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0vqnu"]
+shader = ExtResource("3_jdjta")
+shader_parameter/src_col = Color(0.14117648, 0.92941177, 0.6784314, 0.4117647)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_47qnk"]
+shader = ExtResource("3_jdjta")
+shader_parameter/src_col = Color(0.6392157, 0.25882354, 0, 0.6784314)
+
+[node name="PlayerPlatformPlacementVisual" type="Node2D" node_paths=PackedStringArray("right_regular_jump_arc", "left_regular_jump_arc", "right_wall_jump_arc", "left_wall_jump_arc")]
+script = ExtResource("1_hrbk4")
+stats = ExtResource("2_2pupy")
+right_regular_jump_arc = NodePath("RightRegularJumpArc")
+left_regular_jump_arc = NodePath("LeftRegularJumpArc")
+right_wall_jump_arc = NodePath("RightWallJumpArc")
+left_wall_jump_arc = NodePath("LeftWallJumpArc")
+resolution = 15
+time_step = 0.05
+
+[node name="RightRegularJumpArc" type="Line2D" parent="."]
+material = SubResource("ShaderMaterial_jdjta")
+points = PackedVector2Array(0, 0, 19, -58.319443, 38, -106.61111, 57, -144.875, 76, -173.11111, 95, -191.31944, 114, -199.5, 133, -197.65279, 152, -186.73042, 171, -167.68556, 190, -140.5182, 209, -105.22835, 228, -61.815987, 247, -10.281124, 266, 49.376236)
+width = 15.0
+texture_mode = 1
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_aveob")
+texture = ExtResource("4_aveob")
+
+[node name="LeftRegularJumpArc" type="Line2D" parent="."]
+material = SubResource("ShaderMaterial_hdfnd")
+points = PackedVector2Array(0, 0, -19, -58.319443, -38, -106.61111, -57, -144.875, -76, -173.11111, -95, -191.31944, -114, -199.5, -133, -197.65279, -152, -186.73042, -171, -167.68556, -190, -140.5182, -209, -105.22835, -228, -61.815987, -247, -10.281124, -266, 49.376236)
+width = 15.0
+texture_mode = 1
+
+[node name="RightWallJumpArc" type="Line2D" parent="."]
+material = SubResource("ShaderMaterial_0vqnu")
+points = PackedVector2Array(0, 0, 31.666666, -43.70406, 63.333332, -77.38034, 95, -101.02885, 126.666664, -114.649574, 158.33333, -118.24252, 190, -112.76033, 221.66667, -99.15564, 253.33334, -77.42845, 285, -47.578762, 316.66666, -9.606571, 348.3333, 36.48812, 379.99997, 90.70531, 411.66663, 153.045, 443.33328, 223.50719)
+texture_mode = 1
+
+[node name="LeftWallJumpArc" type="Line2D" parent="."]
+material = SubResource("ShaderMaterial_47qnk")
+points = PackedVector2Array(0, 0, -31.666666, -43.70406, -63.333332, -77.38034, -95, -101.02885, -126.666664, -114.649574, -158.33333, -118.24252, -190, -112.76033, -221.66667, -99.15564, -253.33334, -77.42845, -285, -47.578762, -316.66666, -9.606571, -348.3333, 36.48812, -379.99997, 90.70531, -411.66663, 153.045, -443.33328, 223.50719)
+texture_mode = 1

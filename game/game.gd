@@ -1,45 +1,42 @@
 extends Node2D
 
-#@export var player: CharacterBody2D
-#@onready var player_initial_position = player.global_position
-
-#@export var lava: Node2D
-#@export var lava_bodies_manager: Node2D
+"""
 
 """
-It's important for your mental model to be correct
-In this networking model (i.e. Godot's multiplayer's API)
-Authority is per node not per peer/ machine
-
-So, a player assigned to a peer id:
-	a_player.set_multiplayer_authority(id)
-will only have authority from that peer
-"""
+# -- TODO
+var player_data_dict:Dictionary = {} # -- id to player_data
 
 @export var player_scene: PackedScene
 @export var players_container: Node2D
 @export var spawn_points: Node2D
-@export var world_pickup_items_container: Node2D
-
-
-var player_data_dict:Dictionary = {} # -- id to player_data
-
-# -- TODO
-
-#var tickables : Array = []
-# ------------------------------------------------------------------------------
-@onready var ui = $CanvasLayer/Ui
+@export var ui: Control
+@export var post_processing_quad: Sprite2D
+@export var world_pickup_items_manager: Node2D
+@export var world_level_manager: Node2D
+@export var oasis: Node2D
+@export var lava: TheLava
+@export var camera: Camera2D
+@export var world_effects_container: Node2D
 
 func _ready():
+	# -- we're gaurenteed that all children (level manager and world pickup items
+	# -- manager) are intialized
+	# ==> can just set the prev. world pickup items ready stuff to here
+	post_processing_quad.transition_finished.connect(
+		func(): world_level_manager.call_deferred("start_level")
+	)
+	world_pickup_items_manager.load_pickup_items_from_level_chunks(
+		world_level_manager.get_all_pickup_item_definitions()
+	)
+	world_level_manager.level_ready.connect( on_level_manager_loaded_first_chunk )
+	#post_processing_quad.transition_finished.connect( func():
+		 #)
+	
+	oasis.portal_entered.connect( on_oasis_portal_entered )
+	
 	assert(spawn_points)
 	assert(players_container)
-	# -- general callback if someone joins
-	#NetManager.player_info_updated.connect(_on_player_info_received)
-	
-	# -- on each machine
-	# -- for every id in the NetManager's player_names
-	#for peer_id in NetManager.player_names_by_player_id:
-		#spawn_player(peer_id)
+
 	await get_tree().create_timer(0.1).timeout
 	
 	print("Spawning Game with ", NetManager.player_data.size(), " players.")
@@ -52,31 +49,38 @@ func _ready():
 	
 	# ------------------------------------------------------- UI hookups
 	ui.game_ref = self
-	
-	#Rock and Roll
-	Events.emit_signal("play_music", AudioDb.MusicTrackId.GAMEPLAY,-10,1)
-	# --------------- TEST
-	$WorldGeometry/FallingPlatform.lava_ref = $Lava
 
+	Events.emit_signal("play_music", AudioDb.MusicTrackId.GAMEPLAY,-10,1)
+	
+	test_death_tv()
+	#print( get_tree_string_pretty() )
+
+var world_is_ticking := false
+@onready var world_tickables : Array = [
+	world_level_manager, 
+	lava, 
+	world_pickup_items_manager, 
+	post_processing_quad, 
+	ui
+]
+
+
+var race_started := false
 
 func execute_tick( delta: float ):
-	for child in $WorldGeometry.get_children():
-		if child.has_method("execute_tick"):
-			child.execute_tick( delta )
-	
-	# -- TODO
-	# -- put this stuff in a container and run execute tick on it
-	$Lava.execute_tick( delta )
-	$PostProcessingQuad.execute_tick( delta )
-	ui.execute_tick( delta )
-	world_pickup_items_container.execute_tick( delta )
+	post_processing_quad.execute_tick( delta )
+	#if race_started:
+	if world_is_ticking:
+		for tickable in world_tickables:
+			tickable.execute_tick( delta )
 
 
 func _on_player_info_received(peer_id: int, _name: String, spawn_index: int):
 	spawn_player(peer_id, _name, spawn_index)
-
+	
 
 # -- we're just piping this ID from the NetManager
+var id_2_spawn_index: Dictionary = {}
 func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	# -- scene name is the peer id to keep things straight
 	var a_players_name = str(peer_id)
@@ -90,9 +94,12 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	var a_player = player_scene.instantiate()
 	a_player.name = a_players_name
 	
+	# --
+	a_player.get_node_or_null("PlayerController").moving_platform_components_dict = world_level_manager.moving_platform_components_dict
 	# -- Spawn index has to be deterministic
 	# -- The Host must be the one to decide that
 	var points_count = spawn_points.get_child_count()
+	id_2_spawn_index[ peer_id ] = spawn_index
 	var actual_point = spawn_points.get_child(spawn_index % points_count)
 	a_player.global_position = actual_point.global_position
 	
@@ -102,17 +109,14 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	NetManager.register_player_instance(peer_id, a_player)
 	
 	
-	# -- Initialize player stuff: 
-	# -- item_container, multiplayer authority, color, camera
 	a_player.set_multiplayer_authority(peer_id)
 	
 	# --------------------------------------------- replace player color with UI
 	var _col = rand_player_color( peer_id )
 	a_player.color = _col
 	
-	# --------------------------------------------- set up data struct for UI
+	# ------------------------------------------------ set up data struct for UI
 	var a_player_data = PlayerData.new()
-	#a_player_data.is_local_player = a_player.is_multiplayer_authority()
 	a_player_data.id = peer_id
 	a_player_data.display_name = _name
 	a_player_data.turban_color = _col
@@ -120,27 +124,26 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	a_player_data.skin_tone = rand_skin_tone( peer_id )
 	player_data_dict[peer_id] = a_player_data
 	
-	# ---------------------------------------------
-	#a_player.dropped_pickup_item.connect( 
-		#world_pickup_items_container.on_player_dropped_pickup_item)
-	setup_networked_player_connections(a_player)
-	#
-	# ----------------------------------------------
-	# -- do the stuff client authority
+	# --------------------------------------------------- connect player signals
+	a_player.touched_bottom.connect( on_player_touched_bottom )
+	a_player.dropped_pickup_item.connect(
+		world_pickup_items_manager.on_player_dropped_pickup_item
+	)
+	world_level_manager.setup_networked_level_player_connections(a_player)
+
 	if peer_id == multiplayer.get_unique_id():
-		$Camera.target_initialize(a_player)
-		##$PostProcessingQuad.target = a_player
-	
+		camera.target_initialize(a_player)
+
 	players_container.add_child(a_player)
 
 	# -- we need the players to spawn before running this
-	$WorldEffects.initialize_recurring_player_vfx()
+	world_effects_container.initialize_recurring_player_vfx()
+	
 
-
-func setup_networked_player_connections(p: Player) -> void:
-	p.dropped_pickup_item.connect(
-		world_pickup_items_container.on_player_dropped_pickup_item
-	)
+func get_spawn_point_from_child_node(spawn_points_node: Node2D, peer_id: int) -> Vector2:
+	var points_count = spawn_points_node.get_child_count()
+	var actual_point = spawn_points_node.get_child(id_2_spawn_index[peer_id] % points_count)
+	return actual_point.global_position
 
 
 # ------------------------------------------------------------------------ Utils
@@ -149,7 +152,7 @@ func ordered_players_by_height() -> Array:
 	Used in UI to decide relative heights of players
 	sorts players by global_position.y and returns an array of their ids
 	"""
-	var ret = $PlayersContainer.get_children()
+	var ret = players_container.get_children()
 	# -- sort_custom sorts in place
 	ret.sort_custom( func(a: Player, b: Player):
 		if abs(a.global_position.y - b.global_position.y) < 1:
@@ -180,3 +183,35 @@ func rand_skin_tone( seed_val: int) -> int:
 
 func get_level_dimensions() -> Vector2:
 	return Vector2(level_x_length, level_y_length)
+
+
+var num_players_initialized = 0
+func on_oasis_portal_entered( body, portal_pos: Vector2 ) -> void:
+	if body is Player:
+		num_players_initialized += 1
+		body.entered_portal() # -- state and vfx stuff
+	if num_players_initialized == players_container.get_children().size():
+		# -- relative vector for origin of transition point; can change or w/e
+		post_processing_quad.start_transition_anim(
+			(portal_pos  - camera.global_position))
+		#world_level_manager.call_deferred("start_level")
+
+
+func on_level_manager_loaded_first_chunk( _spawn_points: Array ):
+	var idx = 0 # -- python enumerate would be nice or lisp macro to do two arr at once
+	for id in id_2_spawn_index:
+		var _player = NetManager.player_instances_by_player_id[ id ]
+		_player.global_position = _spawn_points[ idx]
+		idx += 1
+	post_processing_quad.start_transition_anim_back()
+	world_is_ticking = true
+
+
+func on_player_touched_bottom( _player_id):
+	race_started = true
+	ui.visible = true
+
+
+func test_death_tv():
+	$DeathTv.set_subviewports_game_world( $World.get_world_2d() )
+	$DeathTv.target_player = players_container.get_children()[0]

@@ -1,187 +1,80 @@
-[gd_scene load_steps=19 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=13 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
 [ext_resource type="PackedScene" uid="uid://boqw66q2xy4sh" path="res://camera/camera.tscn" id="2_vasa2"]
 [ext_resource type="PackedScene" uid="uid://cjuitcyofgqc3" path="res://VFX/post_processing/post_processing_quad.tscn" id="4_ee6o4"]
-[ext_resource type="PackedScene" uid="uid://camohv0etu6x2" path="res://wind/wind_gust_lift/wind_gust_lift.tscn" id="5_j8tme"]
-[ext_resource type="PackedScene" uid="uid://dcuknsfjt8mbc" path="res://platforms/falling_platform/falling_platform.tscn" id="7_4cobl"]
-[ext_resource type="PackedScene" uid="uid://4d5kvc0vxnc1" path="res://platforms/palceholder_platform/placeholder_platform.tscn" id="7_u5opy"]
-[ext_resource type="PackedScene" uid="uid://ctebu6bfyckrw" path="res://platforms/animated_placeholder_platform/animated_placeholder_platform.tscn" id="8_4cobl"]
 [ext_resource type="Script" uid="uid://dae2c8i45te8f" path="res://game/world_effects.gd" id="8_y36n6"]
-[ext_resource type="PackedScene" uid="uid://csxlguu7f4gt6" path="res://items/pickup_item/pickup_item.tscn" id="10_hb504"]
+[ext_resource type="PackedScene" uid="uid://bg5gcggjlxqdx" path="res://levels/oasis/oasis.tscn" id="10_j8tme"]
 [ext_resource type="Script" uid="uid://c1o22ooao6lq" path="res://game/world_pickup_items_manager.gd" id="11_3vho3"]
-[ext_resource type="Texture2D" uid="uid://s7qk4ylbme1f" path="res://assets/parachute.svg" id="11_4cobl"]
-[ext_resource type="Texture2D" uid="uid://dh12276y8fv5y" path="res://assets/hookshot.svg" id="11_ee6o4"]
+[ext_resource type="PackedScene" uid="uid://dx5h54g76yy6a" path="res://levels/oasis/death_tv/death_tv.tscn" id="12_qf6n1"]
 [ext_resource type="PackedScene" uid="uid://btg4x06vjsk5q" path="res://UI/UI.tscn" id="14_b686c"]
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
+[ext_resource type="PackedScene" uid="uid://dv6yjtu0iucn2" path="res://levels/level_manager.tscn" id="16_4cobl"]
 [ext_resource type="PackedScene" uid="uid://dkb4hsfhvjgih" path="res://UI/options_window/options_window.tscn" id="16_ee6o4"]
-[ext_resource type="PackedScene" uid="uid://cfatrcj3roxry" path="res://VFX/volcano_background_tile_layout_initializer/volcano_background_tile_layout_initializer.tscn" id="17_ee6o4"]
 
-[sub_resource type="Curve2D" id="Curve2D_4cobl"]
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, 0, -4000, 0, 0, 0, 0, 0, 0)
-}
-point_count = 2
-
-[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "world_pickup_items_container")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "lava", "camera", "world_effects_container")]
 script = ExtResource("1_dxrkv")
 player_scene = ExtResource("2_4fuuu")
-players_container = NodePath("PlayersContainer")
-spawn_points = NodePath("SpawnPoints")
-world_pickup_items_container = NodePath("WorldPickupItemsManager")
+players_container = NodePath("World/PlayersContainer")
+spawn_points = NodePath("World/InitialSpawnPoints")
+ui = NodePath("World/CanvasLayer/Ui")
+post_processing_quad = NodePath("World/PostProcessingQuad")
+world_pickup_items_manager = NodePath("World/WorldPickupItemsManager")
+world_level_manager = NodePath("World/LevelManager")
+oasis = NodePath("World/Oasis")
+lava = NodePath("World/Lava")
+camera = NodePath("World/Camera")
+world_effects_container = NodePath("World/WorldEffects")
 metadata/_edit_group_ = true
 
-[node name="PlayersContainer" type="Node2D" parent="."]
+[node name="World" type="Node2D" parent="."]
 
-[node name="Camera" parent="." instance=ExtResource("2_vasa2")]
+[node name="LevelManager" parent="World" node_paths=PackedStringArray("lava_ref", "player_container_ref") instance=ExtResource("16_4cobl")]
+lava_ref = NodePath("../Lava")
+player_container_ref = NodePath("../PlayersContainer")
 
-[node name="WorldGeometry" type="Node2D" parent="."]
+[node name="PlayersContainer" type="Node2D" parent="World"]
 
-[node name="PlaceholderPlatform" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(0, 70)
-coll_extents = Vector2(6000, 50)
+[node name="Camera" parent="World" instance=ExtResource("2_vasa2")]
 
-[node name="PlaceholderPlatform2" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(-125, -125)
-coll_extents = Vector2(150, 50)
-
-[node name="PlaceholderPlatform3" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(175, -125)
-coll_extents = Vector2(150, 50)
-
-[node name="PlaceholderPlatform4" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(435, 0)
-coll_extents = Vector2(200, 50)
-
-[node name="RH_Boundary" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(2278, -405)
-coll_extents = Vector2(200, 10000)
-
-[node name="LH_Boundary" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(-2868, -405)
-coll_extents = Vector2(200, 10000)
-
-[node name="LH_WALL" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(-372, -236)
-coll_extents = Vector2(50, 300)
-
-[node name="LH_WALL2" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(-560, -80)
-
-[node name="RH_WALL" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(410, -640)
-coll_extents = Vector2(50, 1000)
-
-[node name="RH_WALL2" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(624, -640)
-rotation = 1.5707964
-coll_extents = Vector2(1000, 50)
-
-[node name="PlaceholderPlatform5" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(-26, -704)
-coll_extents = Vector2(300, 50)
-
-[node name="PlaceholderPlatform6" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(-336, -968)
-coll_extents = Vector2(200, 50)
-
-[node name="WindGustLift" parent="WorldGeometry" instance=ExtResource("5_j8tme")]
-position = Vector2(-1039, -441)
-
-[node name="ANGLED" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(146.00003, -1336)
-rotation = -0.63329995
-coll_extents = Vector2(700, 50)
-
-[node name="FallingPlatform" parent="WorldGeometry" instance=ExtResource("7_4cobl")]
-position = Vector2(1173, -977)
-sync_color = Color(0.5836365, 0.40135622, 0.77224404, 1)
-sync_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform7" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(1158, -1981)
-coll_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform8" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(1765, -970)
-coll_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform9" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(1841, -2739)
-coll_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform10" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(335, -2739)
-coll_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform11" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(335, -2739)
-coll_extents = Vector2(400, 400)
-
-[node name="PlaceholderPlatform12" parent="WorldGeometry" instance=ExtResource("7_u5opy")]
-position = Vector2(-425, -3627)
-coll_extents = Vector2(400, 400)
-
-[node name="AnimatedPlaceholderPlatform" parent="WorldGeometry" node_paths=PackedStringArray("path_follow") instance=ExtResource("8_4cobl")]
-position = Vector2(-1449, -100)
-end_pos = Vector2(-2180, -4000)
-path_follow = NodePath("Path2D/PathFollow2D")
-coll_extents = Vector2(300, 100)
-color = Color(0.72448534, 0.23693973, 0.84151685, 1)
-
-[node name="Path2D" type="Path2D" parent="WorldGeometry/AnimatedPlaceholderPlatform"]
-curve = SubResource("Curve2D_4cobl")
-
-[node name="PathFollow2D" type="PathFollow2D" parent="WorldGeometry/AnimatedPlaceholderPlatform/Path2D"]
-position = Vector2(0, -4000)
-rotation = 1.5707964
-
-[node name="SpawnPoints" type="Node2D" parent="."]
-
-[node name="Marker2D" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(-713, -19)
-
-[node name="Marker2D2" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(632, -25)
-
-[node name="Marker2D3" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(176, -195)
-
-[node name="Marker2D4" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(-773, -315)
-
-[node name="WorldEffects" type="Node2D" parent="." node_paths=PackedStringArray("players_container")]
+[node name="WorldEffects" type="Node2D" parent="World" node_paths=PackedStringArray("players_container")]
 script = ExtResource("8_y36n6")
 players_container = NodePath("../PlayersContainer")
 
-[node name="WorldPickupItemsManager" type="Node2D" parent="."]
-script = ExtResource("11_3vho3")
+[node name="CanvasLayer" type="CanvasLayer" parent="World"]
 
-[node name="PickupItem" parent="WorldPickupItemsManager" instance=ExtResource("10_hb504")]
-position = Vector2(-185, 0)
-item_lookup = 3
-_texture = ExtResource("11_4cobl")
+[node name="Ui" parent="World/CanvasLayer" instance=ExtResource("14_b686c")]
+metadata/_edit_use_anchors_ = true
 
-[node name="PickupItem2" parent="WorldPickupItemsManager" instance=ExtResource("10_hb504")]
+[node name="OptionsWindow" parent="World/CanvasLayer" instance=ExtResource("16_ee6o4")]
 
-[node name="PickupItem3" parent="WorldPickupItemsManager" instance=ExtResource("10_hb504")]
-position = Vector2(-336, 0)
-item_lookup = 1
-_texture = ExtResource("11_ee6o4")
+[node name="Oasis" parent="World" instance=ExtResource("10_j8tme")]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="Lava" parent="World" node_paths=PackedStringArray("game_ref") instance=ExtResource("15_hb504")]
+game_ref = NodePath("../..")
 
-[node name="Ui" parent="CanvasLayer" instance=ExtResource("14_b686c")]
-
-[node name="OptionsWindow" parent="CanvasLayer" instance=ExtResource("16_ee6o4")]
-
-[node name="VolcanoBackgroundTileLayoutInitializer" parent="." node_paths=PackedStringArray("game_ref") instance=ExtResource("17_ee6o4")]
-game_ref = NodePath("..")
-
-[node name="Lava" parent="." node_paths=PackedStringArray("game_ref") instance=ExtResource("15_hb504")]
-game_ref = NodePath("..")
-
-[node name="PostProcessingQuad" parent="." node_paths=PackedStringArray("cam", "lava_ref") instance=ExtResource("4_ee6o4")]
+[node name="PostProcessingQuad" parent="World" node_paths=PackedStringArray("cam", "lava_ref") instance=ExtResource("4_ee6o4")]
 cam = NodePath("../Camera")
 lava_ref = NodePath("../Lava")
+
+[node name="InitialSpawnPoints" type="Node2D" parent="World"]
+scale = Vector2(1e-05, 1e-05)
+
+[node name="Marker2D" type="Marker2D" parent="World/InitialSpawnPoints"]
+position = Vector2(-16700001, -35600000)
+
+[node name="Marker2D2" type="Marker2D" parent="World/InitialSpawnPoints"]
+position = Vector2(28700008, -34500000)
+
+[node name="Marker2D3" type="Marker2D" parent="World/InitialSpawnPoints"]
+position = Vector2(22100000, 52800000)
+
+[node name="Marker2D4" type="Marker2D" parent="World/InitialSpawnPoints"]
+position = Vector2(-67900000, 59800000)
+
+[node name="WorldPickupItemsManager" type="Node2D" parent="World"]
+script = ExtResource("11_3vho3")
+
+[node name="DeathTv" parent="." instance=ExtResource("12_qf6n1")]
+position = Vector2(-568, 405)

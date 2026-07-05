@@ -23,6 +23,7 @@ static func serialize_list_of_commands(commands: Array[PlayerCommand]) -> Packed
 
 	for cmd in commands:
 		# -- bit mask for inputs
+		# -- bitwise or to fill up le bit
 		var flags := 0
 		if cmd.jump_pressed:     flags |= 1 << 0
 		if cmd.jump_released:    flags |= 1 << 1

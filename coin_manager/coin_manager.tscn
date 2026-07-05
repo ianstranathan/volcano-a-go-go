@@ -1,11 +1,26 @@
-[gd_scene load_steps=3 format=3 uid="uid://dyhwphayywyw6"]
+[gd_scene load_steps=7 format=3 uid="uid://dyhwphayywyw6"]
 
 [ext_resource type="Script" uid="uid://dyeb80jvkbt4v" path="res://coin_manager/coin_manager.gd" id="1_y05sk"]
+[ext_resource type="Shader" uid="uid://bbkoqy7iqn1s5" path="res://coin_manager/coin_manager.gdshader" id="2_os1c4"]
+[ext_resource type="Texture2D" uid="uid://dfns1vtui4u1y" path="res://assets/coin.png" id="3_os1c4"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_a4xw4"]
+shader = ExtResource("2_os1c4")
+shader_parameter/total_frames = 12
+shader_parameter/animation_speed = 12.0
+
+[sub_resource type="QuadMesh" id="QuadMesh_y05sk"]
+size = Vector2(64, 64)
 
 [sub_resource type="MultiMesh" id="MultiMesh_y05sk"]
+mesh = SubResource("QuadMesh_y05sk")
 
 [node name="CoinManager" type="Node2D"]
+z_index = 1000
 script = ExtResource("1_y05sk")
 
 [node name="MultiMeshInstance2D" type="MultiMeshInstance2D" parent="."]
+z_index = 1000
+material = SubResource("ShaderMaterial_a4xw4")
 multimesh = SubResource("MultiMesh_y05sk")
+texture = ExtResource("3_os1c4")

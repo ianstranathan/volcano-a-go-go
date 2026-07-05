@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://csxlguu7f4gt6"]
+[gd_scene load_steps=8 format=3 uid="uid://csxlguu7f4gt6"]
 
 [ext_resource type="Script" uid="uid://cq0egx7y64qws" path="res://items/pickup_item/pickup_item.gd" id="1_edkex"]
 [ext_resource type="Shader" uid="uid://bl3t8qr7nbwc" path="res://items/pickup_item/pickup_item_icon.gdshader" id="1_pxpuq"]
@@ -6,14 +6,18 @@
 [ext_resource type="Script" uid="uid://c7unbusniug6u" path="res://delete_buffer/item_spawn_component.gd" id="4_46m37"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_buahv"]
-radius = 30.0
+radius = 34.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_buahv"]
 resource_local_to_scene = true
 shader = ExtResource("1_pxpuq")
 shader_parameter/src_col = Color(0.504, 0.214, 1, 1)
 
-[node name="PickupItem" type="Node2D" node_paths=PackedStringArray("sprite")]
+[sub_resource type="CircleShape2D" id="CircleShape2D_46m37"]
+radius = 29.017237
+
+[node name="PickupItem" type="CharacterBody2D" node_paths=PackedStringArray("sprite")]
+collision_layer = 64
 script = ExtResource("1_edkex")
 _texture = ExtResource("2_2vdo0")
 pickup_radius = 30.0
@@ -21,7 +25,7 @@ sprite = NodePath("Sprite2D")
 
 [node name="Area2D" type="Area2D" parent="."]
 collision_layer = 8
-collision_mask = 3
+collision_mask = 7
 metadata/_edit_group_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
@@ -35,3 +39,6 @@ texture = ExtResource("2_2vdo0")
 [node name="ItemSpawnComponent" type="Node" parent="."]
 script = ExtResource("4_46m37")
 metadata/_custom_type_script = "uid://c7unbusniug6u"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_46m37")

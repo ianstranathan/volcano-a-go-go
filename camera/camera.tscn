@@ -1,7 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://boqw66q2xy4sh"]
+[gd_scene load_steps=3 format=3 uid="uid://boqw66q2xy4sh"]
 
 [ext_resource type="Script" uid="uid://cqs85cut6jdsc" path="res://camera/camera.gd" id="1_lw1ob"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_gsf7k"]
 
 [node name="Camera" type="Camera2D"]
 zoom = Vector2(0.7, 0.7)
 script = ExtResource("1_lw1ob")
+noise_texture = ExtResource("2_gsf7k")

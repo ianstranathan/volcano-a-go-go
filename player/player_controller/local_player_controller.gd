@@ -103,7 +103,7 @@ func aiming_vector() -> Vector2:
 		rez = (get_global_mouse_position() - global_position)
 	return rez
 
-
+# -- TODO
 func aiming_pos() -> Vector2:
 	return (aiming_vector() + global_position)
 

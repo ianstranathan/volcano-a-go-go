@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://dx5h54g76yy6a"]
+
+[ext_resource type="Script" uid="uid://qxkchted8t6f" path="res://levels/oasis/death_tv/death_tv.gd" id="1_lbqhg"]
+[ext_resource type="Shader" uid="uid://du0ckmrkc5exi" path="res://levels/oasis/death_tv/death_tv.gdshader" id="3_t6mmw"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8u0vo"]
+shader = ExtResource("3_t6mmw")
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_lbqhg"]
+viewport_path = NodePath("SubViewport")
+
+[node name="DeathTv" type="Node2D"]
+script = ExtResource("1_lbqhg")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+canvas_cull_mask = 4294966273
+size = Vector2i(256, 256)
+
+[node name="Camera2D" type="Camera2D" parent="SubViewport"]
+
+[node name="TV_target" type="Sprite2D" parent="."]
+visibility_layer = 2
+material = SubResource("ShaderMaterial_8u0vo")
+texture = SubResource("ViewportTexture_lbqhg")

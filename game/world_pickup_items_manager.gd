@@ -5,19 +5,42 @@ var active_pickups: Array = []
 var id_to_index: Array[int] = []
 var next_id = 0
 
+var pickup_scene = preload("res://items/pickup_item/pickup_item.tscn")
 func _ready() -> void:
 	# -- we make the pool
 	for item_name in ItemsDb.ItemNames.values():
 		pickup_items_pool[ item_name ] = []
 	
-	var s = get_children().size()
+	#var s = get_children().size()
+	#active_pickups.resize( s )
+	#id_to_index.resize( s )
+	#id_to_index.fill(-1) # -- unassigned positions default to an invalid index (-1) instead of 0
+	#
+	## -- for all the pickup items that in scene, we need to tag them
+	#for i in range(s):
+		#var c = get_child( i )
+		#assert( c.spawn_id == -1, "incorrectly initialized pickup item" )
+		#c.spawn_id = next_id
+		## -- map from ids to indices in active_pickups
+		#id_to_index[next_id] = i
+		#next_id += 1
+		## --
+		#c.prediction_picked_up.connect( on_authority_player_walked_over_pickup )
+		#active_pickups[i] = c
+
+func load_pickup_items_from_level_chunks( all_pickup_item_definitions: Array[Dictionary] ):
+	var s = all_pickup_item_definitions.size()
 	active_pickups.resize( s )
 	id_to_index.resize( s )
-	id_to_index.fill(-1) # Ensure unassigned positions default to an invalid index (-1) instead of 0
+	id_to_index.fill(-1) # -- unassigned positions default to an invalid index (-1) instead of 0
 	
 	# -- for all the pickup items that in scene, we need to tag them
 	for i in range(s):
-		var c = get_child( i )
+		var c = pickup_scene.instantiate()# all_pickup_item_definitions[i] # get_child( i )
+		c.item_lookup = all_pickup_item_definitions[i].get("item_enum")
+		call_deferred("add_child", c)
+		c.set_deferred("global_position", 
+					   all_pickup_item_definitions[i].get("global_position"))
 		assert( c.spawn_id == -1, "incorrectly initialized pickup item" )
 		c.spawn_id = next_id
 		# -- map from ids to indices in active_pickups
@@ -99,6 +122,7 @@ func broadcast_pickup_despawn( spawn_id_to_remove: int,
 func local_despawn(spawn_id_to_remove: int, item_enum: ItemsDb.ItemNames) -> void:
 	var target_index: int = id_to_index[spawn_id_to_remove]
 	active_pickups[target_index].toggle(false)
+	active_pickups[target_index].make_kinematic()
 	var item_to_pool = active_pickups[target_index]
 	pickup_items_pool[item_enum].append(item_to_pool)
 
@@ -202,10 +226,10 @@ func local_spawn(item_enum: ItemsDb.ItemNames,
 		item = pool.pop_back()
 	
 	item.spawn_id = spawn_id
-	item.set_spawn_kinematics( player_kinematic_data )
-	#item.global_position = pos
-	#item.velocity = vel
+	
 	item.toggle(true)
+	item.set_spawn_kinematics( player_kinematic_data )
+	
 	
 	active_pickups.append(item)
 

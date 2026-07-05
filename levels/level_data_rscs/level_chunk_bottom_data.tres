@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="LevelChunkData" load_steps=2 format=3 uid="uid://d1duxkgjr66nm"]
+
+[ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="1_d2dfl"]
+
+[resource]
+script = ExtResource("1_d2dfl")
+level_index = 1
+level_height = 2633.0
+offset_to_chunk_origin = -2438.0
+level_width = 3649.0
+pickup_definitions = Array[Dictionary]([{
+"item_enum": 3,
+"position": Vector2(-927, 76)
+}, {
+"item_enum": 1,
+"position": Vector2(-708, 76)
+}, {
+"item_enum": 2,
+"position": Vector2(768, 76)
+}, {
+"item_enum": 0,
+"position": Vector2(-534, 76)
+}])
+chunk_scene_path = "res://levels/chunks/level_chunk_bottom.tscn"
+metadata/_custom_type_script = "uid://cptvpu01udgc8"

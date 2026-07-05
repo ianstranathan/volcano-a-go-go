@@ -1,0 +1,16 @@
+[gd_scene load_steps=6 format=3 uid="uid://bwf7886442a5j"]
+
+[ext_resource type="Shader" uid="uid://dscditq8agmtp" path="res://fire_column/fire_column.gdshader" id="1_n3isg"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_wpqo6"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="3_q7ne5"]
+[ext_resource type="Script" uid="uid://dvmtkup3y12ma" path="res://fire_column/fire_column_tile.gd" id="4_wpqo6"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_11ly3"]
+shader = ExtResource("1_n3isg")
+shader_parameter/noise_tex = ExtResource("2_wpqo6")
+shader_parameter/texture_size = Vector2(2048, 2048)
+
+[node name="FireColumnTile" type="Sprite2D"]
+material = SubResource("ShaderMaterial_11ly3")
+texture = ExtResource("3_q7ne5")
+script = ExtResource("4_wpqo6")
