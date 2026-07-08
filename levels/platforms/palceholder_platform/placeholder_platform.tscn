@@ -1,9 +1,9 @@
 [gd_scene load_steps=7 format=3 uid="uid://4d5kvc0vxnc1"]
 
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="1_8c8f6"]
-[ext_resource type="Script" uid="uid://bd7gyi28pticl" path="res://platforms/palceholder_platform/placeholder_platform.gd" id="1_o478t"]
-[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://platforms/palceholder_platform/placeholder_platform.gdshader" id="2_6iyk5"]
-[ext_resource type="Script" uid="uid://htngcgst146o" path="res://utils/sprite_collider_sync.gd" id="3_6iyk5"]
+[ext_resource type="Script" uid="uid://bd7gyi28pticl" path="res://levels/platforms/palceholder_platform/placeholder_platform.gd" id="1_o478t"]
+[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://levels/platforms/palceholder_platform/placeholder_platform.gdshader" id="2_6iyk5"]
+[ext_resource type="Script" uid="uid://htngcgst146o" path="res://levels/platforms/platform_components/sprite_collider_sync.gd" id="3_6iyk5"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_htw8n"]
 resource_local_to_scene = true

@@ -45,10 +45,14 @@ func start_transition_anim_back():
 	transition_back_timer.start()
 
 
-func execute_tick(_delta: float) -> void:
+func _process(_delta: float) -> void:
+	# -- we're doing this in _process so there are no artifacts when
+	# -- moving camera
 	if cam:
 		global_position = cam.global_position
-	
+
+
+func execute_tick(_delta: float) -> void:
 	if lava_ref:
 		material.set_shader_parameter("lava_level", lava_ref.global_position.y)
 		material.set_shader_parameter("sc", lava_ref.sinusoid_coeffs)

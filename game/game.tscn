@@ -1,17 +1,26 @@
-[gd_scene load_steps=13 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=19 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
 [ext_resource type="PackedScene" uid="uid://boqw66q2xy4sh" path="res://camera/camera.tscn" id="2_vasa2"]
 [ext_resource type="PackedScene" uid="uid://cjuitcyofgqc3" path="res://VFX/post_processing/post_processing_quad.tscn" id="4_ee6o4"]
 [ext_resource type="Script" uid="uid://dae2c8i45te8f" path="res://game/world_effects.gd" id="8_y36n6"]
+[ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="9_vsp63"]
+[ext_resource type="Shader" uid="uid://b4b1lrasl85eg" path="res://levels/platforms/platform_components/metaball_platform_component/metaball_platform.gdshader" id="10_hb504"]
 [ext_resource type="PackedScene" uid="uid://bg5gcggjlxqdx" path="res://levels/oasis/oasis.tscn" id="10_j8tme"]
 [ext_resource type="Script" uid="uid://c1o22ooao6lq" path="res://game/world_pickup_items_manager.gd" id="11_3vho3"]
+[ext_resource type="Script" uid="uid://dcocnrr1wxj00" path="res://levels/platforms/platform_components/metaball_platform_component/metaball_platform_component.gd" id="11_ee6o4"]
+[ext_resource type="Script" uid="uid://b1quk135kfj1v" path="res://levels/platforms/platform_components/moving_platform_component.gd" id="12_4cobl"]
 [ext_resource type="PackedScene" uid="uid://dx5h54g76yy6a" path="res://levels/oasis/death_tv/death_tv.tscn" id="12_qf6n1"]
+[ext_resource type="PackedScene" uid="uid://d35o6xeqnfe5h" path="res://levels/platforms/platform_components/path_follow_platform_component/path_follow_platform_component.tscn" id="13_ln7ps"]
 [ext_resource type="PackedScene" uid="uid://btg4x06vjsk5q" path="res://UI/UI.tscn" id="14_b686c"]
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
 [ext_resource type="PackedScene" uid="uid://dv6yjtu0iucn2" path="res://levels/level_manager.tscn" id="16_4cobl"]
 [ext_resource type="PackedScene" uid="uid://dkb4hsfhvjgih" path="res://UI/options_window/options_window.tscn" id="16_ee6o4"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4cobl"]
+shader = ExtResource("10_hb504")
+shader_parameter/coll_extents = Vector2(0, 0)
 
 [node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "lava", "camera", "world_effects_container")]
 script = ExtResource("1_dxrkv")
@@ -51,12 +60,27 @@ metadata/_edit_use_anchors_ = true
 
 [node name="Oasis" parent="World" instance=ExtResource("10_j8tme")]
 
+[node name="BasePlatform" parent="World/Oasis" instance=ExtResource("9_vsp63")]
+material = SubResource("ShaderMaterial_4cobl")
+position = Vector2(-586, -403)
+coll_extents = Vector2(300, 400)
+sprite_2_coll_factor = 2.0
+
+[node name="MovingPlatformComponent" type="Node2D" parent="World/Oasis/BasePlatform" node_paths=PackedStringArray("_path_follower_component")]
+script = ExtResource("12_4cobl")
+transition_type = 1
+movement_type = 0
+_path_follower_component = NodePath("../../PathFollowPlatformComponent")
+metadata/_custom_type_script = "uid://b1quk135kfj1v"
+
+[node name="MetaballPlatformComponent" type="Node2D" parent="World/Oasis/BasePlatform"]
+script = ExtResource("11_ee6o4")
+metadata/_custom_type_script = "uid://dcocnrr1wxj00"
+
+[node name="PathFollowPlatformComponent" parent="World/Oasis" instance=ExtResource("13_ln7ps")]
+
 [node name="Lava" parent="World" node_paths=PackedStringArray("game_ref") instance=ExtResource("15_hb504")]
 game_ref = NodePath("../..")
-
-[node name="PostProcessingQuad" parent="World" node_paths=PackedStringArray("cam", "lava_ref") instance=ExtResource("4_ee6o4")]
-cam = NodePath("../Camera")
-lava_ref = NodePath("../Lava")
 
 [node name="InitialSpawnPoints" type="Node2D" parent="World"]
 scale = Vector2(1e-05, 1e-05)
@@ -75,6 +99,11 @@ position = Vector2(-67900000, 59800000)
 
 [node name="WorldPickupItemsManager" type="Node2D" parent="World"]
 script = ExtResource("11_3vho3")
+
+[node name="PostProcessingQuad" parent="World" node_paths=PackedStringArray("cam", "lava_ref") instance=ExtResource("4_ee6o4")]
+z_index = 1000
+cam = NodePath("../Camera")
+lava_ref = NodePath("../Lava")
 
 [node name="DeathTv" parent="." instance=ExtResource("12_qf6n1")]
 position = Vector2(-568, 405)

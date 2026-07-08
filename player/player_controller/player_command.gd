@@ -14,6 +14,8 @@ var item_use_pressed := false
 var item_use_held    := false
 var sprint_held      := false
 var item_dropped     := false
+var crouch_pressed   := false
+
 var tick := -1
 
 
@@ -33,9 +35,10 @@ static func serialize_list_of_commands(commands: Array[PlayerCommand]) -> Packed
 		if cmd.item_use_held:    flags |= 1 << 5
 		if cmd.sprint_held:      flags |= 1 << 6
 		if cmd.item_dropped:     flags |= 1 << 7
+		if cmd.crouch_pressed:   flags |= 1 << 8
 		var has_collision = cmd.collided_id > 0
 		if has_collision:
-			flags |= 1 << 8
+			flags |= 1 << 9
 
 		spb.put_float(cmd.move_input.x)
 		spb.put_float(cmd.move_input.y)
@@ -44,6 +47,7 @@ static func serialize_list_of_commands(commands: Array[PlayerCommand]) -> Packed
 		spb.put_u16(flags)
 		spb.put_u32(cmd.tick)
 		
+		# -- int, float, float is like 20 bytes, so save some bandwith man
 		if has_collision:
 			spb.put_u32(cmd.collided_id)
 			spb.put_float(cmd.impulse.x)
@@ -82,8 +86,9 @@ static func deserialize_list_of_commands(byte_arr: PackedByteArray) -> Array[Pla
 		cmd.item_use_held    = bool(flags & (1 << 5))
 		cmd.sprint_held      = bool(flags & (1 << 6))
 		cmd.item_dropped     = bool(flags & (1 << 7))
+		cmd.crouch_pressed   = bool(flags & (1 << 8))
 		
-		if bool(flags & (1 << 8)):
+		if bool(flags & (1 << 9)):
 			cmd.collided_id = spb.get_u32()
 			cmd.impulse.x = spb.get_float()
 			cmd.impulse.y = spb.get_float()

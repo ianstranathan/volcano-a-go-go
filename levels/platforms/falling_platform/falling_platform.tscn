@@ -1,11 +1,11 @@
 [gd_scene load_steps=9 format=3 uid="uid://dcuknsfjt8mbc"]
 
-[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://platforms/palceholder_platform/placeholder_platform.gdshader" id="1_5ydsn"]
-[ext_resource type="Script" uid="uid://c0p33tl8kpqrn" path="res://platforms/falling_platform/falling_platform.gd" id="1_igbuq"]
+[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://levels/platforms/palceholder_platform/placeholder_platform.gdshader" id="1_5ydsn"]
+[ext_resource type="Script" uid="uid://c0p33tl8kpqrn" path="res://levels/platforms/falling_platform/falling_platform.gd" id="1_igbuq"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_igbuq"]
-[ext_resource type="PackedScene" uid="uid://j2as0dklypue" path="res://platforms/coll_sprite_matcher.tscn" id="3_0ptkl"]
-[ext_resource type="Script" uid="uid://dtfq1nc2xw" path="res://platforms/falling_platform_component.gd" id="4_w4aup"]
-[ext_resource type="Script" uid="uid://40mnitwh447v" path="res://platforms/lava_floating_component.gd" id="6_0ptkl"]
+[ext_resource type="PackedScene" uid="uid://j2as0dklypue" path="res://levels/platforms/coll_sprite_matcher.tscn" id="3_0ptkl"]
+[ext_resource type="Script" uid="uid://dtfq1nc2xw" path="res://levels/platforms/platform_components/falling_platform_component.gd" id="4_w4aup"]
+[ext_resource type="Script" uid="uid://40mnitwh447v" path="res://levels/platforms/lava_floating_component.gd" id="6_0ptkl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0ptkl"]
 size = Vector2(50, 50)

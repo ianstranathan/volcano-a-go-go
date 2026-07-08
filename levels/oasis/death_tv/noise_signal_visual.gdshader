@@ -33,11 +33,13 @@ vec2 crt(vec2 coord, float bend)
 
 void fragment() {
 	vec2 uv_noise = UV * TIME;
-	vec2 uv_scan1 = vec2(UV.x, UV.y + TIME);
-	vec2 uv_scan2 = vec2(UV.x, UV.y + TIME * .4);
 	
 	vec2 crtCoords = crt(UV, 3.2);
-
+	//vec2 uv_scan1 = vec2(UV.x, UV.y + TIME);
+	//vec2 uv_scan2 = vec2(UV.x, UV.y + TIME * .4);
+	vec2 uv_scan1 = vec2(crtCoords.x, crtCoords.y + TIME);
+	vec2 uv_scan2 = vec2(crtCoords.x, crtCoords.y + TIME * .4);
+	
 	// shadertoy has tiling textures. wouldn't be needed
 	// if you set up your tex params properly
 	if (crtCoords.x < 0.0 || crtCoords.x > 1.0 || crtCoords.y < 0.0 || crtCoords.y > 1.0)
@@ -62,7 +64,7 @@ void fragment() {
 	COLOR.rgb += vec3(scanlines2);
 	
 	COLOR.rgb *= vec3(5, 5, 5);
-	
+	COLOR.a = 1.0;
 }
 
 //void light() {

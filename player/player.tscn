@@ -1,9 +1,10 @@
-[gd_scene load_steps=19 format=3 uid="uid://by5kd51cixxgu"]
+[gd_scene load_steps=21 format=3 uid="uid://by5kd51cixxgu"]
 
 [ext_resource type="Script" uid="uid://bo2vw5tl14uk4" path="res://player/player.gd" id="1_yf0e5"]
 [ext_resource type="Shader" uid="uid://bx8fp0q38t35n" path="res://player/testing/capsule_player.gdshader" id="2_g1dw6"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_rkbax"]
 [ext_resource type="Resource" uid="uid://dhmx6u1dpspmo" path="res://player/kinematic_data_rscs/default_player_kinematic_data.tres" id="2_yllr7"]
+[ext_resource type="Script" uid="uid://oeopyki4a6l7" path="res://player/raycast_container.gd" id="6_wodsf"]
 [ext_resource type="Script" uid="uid://c0bg2g4soysfi" path="res://player/grab_manager.gd" id="7_boad6"]
 [ext_resource type="Script" uid="uid://bkmykxgvovkdg" path="res://items/item_manager.gd" id="7_hg6s5"]
 [ext_resource type="Script" uid="uid://cyisxpb4cr1db" path="res://player/player_controller/player_controller.gd" id="7_rgyib"]
@@ -13,6 +14,7 @@
 [ext_resource type="Shader" uid="uid://4tgxtrnpxo5i" path="res://player/cloud.gdshader" id="10_2ieo8"]
 [ext_resource type="Texture2D" uid="uid://df0njwv75h0io" path="res://assets/Cloud_1.png" id="10_8t03j"]
 [ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="11_ebec5"]
+[ext_resource type="Script" uid="uid://wot2cetc4r57" path="res://player/metaball_manager.gd" id="14_kb6p2"]
 
 [sub_resource type="Curve" id="Curve_rgyib"]
 _data = [Vector2(0.2511628, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.6966293), 0.0, 0.0, 0, 0]
@@ -21,9 +23,8 @@ point_count = 2
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_yw30f"]
 resource_local_to_scene = true
 shader = ExtResource("2_g1dw6")
-shader_parameter/dummy_burn_timer = 5.0
-shader_parameter/radius = 0.0
-shader_parameter/height = 0.355
+shader_parameter/height = 0.45
+shader_parameter/radius = 0.33
 shader_parameter/src_col = Color(0.73333335, 0.68235296, 0, 1)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ugqs2"]
@@ -60,6 +61,7 @@ shape = SubResource("CapsuleShape2D_ugqs2")
 metadata/_edit_group_ = true
 
 [node name="FloorCheckContainer" type="Node2D" parent="."]
+script = ExtResource("6_wodsf")
 
 [node name="RayCast2D" type="RayCast2D" parent="FloorCheckContainer"]
 position = Vector2(0, 8)
@@ -74,6 +76,7 @@ position = Vector2(-20, 8)
 collision_mask = 69
 
 [node name="CeilingCheckContainer" type="Node2D" parent="."]
+script = ExtResource("6_wodsf")
 
 [node name="LHS" type="RayCast2D" parent="CeilingCheckContainer"]
 position = Vector2(-19, -8)
@@ -96,6 +99,7 @@ player_ref = NodePath("../..")
 metadata/_custom_type_script = "uid://crnrkpiidg5es"
 
 [node name="WallCheckContainer" type="Node2D" parent="."]
+script = ExtResource("6_wodsf")
 
 [node name="RHS1" type="RayCast2D" parent="WallCheckContainer"]
 position = Vector2(0, -33)
@@ -126,6 +130,7 @@ target_position = Vector2(-25, 0)
 collision_mask = 5
 
 [node name="LedgeRayContainer" type="Node2D" parent="."]
+script = ExtResource("6_wodsf")
 
 [node name="LHS" type="RayCast2D" parent="LedgeRayContainer"]
 position = Vector2(0, -49)
@@ -177,6 +182,7 @@ player_ref = NodePath("../..")
 metadata/_custom_type_script = "uid://crnrkpiidg5es"
 
 [node name="StaminaVisual" parent="." instance=ExtResource("9_8t03j")]
+visible = false
 scale = Vector2(0.4, 0.4)
 seconds_of_stamina = 2.0
 drain_coeff = 1.0
@@ -196,6 +202,7 @@ scale = Vector2(1.3, 1.3)
 texture = ExtResource("10_8t03j")
 
 [node name="TopDownRayContainer" type="Node2D" parent="."]
+script = ExtResource("6_wodsf")
 
 [node name="RHS" type="RayCast2D" parent="TopDownRayContainer"]
 position = Vector2(24, -50)
@@ -207,4 +214,5 @@ position = Vector2(-24, -50)
 target_position = Vector2(0, 100)
 collision_mask = 5
 
-[node name="NormalRaycastsContainer" type="Node2D" parent="."]
+[node name="MetaballManager" type="Node2D" parent="."]
+script = ExtResource("14_kb6p2")

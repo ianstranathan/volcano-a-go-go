@@ -30,6 +30,12 @@ func execute_tick(delta: float):
 	$AnimatableBody2D/MovingPlatformComponent.execute_tick(delta)
 
 
+func reverse():
+	# -- set it to it's respective bounds
+	$AnimatableBody2D/MovingPlatformComponent._time = (
+		clamp($AnimatableBody2D/MovingPlatformComponent._time, 0., 1.))
+	# -- and reverse the direction of incrementing delta 
+	$AnimatableBody2D/MovingPlatformComponent.time_direction *= -1
 
 # setter/getter forwarding
 @export var coll_extents: Vector2:

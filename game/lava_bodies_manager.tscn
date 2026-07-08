@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bm3k0fooylrpl" path="res://lava_body/lava_bodies_manager.gd" id="1_t3bvp"]
 [ext_resource type="PackedScene" uid="uid://dw8xbw1eowf42" path="res://lava_body/lava_body.tscn" id="2_8iuk1"]
-[ext_resource type="PackedScene" uid="uid://j2as0dklypue" path="res://platforms/coll_sprite_matcher.tscn" id="3_8pffe"]
+[ext_resource type="PackedScene" uid="uid://j2as0dklypue" path="res://levels/platforms/coll_sprite_matcher.tscn" id="3_8pffe"]
 
 [node name="LavaBodiesManager" type="Node2D" node_paths=PackedStringArray("lava_ref")]
 script = ExtResource("1_t3bvp")

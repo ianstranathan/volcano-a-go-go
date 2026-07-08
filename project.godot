@@ -47,6 +47,7 @@ folder_colors={
 
 lava-bodies=""
 moving_platforms=""
+metaball_platforms=""
 
 [input]
 

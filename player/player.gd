@@ -8,6 +8,7 @@ signal reconciled
 signal touched_bottom( peer_id: int)
 signal dropped_pickup_item( item_key: ItemsDb.ItemNames, item_slot: int, pos: Vector2)
 
+var integrate_motion := true
 @export var kd: PlayerKinematicData
 @onready var move_speed: float = kd.baseline_speed
 @onready var current_accel = 0.0
@@ -83,6 +84,7 @@ enum MovementStates
 	CLOUD,
 	PORTAL,
 	SLIDING,
+	METABALL
 }
 @export var movement_state: MovementStates = MovementStates.IDLE
 
@@ -320,15 +322,18 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 				#
 				## -- rpc the client we collided with to tell them to updat their impulse
 				#predict_impact_notification.rpc_id(_collider.name.to_int(), impulse)
+	if integrate_motion:
+		global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
 	
-	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
-	
-	if velocity.y < kd.TERMINAL_FALL_SPEED:
-		velocity.y += get_g() * delta
+		if velocity.y < kd.TERMINAL_FALL_SPEED:
+			velocity.y += get_g() * delta
 
 	var collision = move_and_collide(Vector2.ZERO)
 	
 	if collision:
+		if collision.get_collider().is_in_group("metaball_platforms"):
+			transition_to_metaball( collision.get_position() )
+			
 		var normal = collision.get_normal()
 		is_on_ground = normal.dot(Vector2.UP) > 0.1 # TODO expose this
 		if is_on_ground:
@@ -496,6 +501,69 @@ func check_for_falling() -> bool:
 	return is_falling() and coyote_timer.is_stopped()
 
 
+func crouching_state_fn(_delta: float):
+	move_resolution(0.5 * move_speed)
+	if check_for_falling():
+		coyote_timer.start()
+
+
+func transition_to_metaball( collision_pt: Vector2) -> void:
+	$MetaballManager.initialize_metaball_state( collision_pt )
+	go_2_circle_shape()
+	movement_state_transition_to(MovementStates.METABALL)
+	velocity = Vector2.ZERO
+	
+	# -- switch over the collision stuff
+
+# -- used for crouching and metaball state currently
+var capsule_coll_shape_height = 100.0 # -- in px
+var default_coll_shape_radius = 20.0
+var circle_coll_shape_height: float = 2.0 * default_coll_shape_radius
+var default_2_circle_scale = (circle_coll_shape_height / capsule_coll_shape_height)
+
+@onready var all_raycasts_arr = [$WallCheckContainer,$LedgeRayContainer, 
+								$FloorCheckContainer, $CeilingCheckContainer,
+								$TopDownRayContainer]
+
+# -- NOTE we're not currently changing the radius ever, but more general I guess
+func my_change_collision_shape(h: float, r: float, s: float) -> void:
+	# -- params are height, radius, scale (see raycast_container.gd)
+	# -- set the collision shape in a deferred call
+	# -- recursively change all the positions of the raycasts
+	for ray_container in all_raycasts_arr:
+		ray_container.scale_raycast_positions(s)
+	$CollisionShape2D.shape.set_deferred("height", h)
+	$CollisionShape2D.shape.set_deferred("radius", r)
+
+# -- 
+func go_2_circle_shape():
+	$Sprite2D.material.set_shader_parameter("height", 0.)
+	$Sprite2D.material.set_shader_parameter("radius", 0.33)
+	my_change_collision_shape(circle_coll_shape_height, 
+							  default_coll_shape_radius, 
+							  default_2_circle_scale)
+
+
+func go_2_capsule_shape():
+	$Sprite2D.material.set_shader_parameter("height", 0.45)
+	$Sprite2D.material.set_shader_parameter("radius", 0.33)
+	my_change_collision_shape(capsule_coll_shape_height, 
+							  default_coll_shape_radius, 
+							  1. / default_2_circle_scale)
+
+
+func metaball_state_fn(delta):
+	# -- increment perimeter, based on input
+	# -- we don't actually care about the direction, we're parameterizing
+	# -- soley around the perimeter, just take whichenever is bigger
+	var incr_rate = move_input.x if abs(move_input.x) > abs(move_input.y) else move_input.y
+	global_position = $MetaballManager.increment_perimeter(delta, incr_rate) # perimeter_to_world(perimeter_distance)
+	
+	# -- test for jump
+	# -- jump according to the normal
+
+
+	
 # -- consolidate the stuff that's always true on the ground
 func idle_state_fn(_delta) -> void:
 	check_for_jump()
@@ -669,14 +737,6 @@ func wall_sliding_state_fn(_delta) -> void:
 		start_ledge_grab()
 
 
-func crouch_state_fn():
-	# -- it's walking with a slower speed override
-	check_for_jump()
-	move()
-	if check_for_falling():
-		coyote_timer.start()
-
-
 # -- probably move this elsewhere
 func item_moving_state_fn(_delta) -> void:
 	if $ItemManager.active_movement_override.allows_horizontal_movement():
@@ -840,6 +900,11 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 							true if last_wall_normal.x < 0 else false)
 			MovementStates.RUNNING:
 				$StaminaVisual.use( false )
+			MovementStates.METABALL:
+				integrate_motion = true
+		# ----------------------------------
+		if new_movement_state == MovementStates.METABALL:
+			integrate_motion = false
 		# ----------------------------------
 		if new_movement_state in [MovementStates.IDLE, MovementStates.WALKING, MovementStates.WALL_SLIDING]:
 			last_tocuhing_surface_state = new_movement_state
@@ -935,6 +1000,14 @@ func apply_command( c: PlayerCommand):
 	if c.jump_released and movement_state == MovementStates.JUMPING:
 		velocity.y *= 0.4
 		movement_state_transition_to(MovementStates.FALLING)
+		
+	if c.crouch_pressed:
+		if movement_state == MovementStates.CROUCHING:
+			go_2_capsule_shape()
+			movement_state_transition_to(MovementStates.IDLE)
+		else:
+			go_2_circle_shape()
+			movement_state_transition_to(MovementStates.CROUCHING)
 	#print("aiming dir from cmd: ", c.aiming_input)
 	
 	# -- FIXME in local player controller

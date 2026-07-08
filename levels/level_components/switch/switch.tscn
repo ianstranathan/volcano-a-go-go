@@ -1,0 +1,49 @@
+[gd_scene load_steps=8 format=3 uid="uid://csg4yx0oqcs6p"]
+
+[ext_resource type="PackedScene" uid="uid://ctebu6bfyckrw" path="res://levels/platforms/animated_placeholder_platform/animated_placeholder_platform.tscn" id="1_cfman"]
+[ext_resource type="Script" uid="uid://ctsnrrsvpresc" path="res://levels/level_components/switch/switch.gd" id="1_m7yxj"]
+[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://levels/platforms/palceholder_platform/placeholder_platform.gdshader" id="3_rs2xp"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mxvgb"]
+resource_local_to_scene = true
+shader = ExtResource("3_rs2xp")
+shader_parameter/source_col = Color(0.5, 0.5, 0.5, 1)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mxvgb"]
+size = Vector2(50, 50)
+
+[sub_resource type="Curve2D" id="Curve2D_m7yxj"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25)
+}
+point_count = 2
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rs2xp"]
+
+[node name="Switch" type="Node2D"]
+script = ExtResource("1_m7yxj")
+
+[node name="AnimatedPlaceholderPlatform" parent="." node_paths=PackedStringArray("path_follow") instance=ExtResource("1_cfman")]
+path_follow = NodePath("../Path2D/PathFollow2D")
+movement_type = 3
+
+[node name="Sprite2D" parent="AnimatedPlaceholderPlatform" index="0"]
+material = SubResource("ShaderMaterial_mxvgb")
+
+[node name="CollisionShape2D" parent="AnimatedPlaceholderPlatform/AnimatableBody2D" index="0"]
+shape = SubResource("RectangleShape2D_mxvgb")
+
+[node name="Path2D" type="Path2D" parent="."]
+curve = SubResource("Curve2D_m7yxj")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="Path2D"]
+rotation = 1.5707964
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_rs2xp")
+
+[editable path="AnimatedPlaceholderPlatform"]
