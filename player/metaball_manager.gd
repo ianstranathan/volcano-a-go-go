@@ -7,36 +7,62 @@ extends Node2D
 var metaball_edge := 0        # 0=top, 1=right, 2=bottom, 3=left
 var metaball_t := 0.0         # 0..1 position along current edge
 var metaball_speed := 0.0
-var metaball_platform : MetaballPlatformComponent
+var platform_ref : BasePlatform
 var rect_size: Vector2
 var perimeter: float
 var perimeter_distance := 0.0
-var metaball_platform_ref # -- metaball component
 
 
-func initialize_metaball_state(contact_pt: Vector2, platform_ref: MetaballPlatformComponent):
-	metaball_platform_ref = platform_ref
+func initialize_metaball_state(contact_pt: Vector2, _platform_ref: BasePlatform):
+	platform_ref = _platform_ref
+	rect_size = platform_ref.coll_extents
 	perimeter_distance = project_point_to_perimeter( contact_pt )
 	metaball_speed = player.velocity.length()
-	rect_size = metaball_platform_ref.get_rect_size()
+	
 	perimeter = (rect_size.x + rect_size.y) * 2.0
+	
+	#print("Global Contact Pt: ", contact_pt)
+	#print("Platform Global Pos: ", platform_ref.global_position)
+	#print("Calculated Perimeter Dist: ", perimeter_distance)
 
 
-func increment_perimeter(delta: float, incr_rate: float) -> Vector2:
-	# -- incr_rate is just the max input from the player (x, y)
+#func increment_perimeter(delta: float, incr_rate: float) -> Vector2:
+	## -- incr_rate is just the max input from the player (x, y)
+	#metaball_speed = move_toward(
+		#metaball_speed,
+		#incr_rate * MAX_METABALL_SPEED,
+		#METABALL_ACCEL * delta
+	#)
+	#perimeter_distance += metaball_speed * delta
+	#perimeter_distance = wrapf(
+		#perimeter_distance,
+		#0.0,
+		#perimeter
+	#)
+	#return perimeter_to_world()
+func increment_perimeter(delta: float, move_input: Vector2) -> Vector2:
+	var target_speed := 0.0
+	if move_input.length_squared() > 0.01:
+		var tangent = perimeter_tangent()
+		var alignment = move_input.dot(tangent)
+		target_speed = alignment * MAX_METABALL_SPEED
+	else:
+		target_speed = 0.0
+	
 	metaball_speed = move_toward(
 		metaball_speed,
-		incr_rate * MAX_METABALL_SPEED,
-		METABALL_ACCEL * delta
+		target_speed,
+		METABALL_ACCEL
 	)
+	
 	perimeter_distance += metaball_speed * delta
 	perimeter_distance = wrapf(
 		perimeter_distance,
 		0.0,
 		perimeter
 	)
+	
 	return perimeter_to_world()
-
 
 func perimeter_to_local():
 	var d = perimeter_distance
@@ -78,7 +104,7 @@ func perimeter_to_local():
 
 
 func perimeter_to_world():
-	return metaball_platform.get_platform_transform() * perimeter_to_local()
+	return platform_ref.transform * perimeter_to_local()
 
 
 
@@ -102,7 +128,7 @@ func perimeter_tangent():
 	return Vector2.UP
 
 
-func perimeter_normal():
+func perimeter_normal() -> Vector2:
 	var d = perimeter_distance
 	var w = rect_size.x
 	var h = rect_size.y
@@ -124,35 +150,70 @@ func perimeter_normal():
 
 
 # -- finds the nearest edge and converts it into a distance around the perimeter
-func project_point_to_perimeter(point):
-	var local = metaball_platform.get_platform_transform().affine_inverse() * point
+#func project_point_to_perimeter(point):
+	#var local = platform_ref.transform.affine_inverse() * point
+	#var hw = rect_size.x * 0.5
+	#var hh = rect_size.y * 0.5
+#
+	#var distances = [
+		#abs(local.y + hh),   # top
+		#abs(local.x - hw),   # right
+		#abs(local.y - hh),   # bottom
+		#abs(local.x + hw)    # left
+	#]
+#
+	#var edge = 0
+	#var best = distances[0]
+#
+	#for i in range(1, 4):
+		#if distances[i] < best:
+			#best = distances[i]
+			#edge = i
+#
+	#match edge:
+		#0:
+			#return clamp(local.x + hw, 0.0, rect_size.x)
+#
+		#1:
+			#return rect_size.x + clamp(local.y + hh, 0.0, rect_size.y)
+#
+		#2:
+			#return rect_size.x + rect_size.y + clamp(hw - local.x, 0.0, rect_size.x)
+#
+		#_:
+			#return rect_size.x * 2 + rect_size.y + clamp(hh - local.y, 0.0, rect_size.y)
+func project_point_to_perimeter(point: Vector2) -> float:
+	# Convert world point to platform local space
+	var local = platform_ref.transform.affine_inverse() * point
+	
 	var hw = rect_size.x * 0.5
 	var hh = rect_size.y * 0.5
 
-	var distances = [
-		abs(local.y + hh),   # top
-		abs(local.x - hw),   # right
-		abs(local.y - hh),   # bottom
-		abs(local.x + hw)    # left
-	]
+	# Clamp the local point to ensure it sits exactly on/inside the rectangle boundary
+	local.x = clamp(local.x, -hw, hw)
+	local.y = clamp(local.y, -hh, hh)
 
-	var edge = 0
-	var best = distances[0]
+	# Calculate distance from the local point to all 4 edges
+	var dist_top = abs(local.y + hh)
+	var dist_bottom = abs(local.y - hh)
+	var dist_left = abs(local.x + hw)
+	var dist_right = abs(local.x - hw)
 
-	for i in range(1, 4):
-		if distances[i] < best:
-			best = distances[i]
-			edge = i
+	var min_dist = min(dist_top, min(dist_bottom, min(dist_left, dist_right)))
 
-	match edge:
-		0:
-			return clamp(local.x + hw, 0.0, rect_size.x)
-
-		1:
-			return rect_size.x + clamp(local.y + hh, 0.0, rect_size.y)
-
-		2:
-			return rect_size.x + rect_size.y + clamp(hw - local.x, 0.0, rect_size.x)
-
-		_:
-			return rect_size.x * 2 + rect_size.y + clamp(hh - local.y, 0.0, rect_size.y)
+	# Match the edge based on the shortest distance and return the 1D perimeter coordinate
+	if min_dist == dist_top:
+		# Top Edge: traveling Left to Right. Local X goes from -hw to +hw
+		return local.x + hw
+		
+	elif min_dist == dist_right:
+		# Right Edge: traveling Top to Bottom. Local Y goes from -hh to +hh
+		return rect_size.x + (local.y + hh)
+		
+	elif min_dist == dist_bottom:
+		# Bottom Edge: traveling Right to Left. Local X goes from +hw to -hw
+		return rect_size.x + rect_size.y + (hw - local.x)
+		
+	else:
+		# Left Edge: traveling Bottom to Top. Local Y goes from +hh to -hh
+		return (rect_size.x * 2.0) + rect_size.y + (hh - local.y)

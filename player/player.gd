@@ -169,11 +169,15 @@ enum JumpTypes
 {
 	REGULAR,
 	SOMERSAULT_FLIP,
-	WALL
+	WALL,
+	METABALL
 }
 
-func check_for_jump() -> void:
+func check_for_jump(do_jump_override=null) -> void:
 	if !jump_buffer_timer.is_stopped():
+		if do_jump_override:
+			do_jump(do_jump_override)
+			return
 		if is_on_ground:
 			is_on_ground = false
 			#if !side_somersault_timer.is_stopped():
@@ -190,7 +194,7 @@ func check_for_jump() -> void:
 		# NOTE change this man
 		elif movement_state == MovementStates.CLIMBING:
 			do_jump(JumpTypes.REGULAR)
-
+	
 #@onready var kd.wall_jump_scale: Vector2 = Vector2(kd.jump_speed / 2.0,
 					 							#kd.jump_speed / 1.3)
 func do_jump(jump_type, velocity_override=null):
@@ -212,10 +216,18 @@ func do_jump(jump_type, velocity_override=null):
 			else:
 				velocity = velocity_override
 			# -- maybe want both components to be affected?
-
+		JumpTypes.METABALL:
+			var v = $MetaballManager.perimeter_normal()
+			velocity = 1.5 * kd.jump_speed * Vector2(-v.y, v.x)
+			#if velocity_override:
+				#velocity = velocity_override
+			#else:
+				# -- get information from the metaball manager
+				
 	velocity.y *= jump_speed_modifier
 
 	movement_state_transition_to(MovementStates.JUMPING)
+	
 	if is_multiplayer_authority() and not is_replaying:
 		Events.emit_signal("play_world_sound",
 							AudioDb.WorldSoundId.JUMP,
@@ -328,23 +340,20 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 		if velocity.y < kd.TERMINAL_FALL_SPEED:
 			velocity.y += get_g() * delta
 
-	var collision = move_and_collide(Vector2.ZERO)
-	
-	if collision:
-		if collision.get_collider().is_in_group("metaball_platforms"):
-			transition_to_metaball( collision.get_position() )
-			
-		var normal = collision.get_normal()
-		is_on_ground = normal.dot(Vector2.UP) > 0.1 # TODO expose this
-		if is_on_ground:
-			# -- we want to be really exact, we can keep an explicit reference
-			# -- to a tangent and only move in that direction
-			# -- slide is good enough for now
-			#platform_tangent = normal.orthogonal()
-			current_platform_displacement_ref_check( collision )
-			#if velocity.y > 0:
-				#velocity.y = 0
-			velocity = velocity.slide(normal)
+		var collision = move_and_collide(Vector2.ZERO)
+		
+		if collision:
+			var normal = collision.get_normal()
+			is_on_ground = normal.dot(Vector2.UP) > 0.1 # TODO expose this
+			if is_on_ground:
+				# -- we want to be really exact, we can keep an explicit reference
+				# -- to a tangent and only move in that direction
+				# -- slide is good enough for now
+				#platform_tangent = normal.orthogonal()
+				current_platform_displacement_ref_check( collision )
+				#if velocity.y > 0:
+					#velocity.y = 0
+				velocity = velocity.slide(normal)
 				
 	last_move_input = move_input
 	pos_current = global_position
@@ -507,9 +516,13 @@ func crouching_state_fn(_delta: float):
 		coyote_timer.start()
 
 
-func transition_to_metaball( collision_pt: Vector2) -> void:
-	$MetaballManager.initialize_metaball_state( collision_pt )
-	go_2_circle_shape()
+func transition_to_metaball(collision_pt: Vector2,
+							platform_ref: BasePlatform) -> void:
+	
+	$MetaballManager.initialize_metaball_state( collision_pt, platform_ref )
+	#go_2_circle_shape()
+	$CollisionShape2D.set_deferred("disabled", true)
+	$Sprite2D.visible = false
 	movement_state_transition_to(MovementStates.METABALL)
 	velocity = Vector2.ZERO
 	
@@ -556,9 +569,9 @@ func metaball_state_fn(delta):
 	# -- increment perimeter, based on input
 	# -- we don't actually care about the direction, we're parameterizing
 	# -- soley around the perimeter, just take whichenever is bigger
-	var incr_rate = move_input.x if abs(move_input.x) > abs(move_input.y) else move_input.y
-	global_position = $MetaballManager.increment_perimeter(delta, incr_rate) # perimeter_to_world(perimeter_distance)
-	
+	#var incr_rate = move_input.x if abs(move_input.x) > abs(move_input.y) else move_input.y
+	global_position = $MetaballManager.increment_perimeter(delta, Vector2(move_input.x, -move_input.y)) # perimeter_to_world(perimeter_distance)
+	check_for_jump(JumpTypes.METABALL)
 	# -- test for jump
 	# -- jump according to the normal
 
@@ -901,6 +914,8 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 			MovementStates.RUNNING:
 				$StaminaVisual.use( false )
 			MovementStates.METABALL:
+				$Sprite2D.visible = true
+				$CollisionShape2D.set_deferred("disabled", false)
 				integrate_motion = true
 		# ----------------------------------
 		if new_movement_state == MovementStates.METABALL:

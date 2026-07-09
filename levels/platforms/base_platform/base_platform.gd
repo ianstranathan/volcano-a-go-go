@@ -37,9 +37,10 @@ var _sprite_2_coll_factor :float = 1.0
 
 func _ready() -> void:
 	if sync_component:
+		#$Area2D.get_node("CollisionShape2D").shape.size = $CollisionShape2D.shape.size
 		sync_component.coll_extents = _coll_extents
 		sync_component.sprite_2_coll_factor = _sprite_2_coll_factor
-
+	
 func execute_tick(delta: float):
 	for c in tickables:
 		c.execute_tick(delta)

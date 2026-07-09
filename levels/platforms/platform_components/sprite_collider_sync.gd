@@ -13,7 +13,7 @@ var _sprite_2_coll_factor: float = 1.0
 
 @export var sprite: Sprite2D
 @export var coll_shape: CollisionShape2D
-
+@export var area_coll_shape: CollisionShape2D
 
 # Backing variables for setters
 var _coll_extents: Vector2 = Vector2(50, 50)
@@ -36,14 +36,15 @@ func _ready():
 
 
 func _update_collision_shape():
-	if not coll_shape:
+	if not coll_shape or not area_coll_shape:
 		return
 	# Duplicate shape if it’s shared
 	if not coll_shape.shape.is_local_to_scene():
 		coll_shape.shape = coll_shape.shape.duplicate()
+		area_coll_shape.shape = area_coll_shape.shape.duplicate()
 	if coll_shape.shape is RectangleShape2D:
 		coll_shape.shape.extents = _coll_extents / 2.0
-
+		area_coll_shape.shape.extents = 1.1 * _coll_extents / 2.0
 
 func _update_sprite_scale():
 	if not sprite or not coll_shape or not sprite.texture:

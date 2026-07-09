@@ -21,6 +21,7 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4cobl"]
 shader = ExtResource("10_hb504")
 shader_parameter/coll_extents = Vector2(0, 0)
+shader_parameter/player_rel_positions = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0)
 
 [node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "lava", "camera", "world_effects_container")]
 script = ExtResource("1_dxrkv")
@@ -63,7 +64,7 @@ metadata/_edit_use_anchors_ = true
 [node name="BasePlatform" parent="World/Oasis" instance=ExtResource("9_vsp63")]
 material = SubResource("ShaderMaterial_4cobl")
 position = Vector2(-586, -403)
-coll_extents = Vector2(300, 400)
+coll_extents = Vector2(300, 300)
 sprite_2_coll_factor = 2.0
 
 [node name="MovingPlatformComponent" type="Node2D" parent="World/Oasis/BasePlatform" node_paths=PackedStringArray("_path_follower_component")]
@@ -73,8 +74,10 @@ movement_type = 0
 _path_follower_component = NodePath("../../PathFollowPlatformComponent")
 metadata/_custom_type_script = "uid://b1quk135kfj1v"
 
-[node name="MetaballPlatformComponent" type="Node2D" parent="World/Oasis/BasePlatform"]
+[node name="MetaballPlatformComponent" type="Node2D" parent="World/Oasis/BasePlatform" node_paths=PackedStringArray("sprite_ref")]
 script = ExtResource("11_ee6o4")
+sprite_ref = NodePath("../Sprite2D")
+apply = true
 metadata/_custom_type_script = "uid://dcocnrr1wxj00"
 
 [node name="PathFollowPlatformComponent" parent="World/Oasis" instance=ExtResource("13_ln7ps")]

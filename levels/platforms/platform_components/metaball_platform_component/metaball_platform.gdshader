@@ -22,7 +22,14 @@ void vertex() {
 	// Called for every vertex the material is visible on.
 }
 
+vec2 normalize_rel_pos(vec2 r, vec2 c)
+{
+	return 0.5 * (r / c);
+}
+
 uniform vec2 coll_extents;
+uniform vec2 player_rel_positions[4];
+
 void fragment() {
 	vec2 uv = 2. * UV - 1.;
 	//vec2 res = 1. / SCREEN_PIXEL_SIZE;
@@ -31,10 +38,13 @@ void fragment() {
 	float box = sdBox(uv, vec2(0.5));
 	vec2 circ_uv = uv;
 	circ_uv.x *= AR;
-	
-	float x =  0.5 * ( cos(TIME) );
-	float y =  0.5 * ( sin(TIME) );
-	vec2 player_pos = vec2( AR * x, y);
+
+	//float x =  0.5 * ( cos(TIME) );
+	//float y =  0.5 * ( sin(TIME) );
+	float x,y = 0.;
+	vec2 player_pos = normalize_rel_pos(player_rel_positions[0], coll_extents);//vec2( AR * x, y);
+	player_pos.x *= AR;
+	player_pos  *= 2.0;
 	float player = sdCircle(circ_uv - player_pos, 0.1);
 	float d = smin(box, player, 0.1);
 	float mask = smoothstep(0., 2. * fwidth(d), d);
