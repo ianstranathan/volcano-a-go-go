@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://c8ltgkhbmeld7"]
+
+[ext_resource type="Script" uid="uid://de6uw6g7kf476" path="res://VFX/player effects/metaball_splash/metaball_jump_out_vfx.gd" id="1_1fp32"]
+[ext_resource type="Script" uid="uid://cr3erhn5hhtot" path="res://VFX/player effects/vfx_effect_component.gd" id="3_7mqju"]
+[ext_resource type="PackedScene" uid="uid://c1msfo50b2i3l" path="res://VFX/player effects/metaball_splash/metaball_splash_particles.tscn" id="3_i5cas"]
+
+[node name="MetaballJumpOutVfx" type="Node2D"]
+script = ExtResource("1_1fp32")
+
+[node name="MetaballSplash" parent="." instance=ExtResource("3_i5cas")]
+z_index = 100
+amount = 35
+
+[node name="VfxEffectComponent" type="Node" parent="."]
+script = ExtResource("3_7mqju")
+metadata/_custom_type_script = "uid://cr3erhn5hhtot"

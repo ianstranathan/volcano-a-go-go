@@ -26,20 +26,6 @@ func initialize_metaball_state(contact_pt: Vector2, _platform_ref: BasePlatform)
 	#print("Calculated Perimeter Dist: ", perimeter_distance)
 
 
-#func increment_perimeter(delta: float, incr_rate: float) -> Vector2:
-	## -- incr_rate is just the max input from the player (x, y)
-	#metaball_speed = move_toward(
-		#metaball_speed,
-		#incr_rate * MAX_METABALL_SPEED,
-		#METABALL_ACCEL * delta
-	#)
-	#perimeter_distance += metaball_speed * delta
-	#perimeter_distance = wrapf(
-		#perimeter_distance,
-		#0.0,
-		#perimeter
-	#)
-	#return perimeter_to_world()
 func increment_perimeter(delta: float, move_input: Vector2) -> Vector2:
 	var target_speed := 0.0
 	if move_input.length_squared() > 0.01:
@@ -129,59 +115,23 @@ func perimeter_tangent():
 
 
 func perimeter_normal() -> Vector2:
-	var d = perimeter_distance
+	var d = wrapf(perimeter_distance, 0.0, perimeter) # 
 	var w = rect_size.x
 	var h = rect_size.y
-
+	#print("d is: ", d, "and w is: ", w)
 	if d < w:
-		return Vector2.UP
-
-	d -= w
-
-	if d < h:
+		#print("d < w; ", d, "; ", w)
+		return Vector2.UP 
+	elif d < w + h:
+		#print("d < w + h; ", d, "; ", w + h)
 		return Vector2.RIGHT
-
-	d -= h
-
-	if d < w:
+	elif d < (2. * w) + h:
+		#print("d < (2. * w) + h; ", d, "; ", (2. * w) + h)
 		return Vector2.DOWN
+	#print("yee gods")
+	return Vector2.LEFT          
 
-	return Vector2.LEFT
 
-
-# -- finds the nearest edge and converts it into a distance around the perimeter
-#func project_point_to_perimeter(point):
-	#var local = platform_ref.transform.affine_inverse() * point
-	#var hw = rect_size.x * 0.5
-	#var hh = rect_size.y * 0.5
-#
-	#var distances = [
-		#abs(local.y + hh),   # top
-		#abs(local.x - hw),   # right
-		#abs(local.y - hh),   # bottom
-		#abs(local.x + hw)    # left
-	#]
-#
-	#var edge = 0
-	#var best = distances[0]
-#
-	#for i in range(1, 4):
-		#if distances[i] < best:
-			#best = distances[i]
-			#edge = i
-#
-	#match edge:
-		#0:
-			#return clamp(local.x + hw, 0.0, rect_size.x)
-#
-		#1:
-			#return rect_size.x + clamp(local.y + hh, 0.0, rect_size.y)
-#
-		#2:
-			#return rect_size.x + rect_size.y + clamp(hw - local.x, 0.0, rect_size.x)
-#
-		#_:
-			#return rect_size.x * 2 + rect_size.y + clamp(hh - local.y, 0.0, rect_size.y)
 func project_point_to_perimeter(point: Vector2) -> float:
 	# Convert world point to platform local space
 	var local = platform_ref.transform.affine_inverse() * point

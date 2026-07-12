@@ -1,16 +1,4 @@
-#extends Node2D
-#
-#"""
-#Effects that happen over and over again
-#&&
-#are player specific
 extends Node2D
-
-
-class PlayerEffect:
-	var node: Node2D
-	var sprite: AnimatedSprite2D
-	var component: VfxEffectComponent
 
 @export var players_container: Node2D
 var effects_container = {}
@@ -18,7 +6,8 @@ var effects_container = {}
 @onready var recurring_effects_arr = [
 	Effects.EffectNames.LANDING_SMOKE,
 	Effects.EffectNames.WALL_JUMP,
-	Effects.EffectNames.DIRECTION_CHANGE
+	Effects.EffectNames.DIRECTION_CHANGE,
+	Effects.EffectNames.JUMPED_OUT_OF_METABALL
 ]
 
 func initialize_recurring_player_vfx():
@@ -28,30 +17,39 @@ func initialize_recurring_player_vfx():
 		
 		for effect_enum in recurring_effects_arr:
 			var _effect = Effects.effects.get(effect_enum).instantiate()
+			# -- we're keeping this stuff on a differnt, higher scope, so
+			# -- we can just reuse it
 			add_child(_effect)
-			
-			# 2. Create the class instance instead of a Dictionary
-			var data = PlayerEffect.new()
-			data.node = _effect
-			data.sprite = _effect.get_node("AnimatedSprite2D")
-			data.component = _effect.get_node("VfxEffectComponent")
-			
-			effects_container[_id][effect_enum] = data
+			effects_container[_id][effect_enum] = _effect
 
 
 func _ready() -> void:
 	Events.world_effect.connect(do_effect)
 
 
-func do_effect(player_id: int, effect_type: Effects.EffectNames, pos: Vector2, flip: bool):
+func do_effect(player_id: int, params: EffectParameters):
 	var player_set = effects_container.get(player_id)
-	if not player_set:
+	if not player_set: 
 		return
 	
-	var effect: PlayerEffect = player_set.get(effect_type)
+	var effect = player_set.get(params.type)
+	
 	if not effect: 
 		return
-
-	effect.sprite.flip_h = flip
-	effect.node.global_position = pos
-	effect.component.start.call()
+	
+	if params.flip:
+		var sprite = effect.get_node_or_null("Sprite2D")
+		if not sprite:
+			sprite = effect.get_node_or_null("AnimatedSprite2D")
+		if sprite:
+			sprite.flip_h = params.flip
+	effect.global_position = params.pos
+	#print(effect.name)
+	#print(effect.global_position)
+	#print("Is in tree: ", effect.is_inside_tree())
+	#print("-----------------")
+	
+	#print(effect.name)
+	# -- we're mandating that all effects have a vfx component
+	assert(effect.get_node("VfxEffectComponent"))
+	effect.get_node("VfxEffectComponent").start.call(params)

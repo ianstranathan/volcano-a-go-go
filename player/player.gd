@@ -5,6 +5,7 @@ class_name Player
 # -- emitted from player_controller when reconcilliation happens for
 # -- visual smoothing in the PlayerVisualInterpolator (sprite & item_manager)
 signal reconciled
+
 signal touched_bottom( peer_id: int)
 signal dropped_pickup_item( item_key: ItemsDb.ItemNames, item_slot: int, pos: Vector2)
 
@@ -217,8 +218,11 @@ func do_jump(jump_type, velocity_override=null):
 				velocity = velocity_override
 			# -- maybe want both components to be affected?
 		JumpTypes.METABALL:
-			var v = $MetaballManager.perimeter_normal()
-			velocity = 1.5 * kd.jump_speed * Vector2(-v.y, v.x)
+			var v = -(global_position - $MetaballManager.platform_ref.global_position).normalized()
+			var y_dir = 1. if is_zero_approx(v.y) else v.y
+			velocity =  Vector2(v.x *  kd.jump_speed / 2., 
+								y_dir * kd.jump_speed)
+			print(velocity)
 			#if velocity_override:
 				#velocity = velocity_override
 			#else:
@@ -516,12 +520,14 @@ func crouching_state_fn(_delta: float):
 		coyote_timer.start()
 
 
+# -- callback from metaball's area2d
 func transition_to_metaball(collision_pt: Vector2,
 							platform_ref: BasePlatform) -> void:
 	
 	$MetaballManager.initialize_metaball_state( collision_pt, platform_ref )
-	#go_2_circle_shape()
-	$CollisionShape2D.set_deferred("disabled", true)
+	do_jump_out_of_metaball_vfx()
+	go_2_circle_shape()
+	#$CollisionShape2D.set_deferred("disabled", true)
 	$Sprite2D.visible = false
 	movement_state_transition_to(MovementStates.METABALL)
 	velocity = Vector2.ZERO
@@ -566,14 +572,18 @@ func go_2_capsule_shape():
 
 
 func metaball_state_fn(delta):
+	# -- ok, so we're gaurenteeing that the player is in a circle shape
+	# -- so whatever the global_position is, we can just offset it by the rel_pos direction
+	# -- of the platform + the radius
+	var rel_pos : Vector2 = (global_position - 
+		$MetaballManager.platform_ref.global_position).normalized()
+	var offset_vector = rel_pos * 1.5 * $CollisionShape2D.shape.radius
 	# -- increment perimeter, based on input
-	# -- we don't actually care about the direction, we're parameterizing
-	# -- soley around the perimeter, just take whichenever is bigger
-	#var incr_rate = move_input.x if abs(move_input.x) > abs(move_input.y) else move_input.y
-	global_position = $MetaballManager.increment_perimeter(delta, Vector2(move_input.x, -move_input.y)) # perimeter_to_world(perimeter_distance)
+	global_position = offset_vector + $MetaballManager.increment_perimeter(
+		delta,
+		Vector2(move_input.x, -move_input.y))
+	
 	check_for_jump(JumpTypes.METABALL)
-	# -- test for jump
-	# -- jump according to the normal
 
 
 	
@@ -888,17 +898,9 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						velocity = velocity.clamp(Vector2(0., 50), Vector2(0., 150))
 					MovementStates.JUMPING:
 						if last_tocuhing_surface_state == MovementStates.WALL_SLIDING:
-							Events.world_effect.emit(
-									name.to_int(), 
-									Effects.EffectNames.WALL_JUMP, 
-									global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
-									true if last_wall_normal.x < 0 else false)
+							do_wall_jump_vfx()
 				if play_landing_effect:
-					Events.world_effect.emit(
-						name.to_int(), 
-						Effects.EffectNames.LANDING_SMOKE, 
-						global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
-						false)
+					do_landing_vfx()
 					Events.emit_signal("play_world_sound",
 										AudioDb.WorldSoundId.JUMP_LAND,
 										global_position,0,randf_range(0.8, 1.20),
@@ -906,16 +908,14 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 			MovementStates.WALL_SLIDING:
 				match new_movement_state:
 					MovementStates.JUMPING:
-						Events.world_effect.emit(
-							name.to_int(), 
-							Effects.EffectNames.WALL_JUMP, 
-							global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
-							true if last_wall_normal.x < 0 else false)
+						do_wall_jump_vfx()
 			MovementStates.RUNNING:
 				$StaminaVisual.use( false )
 			MovementStates.METABALL:
 				$Sprite2D.visible = true
-				$CollisionShape2D.set_deferred("disabled", false)
+				go_2_capsule_shape()
+				do_jump_out_of_metaball_vfx()
+
 				integrate_motion = true
 		# ----------------------------------
 		if new_movement_state == MovementStates.METABALL:
@@ -926,6 +926,30 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 		set_debug_label( new_movement_state )
 		movement_state = new_movement_state
 
+
+# --------------------------------------------------------------------------------------------------
+# -- move this all to a vfx manager on the player
+# -- this is really just a dictionary or struct with some editor sugar
+# -- (i.e. it's really just a data container, but if it's a class, I don't forget the params)
+@onready var landing_effect = EffectParameters.new(Effects.EffectNames.LANDING_SMOKE, Vector2.ZERO, false, Vector2.ZERO)
+@onready var wall_jump_effect = EffectParameters.new(Effects.EffectNames.WALL_JUMP, Vector2.ZERO, false, Vector2.ZERO)
+@onready var metaball_jump_out_effect = EffectParameters.new(Effects.EffectNames.JUMPED_OUT_OF_METABALL, Vector2.ZERO, false, Vector2.ZERO)
+
+func do_landing_vfx():
+	landing_effect.pos = global_position - Vector2(0., $CollisionShape2D.shape.height / 2.)
+	landing_effect.flip = false
+	Events.world_effect.emit( name.to_int(), landing_effect )
+
+func do_wall_jump_vfx():
+	wall_jump_effect.pos = global_position - Vector2(0., $CollisionShape2D.shape.height / 2.)
+	wall_jump_effect.flip = true if last_wall_normal.x < 0 else false
+	Events.world_effect.emit( name.to_int(), wall_jump_effect )
+
+func do_jump_out_of_metaball_vfx():
+	var n = $MetaballManager.perimeter_normal()
+	metaball_jump_out_effect.pos = global_position - $CollisionShape2D.shape.height * n
+	metaball_jump_out_effect.dir = n
+	Events.world_effect.emit( name.to_int(), metaball_jump_out_effect )
 
 # ------------------------------------------------------- utils
 func gravity_from_state():

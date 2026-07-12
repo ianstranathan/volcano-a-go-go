@@ -22,6 +22,7 @@
 shader = ExtResource("10_hb504")
 shader_parameter/coll_extents = Vector2(0, 0)
 shader_parameter/player_rel_positions = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/circ_scale_increase = 2.0
 
 [node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "lava", "camera", "world_effects_container")]
 script = ExtResource("1_dxrkv")
@@ -63,7 +64,7 @@ metadata/_edit_use_anchors_ = true
 
 [node name="BasePlatform" parent="World/Oasis" instance=ExtResource("9_vsp63")]
 material = SubResource("ShaderMaterial_4cobl")
-position = Vector2(-586, -403)
+position = Vector2(-478, -329)
 coll_extents = Vector2(300, 300)
 sprite_2_coll_factor = 2.0
 

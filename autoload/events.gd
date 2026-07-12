@@ -18,7 +18,8 @@ signal item_picked_up( world_id: int)
 #signal item_spawned( item_key: ItemsDb.ItemNames, fn:Callable)
 
 # --  WorldEffects connects to this signal in its _ready
-signal world_effect( player_id: int, effect_type: Effects.EffectNames, pos: Vector2, flip:bool)
+#signal world_effect( player_id: int, effect_type: Effects.EffectNames, pos: Vector2, flip:bool)
+signal world_effect(player_id: int, params: EffectParameters)
 
 # -- HotBar connects to this in its _ready
 signal inventory_changed(item_db_enums: Array,

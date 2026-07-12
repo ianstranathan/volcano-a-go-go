@@ -30,6 +30,7 @@ vec2 normalize_rel_pos(vec2 r, vec2 c)
 uniform vec2 coll_extents;
 uniform vec2 player_rel_positions[4];
 
+uniform float circ_scale_increase = 2.0;
 void fragment() {
 	vec2 uv = 2. * UV - 1.;
 	//vec2 res = 1. / SCREEN_PIXEL_SIZE;
@@ -39,14 +40,20 @@ void fragment() {
 	vec2 circ_uv = uv;
 	circ_uv.x *= AR;
 
-	//float x =  0.5 * ( cos(TIME) );
-	//float y =  0.5 * ( sin(TIME) );
-	float x,y = 0.;
-	vec2 player_pos = normalize_rel_pos(player_rel_positions[0], coll_extents);//vec2( AR * x, y);
-	player_pos.x *= AR;
-	player_pos  *= 2.0;
-	float player = sdCircle(circ_uv - player_pos, 0.1);
-	float d = smin(box, player, 0.1);
+	vec2 player_pos1 = normalize_rel_pos(player_rel_positions[0], coll_extents);//vec2( AR * x, y);
+	player_pos1.x *= AR;
+	player_pos1  *= circ_scale_increase;
+	float p = sdCircle(circ_uv - player_pos1, 0.1);
+
+	for( int i = 1; i < player_rel_positions.length(); i++){
+		vec2 pos = normalize_rel_pos(player_rel_positions[i], coll_extents);//vec2( AR * x, y);
+		pos.x *= AR;
+		pos  *= circ_scale_increase;
+		float d = sdCircle(circ_uv - pos, 0.1);
+		p = smin(p, d, 0.1);
+	}
+
+	float d = smin(box, p, 0.1);
 	float mask = smoothstep(0., 2. * fwidth(d), d);
 	vec3 col = vec3(mask);
 	COLOR = vec4(col, 1. - mask);
