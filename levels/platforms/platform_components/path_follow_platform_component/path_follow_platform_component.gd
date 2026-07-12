@@ -4,21 +4,10 @@ class_name PathFollowPlatformComponent
 """
 Small utility class to make setting platform paths more ergonomic
 """
-#var is_uncoupled: bool = false
-#@export var _root: PathsContainer
-
-#func _ready() -> void:
-	#if Engine.is_editor_hint(): 
-		#return
-	#_uncouple_from_parent.call_deferred()
-
-
-#func _uncouple_from_parent() -> void:
-	#var original_global_transform = global_transform
-	#get_parent().remove_child(self)
-	#_root.add_child(self)
-	#global_transform = original_global_transform
-	#is_uncoupled = true
+func _ready() -> void:
+	assert($PathFollow2D)
+	if curve:
+		curve = curve.duplicate()
 
 func set_progress_ratio(r: float) -> void:
 	$PathFollow2D.progress_ratio = r

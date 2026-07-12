@@ -54,7 +54,7 @@ func make_player_entered(a: Area2D) -> Callable:
 			add_player_to_player_arr( body )
 			var space_state = get_world_2d().direct_space_state # global physics state
 			var query = PhysicsShapeQueryParameters2D.new()
-			var area_shape: CollisionShape2D = a.get_node("CollisionShape2D") # Adjust path to your shape
+			var area_shape: CollisionShape2D = a.get_node("CollisionShape2D")
 			
 			query.shape = area_shape.shape
 			query.transform = area_shape.global_transform
@@ -68,7 +68,7 @@ func make_player_entered(a: Area2D) -> Callable:
 			
 			if rest_info.has("point"):
 				var collision_point = rest_info["point"]
-				print("TRANSITIONING TO META")
+				#print("TRANSITIONING TO META")
 				#print("Exact collision point: ", collision_point)
 				body.transition_to_metaball(collision_point, platform_ref)
 
@@ -76,10 +76,6 @@ func make_player_entered(a: Area2D) -> Callable:
 func on_player_exited( body ):
 	if body is Player:
 		null_player_at_idx( body )
-#func make_player_exited(a) -> Callable:
-	#return func( body ):
-		#if body is Player:
-			
 
 
 func _exit_tree() -> void:
@@ -126,22 +122,7 @@ func add_player_to_player_arr(p: Player):
 	
 	idx = wrapi(idx + 1, 0, 4)
 	can_render_player = true
-	
-#func null_player_at_idx( p : Player):
-	#var _idx = player_2_idx.get(p.name)
-	#if _idx:
-		#player_array[_idx] = null
-#
-#var idx = 0
-#var player_2_idx = {}
-#func add_player_to_player_arr( p: Player):
-	##print(idx)
-	#player_array[idx] = p
-	#player_2_idx[ p.name ] = idx
-	#idx += 1
-	#idx = wrapi(idx, 0, 4)
-	#can_render_player = true
-	##print(player_array)
+
 
 # -- we can do the shader stuff in a faster processing loop
 # -- as it's purely visual

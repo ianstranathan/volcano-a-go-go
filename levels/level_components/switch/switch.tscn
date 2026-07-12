@@ -1,49 +1,30 @@
-[gd_scene load_steps=8 format=3 uid="uid://csg4yx0oqcs6p"]
+[gd_scene load_steps=6 format=3 uid="uid://csg4yx0oqcs6p"]
 
-[ext_resource type="PackedScene" uid="uid://ctebu6bfyckrw" path="res://levels/platforms/animated_placeholder_platform/animated_placeholder_platform.tscn" id="1_cfman"]
 [ext_resource type="Script" uid="uid://ctsnrrsvpresc" path="res://levels/level_components/switch/switch.gd" id="1_m7yxj"]
-[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://levels/platforms/palceholder_platform/placeholder_platform.gdshader" id="3_rs2xp"]
+[ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="2_m7yxj"]
+[ext_resource type="Script" uid="uid://b1quk135kfj1v" path="res://levels/platforms/platform_components/moving_platform_component.gd" id="3_mxvgb"]
+[ext_resource type="PackedScene" uid="uid://d35o6xeqnfe5h" path="res://levels/platforms/platform_components/path_follow_platform_component/path_follow_platform_component.tscn" id="4_mxvgb"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_mxvgb"]
+[sub_resource type="Curve2D" id="Curve2D_mxvgb"]
 resource_local_to_scene = true
-shader = ExtResource("3_rs2xp")
-shader_parameter/source_col = Color(0.5, 0.5, 0.5, 1)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_mxvgb"]
-size = Vector2(50, 50)
-
-[sub_resource type="Curve2D" id="Curve2D_m7yxj"]
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25)
-}
-point_count = 2
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_rs2xp"]
-
-[node name="Switch" type="Node2D"]
+[node name="Switch" type="Node2D" node_paths=PackedStringArray("base_platform")]
 script = ExtResource("1_m7yxj")
+speed = 40.0
+switch_type = 0
+base_platform = NodePath("BasePlatform")
+coll_extents = Vector2(100, 50)
 
-[node name="AnimatedPlaceholderPlatform" parent="." node_paths=PackedStringArray("path_follow") instance=ExtResource("1_cfman")]
-path_follow = NodePath("../Path2D/PathFollow2D")
-movement_type = 3
-
-[node name="Sprite2D" parent="AnimatedPlaceholderPlatform" index="0"]
-material = SubResource("ShaderMaterial_mxvgb")
-
-[node name="CollisionShape2D" parent="AnimatedPlaceholderPlatform/AnimatableBody2D" index="0"]
-shape = SubResource("RectangleShape2D_mxvgb")
-
-[node name="Path2D" type="Path2D" parent="."]
-curve = SubResource("Curve2D_m7yxj")
-
-[node name="PathFollow2D" type="PathFollow2D" parent="Path2D"]
-rotation = 1.5707964
-
-[node name="Area2D" type="Area2D" parent="."]
+[node name="BasePlatform" parent="." instance=ExtResource("2_m7yxj")]
 collision_layer = 4
-collision_mask = 2
+coll_extents = Vector2(100, 50)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-shape = SubResource("RectangleShape2D_rs2xp")
+[node name="MovingPlatformComponent" type="Node2D" parent="BasePlatform" node_paths=PackedStringArray("_path_follower_component")]
+script = ExtResource("3_mxvgb")
+easing_type = 2
+movement_type = 3
+_path_follower_component = NodePath("../../PathFollowPlatformComponent")
+metadata/_custom_type_script = "uid://b1quk135kfj1v"
 
-[editable path="AnimatedPlaceholderPlatform"]
+[node name="PathFollowPlatformComponent" parent="." instance=ExtResource("4_mxvgb")]
+curve = SubResource("Curve2D_mxvgb")

@@ -1,71 +1,76 @@
+@tool
 extends Node2D
 
+signal switch_finished
 
-# -- let's say it goes doen by half it's extents
-@export var door: Node2D
+var can_move
 
-@onready var animated_platform = $AnimatedPlaceholderPlatform
-@onready var extents: Vector2 = animated_platform.coll_extents
-
-@onready var path_2d: Path2D = $Path2D
-
+var _coll_extents: Vector2 = Vector2(50., 50.)
+@export var speed: float
 enum SwitchType{
 	IMMEDIATE,
 	PRESSURE
 }
 @export var switch_type: SwitchType = SwitchType.PRESSURE
 
+@export var base_platform: BasePlatform
+@export var coll_extents: Vector2:
+	set(value):
+		_coll_extents = value
+		if base_platform:
+			base_platform.coll_extents = value  # forward to child
+			#collision_dimensions_changed.emit(value)
+	get:
+		if base_platform:
+			return base_platform.coll_extents
+		return _coll_extents
+
 func _ready() -> void:
-	if path_2d.curve == null:
-		path_2d.curve = Curve2D.new()
-	
-	path_2d.curve.clear_points()
-	while path_2d.curve.point_count < 2:
-		path_2d.curve.add_point(Vector2.ZERO)
-	
-	# -- we sink half way down
-	var h_y = extents.y / 2.0
-	path_2d.curve.set_point_position(1, Vector2(0, h_y))
-	
-	# -- trigger area is halfway shifted up on platform
-	$Area2D/CollisionShape2D.shape.size = extents
-	$Area2D.position = Vector2(0., -h_y) 
-	
-	$Area2D.body_entered.connect( on_body_entered )
-	$Area2D.body_exited.connect( on_body_exited )
-	
-
-var has_been_stepped_on_at_least_once = false
-var dir = 1.0
-func on_body_entered( body ) -> void:
-	if body is Player:
-		# -- let the door decide it's own stuff, just let it know
-		# -- it should open (1) rather than close ( -1 )
-		door.switch_pressed( dir )
-		has_been_stepped_on_at_least_once = true
-		match switch_type:
-			SwitchType.IMMEDIATE:
-				# -- we can just turn off the area stuff, right
-				$Area2D.set_deferred("monitoring", false)
-				$Area2D.set_deferred("monitorable", false)
-			SwitchType.PRESSURE:
-				pass
-
-
-func on_body_exited( body ) -> void:
-	if body is Player:
-		# -- we don't care if it's an immediate switch, so just check this case
-		if switch_type == SwitchType.PRESSURE:
-			var num_players_on_switch = $Area2D.get_overlapping_bodies().size()
-			if num_players_on_switch == 0:
-				$AnimatedPlaceholderPlatform.reverse()
-			
+	if base_platform:
+		base_platform.coll_extents = _coll_extents
 		
+	if not Engine.is_editor_hint():
+		#print(speed)
+		$BasePlatform/MovingPlatformComponent.movement_finished.connect( func():
+			print("movement_finished emitted")
+			switch_finished.emit())
+		base_platform.get_node("MovingPlatformComponent").speed = speed
+		# -- starting pos
+		await get_tree().process_frame
+		$PathFollowPlatformComponent.curve.clear_points()
+		$PathFollowPlatformComponent.curve.add_point(Vector2.ZERO)
+		# -- ending pos (half way down)
+		$PathFollowPlatformComponent.curve.add_point( 
+			Vector2(0., $BasePlatform.coll_extents.y / 2.0))
+		$BasePlatform/MovingPlatformComponent.calc_path_length()
+		#base_platform.get_node("MovingPlatformComponent").recalculate_path_length()
+		var a = $BasePlatform.get_node("Area2D")
+		a.body_entered.connect( on_body_entered )
+		a.body_exited.connect( on_body_exited_mkr(a) )
 
-func execute_tick( delta: float) -> void:
-	# -- switch is either immediate or pressure
-	# -- if it's a pressure we don't want the ONE_SHOT to start until
-	# -- it's been stepped on
-	# -- after that it can just oscillate bet
-	if has_been_stepped_on_at_least_once:
-		$AnimatedPlaceholderPlatform.execute_tick( delta )
+
+func on_body_entered( body ):
+	if body is Player:
+		var v = (body.global_position - global_position).normalized()
+		if v.dot( Vector2.UP ) > 0.9:
+			if !can_move:
+				can_move = true
+			else:
+				$BasePlatform/MovingPlatformComponent.reverse()
+
+
+func on_body_exited_mkr( a: Area2D) -> Callable:
+	return func(body):
+		if body is Player and can_move:
+			#var v = (body.global_position - global_position).normalized()
+			#print(v)
+			#print(v.dot( Vector2.UP ))
+			#print(a.get_overlapping_bodies().size())
+			if a.get_overlapping_bodies().size() == 0:
+				#print("yomu")
+				$BasePlatform/MovingPlatformComponent.reverse()
+
+
+func execute_tick(delta: float):
+	if can_move:
+		$BasePlatform.execute_tick(delta)

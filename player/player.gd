@@ -222,7 +222,7 @@ func do_jump(jump_type, velocity_override=null):
 			var y_dir = 1. if is_zero_approx(v.y) else v.y
 			velocity =  Vector2(v.x *  kd.jump_speed / 2., 
 								y_dir * kd.jump_speed)
-			print(velocity)
+			#print(velocity)
 			#if velocity_override:
 				#velocity = velocity_override
 			#else:
@@ -523,14 +523,14 @@ func crouching_state_fn(_delta: float):
 # -- callback from metaball's area2d
 func transition_to_metaball(collision_pt: Vector2,
 							platform_ref: BasePlatform) -> void:
-	
-	$MetaballManager.initialize_metaball_state( collision_pt, platform_ref )
-	do_jump_out_of_metaball_vfx()
-	go_2_circle_shape()
-	#$CollisionShape2D.set_deferred("disabled", true)
-	$Sprite2D.visible = false
-	movement_state_transition_to(MovementStates.METABALL)
-	velocity = Vector2.ZERO
+	if movement_state != MovementStates.METABALL:
+		$MetaballManager.initialize_metaball_state( collision_pt, platform_ref )
+		do_jump_out_of_metaball_vfx()
+		go_2_circle_shape()
+		#$CollisionShape2D.set_deferred("disabled", true)
+		$Sprite2D.visible = false
+		movement_state_transition_to(MovementStates.METABALL)
+		velocity = Vector2.ZERO
 	
 	# -- switch over the collision stuff
 

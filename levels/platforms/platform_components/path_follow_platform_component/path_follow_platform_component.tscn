@@ -3,15 +3,12 @@
 [ext_resource type="Script" uid="uid://cxqsg6cxopj28" path="res://levels/platforms/platform_components/path_follow_platform_component/path_follow_platform_component.gd" id="1_noo3o"]
 
 [sub_resource type="Curve2D" id="Curve2D_mpfpx"]
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, -588, -317, 0, 0, 0, 0, -611, -697)
-}
-point_count = 2
+resource_local_to_scene = true
 
 [node name="PathFollowPlatformComponent" type="Path2D"]
 curve = SubResource("Curve2D_mpfpx")
 script = ExtResource("1_noo3o")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="."]
-position = Vector2(-588, -317)
-rotation = -1.631249
+position = Vector2(-2023, -151)
+rotation = -3.0374928

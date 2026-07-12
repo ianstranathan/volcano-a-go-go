@@ -12,7 +12,7 @@ size = Vector2(110, 110)
 
 [node name="BasePlatform" type="AnimatableBody2D"]
 z_index = 1000
-collision_mask = 3
+collision_mask = 2
 script = ExtResource("1_5caue")
 coll_extents = Vector2(100, 100)
 sprite_2_coll_factor = 1.0
@@ -34,7 +34,7 @@ texture = ExtResource("3_t5hbd")
 shape = SubResource("RectangleShape2D_fkjpt")
 
 [node name="Area2D" type="Area2D" parent="."]
-collision_mask = 3
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("RectangleShape2D_t5hbd")
