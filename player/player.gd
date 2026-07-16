@@ -11,6 +11,21 @@ signal dropped_pickup_item( item_key: ItemsDb.ItemNames, item_slot: int, pos: Ve
 
 var integrate_motion := true
 @export var kd: PlayerKinematicData
+
+
+enum AcclCoeffs {
+	GROUND_ACCL,
+	GROUND_DECL,
+	TURN_ACCL, # -- move_toward amt when turning
+	AIR_ACCL,
+	AIR_DECL,
+	GROUND_LERP_TO_ZERO,
+	GROUND_LERP_TO_TARGET_SPEED,
+	AIR_LERP_TO_ZERO,
+	AIR_LERP_TO_TARGET_SPEED
+}
+var acceleration_coeffs_from_state: Array[float] = []
+
 @onready var move_speed: float = kd.baseline_speed
 @onready var current_accel = 0.0
 @onready var g: float = kd.jump_gravity
@@ -100,6 +115,7 @@ var color: Color = Color(1., 1., 1., 1.);
 var can_run: bool = true
 
 func _ready() -> void:
+	acceleration_coeffs_from_state.resize(AcclCoeffs.size())
 	#----------------------------------------------------------- Running signals
 	$StaminaVisual.stamina_depleted.connect( func(): 
 		can_run = false)
@@ -490,17 +506,31 @@ func stop_resolution():
 	current_accel = move_toward(current_accel, kd.MOV_ACCL, kd.DECL)
 
 
-var testing: bool = false
+func move_toward_accel_from_move_input() -> float:
+	# -- 0: ground accl
+	# -- 1: ground decl
+	# -- 2: ground turn accl
+	# -- 3: air accl
+	# -- 4: air decl
+	# -- 5: lerp to zero
+	# -- 6: lerp from overspeed to target
+	if is_zero_approx( move_input.x):
+		if my_is_on_floor():
+			return acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL]
+		else:
+			return acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL]
+	else:
+		if my_is_on_floor():
+			return acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL]
+		else:
+			return acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL]
+
 func move(move_func_override = null) -> void:
-	if testing:
-		return
-		
-	# -- we're entirely skipping the move_resolution 
-	# -- if moving under an item
 	if move_func_override:
 		move_func_override.call()
 		return
 
+	# -- celeste was ~6 frames I think
 	if manual_wall_jump_frame_counter > 0:
 		return
 
@@ -586,31 +616,260 @@ func metaball_state_fn(delta):
 	check_for_jump(JumpTypes.METABALL)
 
 
+#func move_toward_target_speed(is_over_speed: bool):
+	#if is_over_speed:
+		#velocity.x = move_toward(velocity.x, 
+								 #state_target_x_speed,
+								 #acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED])
+	#else:
+		#velocity.x = lerp(velocity.x, 
+						#state_target_x_speed,
+						#acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO])
+#
+#func lerp_to_target_speed(is_over_speed: bool):
+	#if is_over_speed:
+		#velocity.x = lerp(velocity.x, 
+						#state_target_x_speed,
+						#acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED])
+	#else:
+		#velocity.x = lerp(velocity.x, 
+						#state_target_x_speed,
+						#acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO])
+
+
+# -- distinction between: 
+# -- "physics says we're moving the other way. (for changing accl curve)
+# -- and 
+# -- "player reversed input" (for animations or whatever)
+#func fn(delta):
+	#var raw_input_x = move_input.x
+	#var just_turned := false
+	#if not is_zero_approx(raw_input_x):
+		#var input_dir =  sign(raw_input_x)
+		#just_turned = (
+			#last_non_zero_input != 0.0 and
+			#input_dir != last_non_zero_input
+		#)
+		#last_non_zero_input = input_dir
+		#input_buffer_timer = INPUT_BUFFER_TIME
+	#else:
+		#input_buffer_timer -= delta
+	#
+	#var _on_floor = my_is_on_floor()
+	#var has_input = (not is_zero_approx(raw_input_x)) or (input_buffer_timer > 0.0)
+	#
+	#if has_input:
+		#var is_overspeed = abs(velocity.x) > state_target_x_speed
+		#var is_turning = last_non_zero_input * velocity.x <= 0
+						 ##or ( is_zero_approx(velocity.x) and last_vel_input_disagrees))
+		#print(is_turning)
+		#var target_speed = last_non_zero_input * state_target_x_speed * move_speed_modifier
+		#if is_overspeed:
+			#if is_turning:
+				#print("SKID")
+				#var r = (acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] if
+						 #_on_floor else 
+						 #acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_TARGET_SPEED])
+				#velocity.x = lerp(velocity.x, target_speed, r)
+			#else:
+				#var decay_rate = 0.5 if _on_floor else 0.1 
+				#velocity.x = move_toward(velocity.x, target_speed, decay_rate)
+		#else:
+			#if is_turning:
+				#var skid_rate = (12.0 if _on_floor else 
+								 #acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL])
+				#
+				#velocity.x = move_toward(velocity.x, target_speed, skid_rate)
+			#else:
+				#
+				#var accel = (acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] if 
+							 #_on_floor else 
+							 #acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL])
+				#velocity.x = move_toward(velocity.x, target_speed, 10. * accel)
+				#
+	#else:
+		#var r = (acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] if
+				 #_on_floor else
+				 #acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_ZERO])
+		#var lerp_val = lerp(velocity.x, 0.0, r)
+		#velocity.x = move_toward(velocity.x, 
+								 #lerp_val, 
+								 #acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL])
+		#
+		#if abs(velocity.x) < 2.0:
+			#velocity.x = 0.0
+var current_input_dir: float = 0.0
+var buffered_input_dir: float = 0.0
+var last_non_zero_input: float = 0.0
+
+var input_buffer_timer: float = 0.0
+const INPUT_BUFFER_TIME: float = 0.1 # 100ms window to register a direction change
+
+func fn(delta, move_func_override=null):
+	if move_func_override:
+		move_func_override.call()
+		return
+
+	# -- celeste was ~6 frames I think
+	if manual_wall_jump_frame_counter > 0:
+		return
+		
+	var raw_input_x := move_input.x
+	var just_turned := false
+	if !is_zero_approx(raw_input_x):
+		var input_dir : float = sign(raw_input_x)
+		current_input_dir = input_dir
+		last_non_zero_input = input_dir
+		buffered_input_dir = input_dir
+		input_buffer_timer = INPUT_BUFFER_TIME
+
+	else:
+		current_input_dir = 0.0
+		input_buffer_timer -= delta
+
+		if input_buffer_timer <= 0.0:
+			buffered_input_dir = 0.0
+		
+	var has_input := (
+		!is_zero_approx(raw_input_x)
+		or input_buffer_timer > 0.0
+	)
+
+	var desired_dir := (
+		current_input_dir
+		if !is_zero_approx(current_input_dir)
+		else buffered_input_dir
+	)
+	
+	var _on_floor := my_is_on_floor()
+	var target_speed : float= desired_dir * state_target_x_speed * move_speed_modifier
+	var is_overspeed = abs(velocity.x) > state_target_x_speed * 1.05
+
+	# Character is still physically moving opposite the desired direction.
+	var is_skidding : bool = (
+		desired_dir != 0.0
+		and velocity.x * desired_dir < -2.0
+		#and abs(velocity.x) > kd.baseline_speed
+	)
+
+	#if just_turned:
+		#print("JUST TURNED")
+#
+	#if is_skidding:
+		#print("SKIDDING")
+	
+	#print(
+	#"state=", MovementStates.keys()[movement_state],
+	#" raw=", move_input.x,
+	#" buffered=", input_buffer_timer,
+	#" desired=", last_non_zero_input,
+	#" vel=", velocity.x,
+	#" skid=", is_skidding
+#)
+	# -------------------------------------------------------------------------
+	# Movement
+	# -------------------------------------------------------------------------
+
+	if has_input:
+		if is_overspeed:
+			if is_skidding:
+				var r := (
+					acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED]
+					if _on_floor
+					else acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_TARGET_SPEED]
+				)
+				velocity.x = lerp(velocity.x, target_speed, r)
+			else:
+				var decay_rate := (
+					0.5
+					if _on_floor
+					else 0.1
+				)
+				velocity.x = move_toward(
+					velocity.x,
+					target_speed,
+					decay_rate
+				)
+		else:
+			if is_skidding:
+				var skid_rate : float = (
+					0.7 * kd.ground_accl
+					if _on_floor
+					else acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL]
+				)
+
+				velocity.x = move_toward(
+					velocity.x,
+					target_speed,
+					skid_rate
+				)
+
+			else:
+
+				var accel := (
+					acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL]
+					if _on_floor
+					else acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL]
+				)
+
+				velocity.x = move_toward(
+					velocity.x,
+					target_speed,
+					10.0 * accel
+				)
+
+	else:
+		var r := (
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO]
+			if _on_floor
+			else acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_ZERO]
+		)
+		var lerp_val : float = lerp(velocity.x, 0.0, r)
+		velocity.x = move_toward(
+			velocity.x,
+			lerp_val,
+			2. * acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL]
+		)
+		if abs(velocity.x) < 5:
+			velocity.x = 0.0
+
+
+func has_horizontal_intent() -> bool:
+	return (
+		!is_zero_approx(move_input.x)
+		or input_buffer_timer > 0.0
+	)
 	
 # -- consolidate the stuff that's always true on the ground
 func idle_state_fn(_delta) -> void:
 	check_for_jump()
-	velocity.x = move_toward(velocity.x, 0.0, kd.MOV_ACCL)
+	#velocity.x = move_toward(velocity.x, 0.0, kd.MOV_ACCL)
+	fn(_delta)
 	if !is_zero_approx(move_input.x):
 		movement_state_transition_to( MovementStates.WALKING)
+		return
 	if check_for_falling():
 		coyote_timer.start()
 
 
 func walking_state_fn(_delta) -> void:
-	if is_zero_approx(move_input.x): #and side_somersault_timer.is_stopped():
-		movement_state_transition_to( MovementStates.IDLE)
 	check_for_jump()
-	move()
+	#move()
+	fn(_delta)
 	if check_for_falling():
 		coyote_timer.start()
+	if !has_horizontal_intent(): #and side_somersault_timer.is_stopped():
+		movement_state_transition_to( MovementStates.IDLE)
+		return
 
 
 func running_state_fn( _delta) -> void:
-	if is_zero_approx(move_input.x): #and side_somersault_timer.is_stopped():
+	if !has_horizontal_intent(): #and side_somersault_timer.is_stopped():
 		movement_state_transition_to( MovementStates.IDLE)
+		return
 	check_for_jump()
-	move_resolution( 1.8 * move_speed )
+	fn(_delta)
+	#move_resolution( 1.8 * move_speed )
 	if check_for_falling():
 		coyote_timer.start()
 
@@ -628,10 +887,12 @@ func jumping_state_fn(_delta) -> void:
 	hang_time_modifier = hang_time_curve.sample(1. - (velocity.y / kd.jump_speed))
 	
 	handle_corner_correction()
-	move()
+	#move()
 	wall_jump_fast_utility()
+	fn(_delta)
 	if is_falling():
 		movement_state_transition_to(MovementStates.FALLING)
+		return
 
 
 # -- Climbing utils
@@ -710,9 +971,9 @@ func falling_state_fn(_delta) -> void:
 	handle_platform_fall_near_miss_correction()
 	# -- maybe we wanna go through the air slightly slower?
 	
-	move()
+	#move()
 	wall_jump_fast_utility()
-	
+	fn(_delta)
 	# -- ledge climbing target position is mutated / saved in is_ledge_grabbing()
 	if is_ledge_grabbing(true) and ledge_grab_buffer_timer.is_stopped():
 		velocity = Vector2.ZERO
@@ -879,12 +1140,15 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 					MovementStates.FALLING:
 						current_platform_displacement_ref = null
 			MovementStates.JUMPING:
+				# -- see refactored mvoement code (fn)
+				buffered_input_dir = 0.0
 				match new_movement_state:
 					MovementStates.FALLING:
 						hang_time_modifier = 1.0
 					MovementStates.WALL_SLIDING:
 						velocity = velocity.clamp(Vector2(0., 50), Vector2(0., 100))
 			MovementStates.FALLING:
+				buffered_input_dir = 0.0
 				hang_time_modifier = 1.0
 				var play_landing_effect = false
 				match new_movement_state:
@@ -917,6 +1181,12 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 				do_jump_out_of_metaball_vfx()
 
 				integrate_motion = true
+		
+		# ----------------- things we do for all state transitions
+		# ----------------- maybe separate and call it such
+		state_target_x_speed = get_horizontal_target_speed_from_state( new_movement_state )
+		# -----------------------------------------
+		set_acceleration_coeffs_from_state(new_movement_state)
 		# ----------------------------------
 		if new_movement_state == MovementStates.METABALL:
 			integrate_motion = false
@@ -951,8 +1221,94 @@ func do_jump_out_of_metaball_vfx():
 	metaball_jump_out_effect.dir = n
 	Events.world_effect.emit( name.to_int(), metaball_jump_out_effect )
 
-# ------------------------------------------------------- utils
-func gravity_from_state():
+# -------------------------------------------------------------------------------------------- utils
+
+func set_acceleration_coeffs_from_state(new_movement_state: MovementStates):
+	match new_movement_state:
+		MovementStates.IDLE:
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = kd.ground_accl
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = 10. * kd.ground_decl
+			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = kd.ground_accl
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.85
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.85
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_ZERO] = (
+				acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] * 0.3
+			)
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_TARGET_SPEED] = 0.9
+		MovementStates.WALKING:
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = kd.ground_accl
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = kd.ground_decl
+			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = kd.ground_accl * 0.70
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.7
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.7
+		MovementStates.RUNNING:
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = kd.ground_accl * 2.0
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = kd.ground_decl
+			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = kd.ground_accl * 1.5
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.5
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.3
+		MovementStates.JUMPING:
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = kd.air_accl
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = kd.air_decl
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.5
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.1
+		MovementStates.FALLING:
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = kd.air_accl
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = kd.air_decl
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.5
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.1
+		_:
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = 0.0
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.5
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.5
+
+# -- this is replacing move_speed
+@onready var state_target_x_speed : float = kd.baseline_speed
+func get_horizontal_target_speed_from_state( s: MovementStates) -> float:
+	match s:
+		MovementStates.IDLE:
+			return 0.0
+		MovementStates.WALKING:
+			return kd.baseline_speed
+		MovementStates.RUNNING:
+			return kd.baseline_speed * kd.running_2_baseline_ratio
+		MovementStates.JUMPING:
+			return kd.baseline_speed
+		MovementStates.FALLING:
+			return kd.v_x_peak_2_fall
+		MovementStates.CROUCHING:
+			return kd.crouching_2_baseline_ratio
+		MovementStates.WALL_SLIDING:
+			return kd.baseline_speed
+		#MovementStates.LEDGE_GRABBING:
+			#return kd.baseline_speed
+		MovementStates.CLIMBING:
+			return kd.climb_speed
+		MovementStates.CLOUD:
+			return 2. * kd.baseline_speed
+		MovementStates.PORTAL:
+			return 0.0
+		_:
+			return 0.0
+
+
+func gravity_from_state() -> float:
 	match movement_state:
 		MovementStates.IDLE:
 			return kd.jump_gravity
@@ -969,16 +1325,17 @@ func gravity_from_state():
 		MovementStates.WALL_SLIDING:
 			return kd.fall_gravity / 100.0
 		MovementStates.LEDGE_GRABBING:
-			return 0
+			return 0.0
 		MovementStates.ITEM_MOVING:
 			return kd.jump_gravity
 		MovementStates.CLIMBING:
-			return 0
+			return 0.0
 		MovementStates.CLOUD:
-			return 0
+			return 0.0
 		MovementStates.PORTAL:
-			return 0
-
+			return 0.0
+		_:
+			return 0.0
 
 func entered_portal():
 	velocity = Vector2.ZERO

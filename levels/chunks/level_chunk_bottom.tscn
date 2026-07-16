@@ -4,12 +4,12 @@
 [ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_rhh5g"]
 [ext_resource type="Texture2D" uid="uid://bd4245ukmdfyg" path="res://assets/tile_sets/kenney_abstract-platformer/Tilesheet/tilesheet_complete.png" id="2_xlftq"]
 [ext_resource type="PackedScene" uid="uid://dyhwphayywyw6" path="res://coin_manager/coin_manager.tscn" id="3_kdf0x"]
-[ext_resource type="PackedScene" uid="uid://4d5kvc0vxnc1" path="res://levels/platforms/palceholder_platform/placeholder_platform.tscn" id="4_5fak0"]
 [ext_resource type="PackedScene" uid="uid://dcuknsfjt8mbc" path="res://levels/platforms/falling_platform/falling_platform.tscn" id="5_o8udg"]
 [ext_resource type="Script" uid="uid://dfndtocpf6lff" path="res://levels/pickup_editor_placeholder.gd" id="7_obtet"]
 [ext_resource type="PackedScene" uid="uid://camohv0etu6x2" path="res://wind/wind_gust_lift/wind_gust_lift.tscn" id="8_rhh5g"]
 [ext_resource type="PackedScene" uid="uid://dxvt8fbol7y6b" path="res://fire_column/fire_column.tscn" id="9_a1uxq"]
 [ext_resource type="Resource" uid="uid://d1duxkgjr66nm" path="res://levels/level_data_rscs/level_chunk_bottom_data.tres" id="10_o7bos"]
+[ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="10_wndrb"]
 
 [sub_resource type="Resource" id="Resource_a1uxq"]
 script = ExtResource("2_rhh5g")
@@ -361,15 +361,6 @@ curve = SubResource("Curve2D_3mifc")
 [node name="CoinManager" parent="." node_paths=PackedStringArray("coin_path") instance=ExtResource("3_kdf0x")]
 coin_path = NodePath("../Path2D")
 
-[node name="ANGLED" parent="." instance=ExtResource("4_5fak0")]
-position = Vector2(146.00003, -1336)
-rotation = -0.63329995
-coll_extents = Vector2(700, 50)
-
-[node name="PlaceholderPlatform7" parent="." instance=ExtResource("4_5fak0")]
-position = Vector2(1158, -1981)
-coll_extents = Vector2(400, 400)
-
 [node name="tickable_geometry" type="Node2D" parent="."]
 
 [node name="FallingPlatform" parent="tickable_geometry" instance=ExtResource("5_o8udg")]
@@ -428,3 +419,12 @@ position = Vector2(1468, -403)
 
 [node name="FireColumn" parent="." instance=ExtResource("9_a1uxq")]
 level_chunk_data = ExtResource("10_o7bos")
+
+[node name="BasePlatform" parent="." instance=ExtResource("10_wndrb")]
+position = Vector2(91, -1309)
+rotation = -0.61353254
+coll_extents = Vector2(600, 70)
+
+[node name="BasePlatform2" parent="." instance=ExtResource("10_wndrb")]
+position = Vector2(920, -1698)
+coll_extents = Vector2(500, 100)
