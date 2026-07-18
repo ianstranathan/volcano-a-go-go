@@ -11,7 +11,6 @@ resource_local_to_scene = true
 [node name="Switch" type="Node2D" node_paths=PackedStringArray("base_platform")]
 script = ExtResource("1_m7yxj")
 speed = 40.0
-switch_type = 0
 base_platform = NodePath("BasePlatform")
 coll_extents = Vector2(100, 50)
 

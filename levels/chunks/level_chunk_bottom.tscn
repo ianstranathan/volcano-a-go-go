@@ -421,9 +421,14 @@ position = Vector2(1468, -403)
 level_chunk_data = ExtResource("10_o7bos")
 
 [node name="BasePlatform" parent="." instance=ExtResource("10_wndrb")]
-position = Vector2(91, -1309)
-rotation = -0.61353254
+position = Vector2(164.99997, -1179)
+rotation = -0.36443907
 coll_extents = Vector2(600, 70)
+
+[node name="BasePlatform3" parent="." instance=ExtResource("10_wndrb")]
+position = Vector2(-574, -1904.9999)
+rotation = -0.31715423
+coll_extents = Vector2(2000, 70)
 
 [node name="BasePlatform2" parent="." instance=ExtResource("10_wndrb")]
 position = Vector2(920, -1698)

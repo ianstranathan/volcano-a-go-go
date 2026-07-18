@@ -237,7 +237,6 @@ level_chunk_data = ExtResource("5_q630d")
 
 [node name="Switch" parent="tickables_container" instance=ExtResource("8_wto44")]
 position = Vector2(-1880, -112)
-switch_type = 1
 coll_extents = Vector2(100, 100)
 
 [node name="Door" parent="tickables_container" node_paths=PackedStringArray("switch", "path_component") instance=ExtResource("9_ghx8o")]
@@ -253,6 +252,14 @@ position = Vector2(-738, -330)
 script = ExtResource("7_t4eux")
 _path_follower_component = NodePath("../../../PathsContainer/LoopTest")
 metadata/_custom_type_script = "uid://b1quk135kfj1v"
+
+[node name="Switch2" parent="tickables_container" instance=ExtResource("8_wto44")]
+position = Vector2(-1508, -107)
+transition_type = 1
+easing_type = 2
+speed = 300.0
+switch_type = 0
+coll_extents = Vector2(100, 100)
 
 [node name="PathsContainer" type="Node2D" parent="."]
 script = ExtResource("8_pn6oq")

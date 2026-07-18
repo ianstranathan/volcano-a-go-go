@@ -41,11 +41,15 @@ func _ready() -> void:
 	# -- then it will automatically be able to be found by player script
 	target_to_move.add_to_group("moving_platforms")
 
-var stop := false
+#var stop := false
+var moving := true
+
 func execute_tick(delta: float):
-	
-	if not target_to_move or not _path_follower_component:
+	if (not target_to_move or 
+		not _path_follower_component or 
+		!moving):
 		return
+
 
 	if movement_type == MoveType.ONE_SHOT:
 		
@@ -82,13 +86,16 @@ func execute_tick(delta: float):
 			_time = wrapf(_time, 0.0, 1.0)
 			tween_time = _time
 		MoveType.ONE_SHOT:
+			#print(_time)
 			_time = clamp(_time, 0.0, 1.0)
-			if is_equal_approx(_time, 1.0) or is_equal_approx(_time, 0.0):
-				if not stop:
-					stop = true
-					movement_finished.emit()
 			tween_time = _time
-			
+			# -- we can only start moving (moving is true iff) we have a target_time
+			if ((time_direction > 0 and _time >= target_time) or
+				time_direction < 0 and _time <= target_time):
+				movement_finished.emit()
+				_time = target_time
+				moving = false
+
 	# -- if looping, force linear so it doesn't warp or change speed at the wrap point
 	var current_trans = transition_type
 	var current_ease = easing_type
@@ -111,9 +118,16 @@ func set_path( p: PathFollowPlatformComponent) -> void:
 	_path_follower_component = p
 
 
-func reverse() -> void:
-	time_direction *= -1.0
-	stop = false
+var target_time: float
+func set_target_time(target: float):
+	var t = clampf(target, 0.0, 1.0)
+	
+	if t > _time:
+		time_direction = 1.0
+	elif t < _time:
+		time_direction = -1.0
+	moving = true
+	target_time = t
 
 
 func calc_path_length():
