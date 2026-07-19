@@ -381,7 +381,20 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 				#if velocity.y > 0:
 					#velocity.y = 0
 				velocity = velocity.slide(normal)
-				
+				#velocity = velocity.lerp(velocity.slide(normal), 0.5)
+			else:
+				var is_hitting_ceiling = normal.dot(Vector2.DOWN) > 0.1
+				if is_hitting_ceiling:
+					# Option A: The Classic Mario Bonk (Zero out vertical, keep horizontal)
+					if velocity.y < 0:
+						velocity.y = 0.1 * velocity.y
+					
+					# Option B: The Elastic Rebound (Slight downward push)
+					# if velocity.y < 0:
+					#     velocity.y = 50 # Or: velocity.y = -velocity.y * 0.2
+					
+					# Slide allows them to keep horizontal momentum if moving diagonally
+					velocity = velocity.slide(normal)
 	last_move_input = move_input
 	pos_current = global_position
 
@@ -696,65 +709,25 @@ func fn(delta, move_func_override=null):
 	#" skid=", is_skidding
 #)
 	# -- movement stuff
+	var ba = kd.ground_accl
 	if has_input:
 		if is_overspeed_in_x:
-			if is_skidding:
-				#print("overspeed and velocity is opposite to desire")
-				#var r := (
-					#acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED]
-					#if _on_floor
-					#else acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_TARGET_SPEED]
-				#)
-				#velocity.x = lerp(velocity.x, target_speed, r)
-				if _on_floor:
-					velocity.x = move_toward(velocity.x, target_speed, 0.8 * kd.ground_accl)
-				else:
-					velocity.x = lerp(velocity.x, 
+			print("overspeed in x ")
+			if not _on_floor:
+				velocity.x = lerp(velocity.x, 
 									target_speed, 
 									acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_TARGET_SPEED])
-					#var lerp_val : float = lerp(velocity.x, 0.0, r)
 			else:
-				#print("overspeed and velocity is in desired direction")
-				#var decay_rate := (
-					#0.5
-					#if _on_floor
-					#else 0.1
-				#)
-				var r := (
-					acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED]
-					if _on_floor
-					else acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_TARGET_SPEED]
-				)
-				velocity.x = move_toward(
-					velocity.x,
-					target_speed,
-					r
-				)
-				#velocity.x = lerp(velocity.x, target_speed, r)
+				velocity.x = lerp(velocity.x, target_speed, 0.2)
 		else:
-			# -- within normal movement range here
+			var r = 10. * kd.ground_accl if _on_floor else 0.3 * kd.ground_accl
 			if is_skidding:
-				#print("at or below state speed and velocity is opposite to desire")
-				var skid_rate : float = (0.8 * kd.ground_accl
-										if _on_floor
-										else acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL])
-				velocity.x = move_toward(
-					velocity.x,
-					target_speed,
-					skid_rate
-				)
-			else:
-				#print("at or below state speed and velocity is in desired direction")
-				var accel := (
-					acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL]
-					if _on_floor
-					else acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL]
-				)
-				velocity.x = move_toward(
-					velocity.x,
-					target_speed,
-					10.0 * accel
-				)
+				r = (0.75 * kd.ground_accl if _on_floor else 0.3 * kd.ground_accl)
+			velocity.x = move_toward(
+				velocity.x,
+				target_speed,
+				r
+			)
 	else:
 		#print("no input, lerping to zero")
 		# -- to idle
@@ -1121,6 +1094,9 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						do_wall_jump_vfx()
 			MovementStates.RUNNING:
 				$StaminaVisual.use( false )
+			MovementStates.ITEM_MOVING:
+				if $CollisionShape2D.disabled:
+					$CollisionShape2D.set_deferred("disabled", false)
 			MovementStates.METABALL:
 				$Sprite2D.visible = true
 				go_2_capsule_shape()
@@ -1214,7 +1190,7 @@ func set_acceleration_coeffs_from_state(new_movement_state: MovementStates):
 			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = kd.air_accl
 			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = kd.air_decl
 			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.5
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.5
+			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.1
 		MovementStates.FALLING:
 			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = 0.0
 			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = 0.0
@@ -1348,7 +1324,7 @@ func apply_command( c: PlayerCommand):
 		jump_buffer_timer.start()
 
 	if c.jump_released and movement_state == MovementStates.JUMPING:
-		velocity.y *= 0.4
+		velocity.y *= 0.5
 		movement_state_transition_to(MovementStates.FALLING)
 		
 	if c.crouch_pressed:
