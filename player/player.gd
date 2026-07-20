@@ -79,7 +79,7 @@ var is_on_ground := true
 var input_manager: LocalPlayerController
 @onready var player_controller = $PlayerController
 var is_replaying: bool = false
-
+@onready var animation_controller: PlayerAnimationController = ($PlayerAnimationController)
 
 # --------------------------------------------------- state sprite effects stuff
 var last_tocuhing_surface_state: MovementStates
@@ -118,6 +118,7 @@ var can_run: bool = true
 
 func _ready() -> void:
 	acceleration_coeffs_from_state.resize(AcclCoeffs.size())
+	animation_controller.set_movement_state(movement_state)
 	#----------------------------------------------------------- Running signals
 	$StaminaVisual.stamina_depleted.connect( func(): 
 		can_run = false)
@@ -125,8 +126,8 @@ func _ready() -> void:
 		can_run = true)
 	
 	#---------------------------------------------------------------------------
-	$Sprite2D.material.set_shader_parameter("src_col", color)
-	$Sprite2D.material.set_shader_parameter("dummy_burn_timer", 5.0)
+	#$Sprite2D.material.set_shader_parameter("src_col", color)
+	#$Sprite2D.material.set_shader_parameter("dummy_burn_timer", 5.0)
 	
 	$ClimbingInterface.climbing_area_entered.connect( func(): can_climb = true )
 	$ClimbingInterface.climbing_area_exited.connect( func(): can_climb = false)
@@ -1141,7 +1142,7 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 			last_tocuhing_surface_state = new_movement_state
 		set_debug_label( new_movement_state )
 		movement_state = new_movement_state
-
+		animation_controller.set_movement_state(new_movement_state)
 
 # --------------------------------------------------------------------------------------------------
 # -- move this all to a vfx manager on the player
@@ -1344,6 +1345,8 @@ var max_pickup_item_throw_magnitude := 1000
 
 func apply_command( c: PlayerCommand):
 	move_input = c.move_input
+	update_visual_facing(move_input.x)
+	
 	if c.jump_pressed:
 		jump_buffer_timer.start()
 
@@ -1393,7 +1396,12 @@ func apply_command( c: PlayerCommand):
 		# -- we were running and we just let off of run
 		if movement_state == MovementStates.RUNNING:
 			movement_state_transition_to(MovementStates.WALKING)
+			
+func update_visual_facing(horizontal_direction: float) -> void:
+	if absf(horizontal_direction) < 0.01:
+		return
 
+	animation_controller.set_facing_direction(horizontal_direction)
 # ------------------------------------------------------------------------------
 #
 #--TODO
