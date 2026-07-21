@@ -87,19 +87,15 @@ func _physics_process(_delta: float) -> void:
 		rope.set_point_position(1, to_local(target_pos))
 
 
+var pull_speed = 1500.0 
 func handle_hookshot():
 	var to_anchor = target_pos - player_ref.global_position
 	var distance = to_anchor.length()
 	var target_dir = to_anchor.normalized()
-	
-	# 1. Constant Pull Speed
-	var pull_speed = 1500.0 
+
 	player_ref.velocity = target_dir * pull_speed
-	
-	# 2. Arrival Logic (Stop when close enough)
+
 	if distance < 50.0:
-		# Stop pulling and perhaps give a little "hop" at the end
-		#state = NORMAL # Switch back to your movement state
 		player_ref.velocity = player_ref.velocity * 0.5
 		on_item_stopped()
 

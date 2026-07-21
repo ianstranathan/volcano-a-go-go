@@ -61,7 +61,7 @@ func _ready():
 
 		#assert($BasePlatform/MovingPlatformComponent)
 		moving_platform_component = base_platform.get_node("MovingPlatformComponent")
-		
+		moving_platform_component.moving = false
 		moving_platform_component._path_follower_component = path_component
 		moving_platform_component.calc_path_length()
 		#base_platform.get_node("MovingPlatformComponent").set_path(path_component)

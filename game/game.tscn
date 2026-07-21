@@ -96,7 +96,7 @@ game_ref = NodePath("../..")
 scale = Vector2(1e-05, 1e-05)
 
 [node name="Marker2D" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(-16600001, -38400000)
+position = Vector2(-114200000, 7500004)
 
 [node name="Marker2D2" type="Marker2D" parent="World/InitialSpawnPoints"]
 position = Vector2(28700008, -34500000)

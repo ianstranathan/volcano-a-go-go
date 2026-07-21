@@ -3,7 +3,7 @@ class_name PlayerKinematicData
 extends Resource
 
 # ------------------------------ Primary Core Values
-@export var baseline_speed: float = 410.0:
+@export var baseline_speed: float = 425.0:
 	set(value):
 		baseline_speed = value
 		_recalculate_physics()
@@ -19,18 +19,18 @@ extends Resource
 # Turn Accel: Moderate (creates a distinct, satisfying sliding "skid" animation before reversing direction).
 
 # -----------------------------  ACCELERATIONS
-@export var ground_accl = 60.0
-@export var ground_turn_accl = 4.0 * ground_accl # -- full ground turn accl
+@export var ground_accl = 80.0
+#@export var ground_turn_accl = 4.0 * ground_accl # -- full ground turn accl
 @export var air_accl = ground_accl / 3.0
 
 # -- target speeds as a ratio of baseline speed
-@export var running_2_baseline_ratio: float = 1.4
+@export var running_2_baseline_ratio: float = 1.6
 @export var crouching_2_baseline_ratio: float = 0.5
 @export var climbing_2_baseline_ratio: float = 0.7
 
 # -----------------------------  DECELERATIONS
-@export var ground_decl = 0.8 * ground_accl
-@export var air_decl = ground_decl / 3.0
+#@export var ground_decl = 0.8 * ground_accl
+@export var air_decl = air_accl
 
 # -----------------------------  Lerp percentages
 

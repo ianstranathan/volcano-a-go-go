@@ -42,7 +42,7 @@ func _ready() -> void:
 	target_to_move.add_to_group("moving_platforms")
 
 #var stop := false
-var moving := true
+@export var moving := true
 
 func execute_tick(delta: float):
 	if (not target_to_move or 
@@ -91,7 +91,9 @@ func execute_tick(delta: float):
 			tween_time = _time
 			# -- we can only start moving (moving is true iff) we have a target_time
 			if ((time_direction > 0 and _time >= target_time) or
-				time_direction < 0 and _time <= target_time):
+				time_direction < 0 and _time <= target_time and 
+				moving):
+				#print(_time)
 				movement_finished.emit()
 				_time = target_time
 				moving = false

@@ -24,10 +24,7 @@ enum AcclCoeffs {
 	AIR_LERP_TO_ZERO,
 	AIR_LERP_TO_TARGET_SPEED
 }
-var acceleration_coeffs_from_state: Array[float] = []
 
-@onready var move_speed: float = kd.baseline_speed
-@onready var current_accel = 0.0
 @onready var g: float = kd.jump_gravity
 
 # -- aliases of kinematic data for reference to player (e.g. items need this)
@@ -117,18 +114,13 @@ var color: Color = Color(1., 1., 1., 1.);
 var can_run: bool = true
 
 func _ready() -> void:
-	acceleration_coeffs_from_state.resize(AcclCoeffs.size())
 	animation_controller.set_movement_state(movement_state)
 	#----------------------------------------------------------- Running signals
 	$StaminaVisual.stamina_depleted.connect( func(): 
 		can_run = false)
 	$StaminaVisual.stamina_started_recharging.connect( func(): 
 		can_run = true)
-	
-	#---------------------------------------------------------------------------
-	#$Sprite2D.material.set_shader_parameter("src_col", color)
-	#$Sprite2D.material.set_shader_parameter("dummy_burn_timer", 5.0)
-	
+
 	$ClimbingInterface.climbing_area_entered.connect( func(): can_climb = true )
 	$ClimbingInterface.climbing_area_exited.connect( func(): can_climb = false)
 	#------------------------------------------------------- grabbable component
@@ -214,9 +206,8 @@ func check_for_jump(do_jump_override=null) -> void:
 		# NOTE change this man
 		elif movement_state == MovementStates.CLIMBING:
 			do_jump(JumpTypes.REGULAR)
-	
-#@onready var kd.wall_jump_scale: Vector2 = Vector2(kd.jump_speed / 2.0,
-					 							#kd.jump_speed / 1.3)
+
+
 func do_jump(jump_type, velocity_override=null):
 	# -- logic of what to do for a specific jump
 	jump_buffer_timer.stop()
@@ -362,6 +353,7 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 				#
 				## -- rpc the client we collided with to tell them to updat their impulse
 				#predict_impact_notification.rpc_id(_collider.name.to_int(), impulse)
+	# ---------------------------------------------------------------------------
 	if integrate_motion:
 		global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
 	
@@ -378,27 +370,26 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 				# -- to a tangent and only move in that direction
 				# -- slide is good enough for now
 				#platform_tangent = normal.orthogonal()
-				current_platform_displacement_ref_check( collision )
-				#if velocity.y > 0:
-					#velocity.y = 0
-				velocity = velocity.slide(normal)
-				#velocity = velocity.lerp(velocity.slide(normal), 0.5)
+				current_platform_displacement_ref_check(collision)
+
+				var tangent = Vector2(normal.y, -normal.x).normalized()
+
+				# Ensure the tangent points in the direction of movement.
+				if move_input.x != 0.0 and tangent.x * move_input.x < 0.0:
+					tangent = -tangent
+
+				# Preserve horizontal speed while following the slope.
+				if abs(tangent.x) > 0.001:
+					velocity = tangent * (velocity.x / tangent.x)
 			else:
 				var is_hitting_ceiling = normal.dot(Vector2.DOWN) > 0.1
 				if is_hitting_ceiling:
-					# Option A: The Classic Mario Bonk (Zero out vertical, keep horizontal)
 					if velocity.y < 0:
 						velocity.y = 0.1 * velocity.y
-					
-					# Option B: The Elastic Rebound (Slight downward push)
-					# if velocity.y < 0:
-					#     velocity.y = 50 # Or: velocity.y = -velocity.y * 0.2
-					
-					# Slide allows them to keep horizontal momentum if moving diagonally
 					velocity = velocity.slide(normal)
 	last_move_input = move_input
 	pos_current = global_position
-
+	
 # ------------------------------------------------------------------------------
 
 @rpc("any_peer", "unreliable")
@@ -415,18 +406,12 @@ func predict_impact_notification( impulse: Vector2):
 		)
 
 # ------------------------------------------------------------------------------
-
-
 # -- TODO
 func current_platform_displacement_ref_check(coll: KinematicCollision2D):
 	var collider = coll.get_collider()
 	if collider and collider.is_in_group("moving_platforms"):
 		current_platform_displacement_ref = collider.get_node_or_null("MovingPlatformComponent")
 
-
-#@rpc("any_peer", "call_local", "reliable")
-#func platform_displacement( collider_id ):
-	#pass
 
 func current_platform_for_remote_interpolating() -> void:
 	if my_is_on_floor():
@@ -442,11 +427,6 @@ func my_is_on_floor() -> bool:
 
 func is_falling():
 	return velocity.y >= 0 and not my_is_on_floor()
-
-
-#@onready var rhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/RHS, $WallCheckContainer/RHS1]
-#@onready var lhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/LHS, $WallCheckContainer/LHS1]
-#@onready var ledge_grab_arrs = [rhs_ledge_grab_pair, lhs_ledge_grab_pair]
 
 
 @onready var lhs_wall_rays:  Array[RayCast2D] = [
@@ -500,74 +480,12 @@ func set_debug_label(new_movement_state: MovementStates) -> void:
 	$Label.text = MovementStates.keys()[new_movement_state]
 
 
-#------------------------------------------------- movement state fns
-
-#var platform_tangent: Vector2 = Vector2.ZERO  SEE NOTE AT BOTTOM OF EXECUTE TICK
-#func move_resolution(move_speed_override=null):
-	#var target_speed
-	#if move_speed_override:
-		#target_speed = move_input.x * move_speed_override * move_speed_modifier
-	#else:
-		#target_speed = move_input.x * move_speed * move_speed_modifier
-	#var is_turning := move_input.x * velocity.x < 0
-	#var is_overspeed_in_x : bool = abs(velocity.x) > abs(target_speed)
-	#
-	#var target_accel_rate = kd.TURN_ACCL if is_turning else kd.MOV_ACCL
-	#current_accel = lerp(current_accel, float(target_accel_rate), 0.15)
-#
-	#if is_overspeed_in_x and not is_turning:
-		#var _is_in_air = movement_state in [MovementStates.FALLING, MovementStates.JUMPING]
-		#var decl_weight = kd.AIR_DECL if _is_in_air else kd.DECL
-		#velocity.x = move_toward(velocity.x, 0, decl_weight)
-	#else:
-		#velocity.x = move_toward(velocity.x, target_speed, current_accel)
-#
-#
-#func stop_resolution():
-	#current_accel = move_toward(current_accel, kd.MOV_ACCL, kd.DECL)
-
-
-func move_toward_accel_from_move_input() -> float:
-	# -- 0: ground accl
-	# -- 1: ground decl
-	# -- 2: ground turn accl
-	# -- 3: air accl
-	# -- 4: air decl
-	# -- 5: lerp to zero
-	# -- 6: lerp from overspeed to target
-	if is_zero_approx( move_input.x):
-		if my_is_on_floor():
-			return acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL]
-		else:
-			return acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL]
-	else:
-		if my_is_on_floor():
-			return acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL]
-		else:
-			return acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL]
-
-#func move(move_func_override = null) -> void:
-	#if move_func_override:
-		#move_func_override.call()
-		#return
-#
-	## -- celeste was ~6 frames I think
-	#if manual_wall_jump_frame_counter > 0:
-		#return
-#
-	#if not is_zero_approx(move_input.x):
-		#move_resolution()
-	#else:
-		#stop_resolution()
-
-
 func check_for_falling() -> bool:
 	return is_falling() and coyote_timer.is_stopped()
 
 
 func crouching_state_fn(_delta: float):
-	#move_resolution(0.5 * move_speed)
-	fn(_delta)
+	grounded_horizontal_movement(_delta)
 	if check_for_falling():
 		coyote_timer.start()
 
@@ -580,7 +498,7 @@ func transition_to_metaball(collision_pt: Vector2,
 		do_jump_out_of_metaball_vfx()
 		go_2_circle_shape()
 		#$CollisionShape2D.set_deferred("disabled", true)
-		$Sprite2D.visible = false
+		$CharacterVisuals/Body.visible = false
 		movement_state_transition_to(MovementStates.METABALL)
 		velocity = Vector2.ZERO
 	
@@ -608,16 +526,12 @@ func my_change_collision_shape(h: float, r: float, s: float) -> void:
 
 # -- 
 func go_2_circle_shape():
-	$Sprite2D.material.set_shader_parameter("height", 0.)
-	$Sprite2D.material.set_shader_parameter("radius", 0.33)
 	my_change_collision_shape(circle_coll_shape_height, 
 							  default_coll_shape_radius, 
 							  default_2_circle_scale)
 
 
 func go_2_capsule_shape():
-	$Sprite2D.material.set_shader_parameter("height", 0.45)
-	$Sprite2D.material.set_shader_parameter("radius", 0.33)
 	my_change_collision_shape(capsule_coll_shape_height, 
 							  default_coll_shape_radius, 
 							  1. / default_2_circle_scale)
@@ -638,161 +552,69 @@ func metaball_state_fn(delta):
 	check_for_jump(JumpTypes.METABALL)
 
 
-var current_input_dir: float = 0.0
-var buffered_input_dir: float = 0.0
-var last_non_zero_input: float = 0.0
-
-var input_buffer_timer: float = 0.0
-const INPUT_BUFFER_TIME: float = 0.1 # 100ms window to register a direction change
-
-func fn(delta, move_func_override=null):
-	if move_func_override:
-		move_func_override.call()
-		return
-
-	# -- celeste was ~6 frames I think
-	if manual_wall_jump_frame_counter > 0:
-		return
-	
-	# -- state stuff
-	var raw_input_x := move_input.x
-	var just_turned := false
-	if !is_zero_approx(raw_input_x):
-		var input_dir : float = sign(raw_input_x)
-		current_input_dir = input_dir
-		last_non_zero_input = input_dir
-		buffered_input_dir = input_dir
-		input_buffer_timer = INPUT_BUFFER_TIME
-
-	else:
-		current_input_dir = 0.0
-		input_buffer_timer -= delta
-
-		if input_buffer_timer <= 0.0:
-			buffered_input_dir = 0.0
-		
-	var has_input := (
-		!is_zero_approx(raw_input_x)
-		or input_buffer_timer > 0.0
-	)
-
-	var desired_dir := (
-		current_input_dir
-		if !is_zero_approx(current_input_dir)
-		else buffered_input_dir
-	)
-	
-	var _on_floor := is_on_ground#my_is_on_floor()
-	var target_speed : float= desired_dir * state_target_x_speed * move_speed_modifier
-	# -- leaving a little buffer to not have floating point fluxuations
-	var is_overspeed_in_x = abs(velocity.x) > state_target_x_speed * 1.05
-
-	# Character is still physically moving opposite the desired direction.
-	var is_skidding : bool = (
-		desired_dir != 0.0
-		and velocity.x * desired_dir < -2.0
-		#and _on_floor
-		#and abs(velocity.x) > kd.baseline_speed
-	)
-
-	#if just_turned:
-		#print("JUST TURNED")
-#
-	#if is_skidding:
-		#print("SKIDDING")
-	
-	#print(
-	#"state=", MovementStates.keys()[movement_state],
-	#" raw=", move_input.x,
-	#" buffered=", input_buffer_timer,
-	#" desired=", last_non_zero_input,
-	#" vel=", velocity.x,
-	#" skid=", is_skidding
-#)
-	# -- movement stuff
-	var ba = kd.ground_accl
-	if has_input:
-		if is_overspeed_in_x:
-			print("overspeed in x ")
-			if not _on_floor:
-				velocity.x = lerp(velocity.x, 
-									target_speed, 
-									acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_TARGET_SPEED])
-			else:
-				velocity.x = lerp(velocity.x, target_speed, 0.2)
-		else:
-			var r = 10. * kd.ground_accl if _on_floor else 0.3 * kd.ground_accl
-			if is_skidding:
-				r = (0.75 * kd.ground_accl if _on_floor else 0.3 * kd.ground_accl)
-			velocity.x = move_toward(
-				velocity.x,
-				target_speed,
-				r
-			)
-	else:
-		#print("no input, lerping to zero")
-		# -- to idle
-		if is_overspeed_in_x and _on_floor:
-			#if _on_floor:
-			velocity.x = move_toward(velocity.x, 0.0, 0.6 * kd.ground_accl)
-			#else:
-				#velocity.x = lerp(velocity.x, 
-								#target_speed, 
-								#acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_TARGET_SPEED])
-		else:
-			var r := (
-				acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO]
-				if _on_floor
-				else acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_ZERO]
-			)
-			var lerp_val : float = lerp(velocity.x, 0.0, r)
-			velocity.x = move_toward(
-				velocity.x,
-				lerp_val,
-				2. * acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL]
-			)
-			if abs(velocity.x) < 5:
-				velocity.x = 0.0
-
-
-func has_horizontal_intent() -> bool:
-	return (
-		!is_zero_approx(move_input.x)
-		or input_buffer_timer > 0.0
-	)
-	
 # -- consolidate the stuff that's always true on the ground
 func idle_state_fn(_delta) -> void:
 	check_for_jump()
-	#velocity.x = move_toward(velocity.x, 0.0, kd.MOV_ACCL)
-	fn(_delta)
+	velocity.x = move_toward(velocity.x, 0.0, kd.MOV_ACCL)
+	#fn(_delta)
+	
+	
 	if !is_zero_approx(move_input.x):
 		movement_state_transition_to( MovementStates.WALKING)
 		return
 	if check_for_falling():
 		coyote_timer.start()
+		
 
+func grounded_horizontal_movement( delta):
+	var target_speed : float= move_input.x * state_target_x_speed
+	# -- 0 at 0 and 1 at state speed
+	var t : float = clamp(abs(velocity.x) / state_target_x_speed, 0.0, 1.0)
+	var reversing := (
+		move_input.x != 0
+		and velocity.x * move_input.x < 0
+	)
+	if reversing:
+		# -- we're inverting the interpolant
+		# -- if reversing
+		# -- so it's 0 when we're at speed
+		# -- and 1 if we're at zero
+		t = 1.0 - t
 
-func walking_state_fn(_delta) -> void:
+	var a0 = 2000.0
+	var a1 = 4000.0
+	var accel : float = lerp( a0, a1,
+		# -- this is giving us that satisfying start delay
+		t * t if !reversing else (1. - t) * (1. - t)
+	)
+	
+	velocity.x = move_toward(
+		velocity.x,
+		target_speed,
+		accel * delta
+	)
+	
+func walking_state_fn(delta) -> void:
 	check_for_jump()
-	#move()
-	fn(_delta)
+	grounded_horizontal_movement( delta )
+
 	if check_for_falling():
 		coyote_timer.start()
-	if !has_horizontal_intent(): #and side_somersault_timer.is_stopped():
+	#if #!has_horizontal_intent(): #and side_somersault_timer.is_stopped():
+	if is_zero_approx(velocity.x):
 		movement_state_transition_to( MovementStates.IDLE)
 		return
 
 
 func running_state_fn( _delta) -> void:
-	if !has_horizontal_intent(): #and side_somersault_timer.is_stopped():
-		movement_state_transition_to( MovementStates.IDLE)
-		return
 	check_for_jump()
-	fn(_delta)
-	#move_resolution( 1.8 * move_speed )
+	grounded_horizontal_movement( _delta )
 	if check_for_falling():
 		coyote_timer.start()
+	if is_zero_approx(velocity.x):
+		movement_state_transition_to( MovementStates.IDLE)
+		return
+
 
 # -- case: where we want a wall jump as fast as possible
 func wall_jump_fast_utility():
@@ -806,15 +628,38 @@ func jumping_state_fn(_delta) -> void:
 	# -- be careful, I consciously took away an absolute value check
 	# -- jumping should always be a negative direction
 	hang_time_modifier = hang_time_curve.sample(1. - (velocity.y / kd.jump_speed))
-	
 	handle_corner_correction()
-	#move()
 	wall_jump_fast_utility()
-	fn(_delta)
+	non_groudned_horizontal_movement( _delta )
+	
 	if is_falling():
 		movement_state_transition_to(MovementStates.FALLING)
 		return
 
+
+func non_groudned_horizontal_movement( _delta):
+	# -- if overspeed and not turning, keep riding the wave
+	# -- if overspeed and turning hard turn
+	#if manual_wall_jump_frame_counter > 0:
+		#return
+	var reversing := (
+		move_input.x != 0
+		and velocity.x * move_input.x < 0
+	)
+	var is_overspeed = abs(velocity.x) > state_target_x_speed * 1.05
+	if is_overspeed:
+		if reversing:
+			velocity.x = lerp(velocity.x, 
+							  state_target_x_speed * move_input.x, 
+							  0.5)
+		else:
+			return
+	else:
+		velocity.x = move_toward(
+			velocity.x,
+			state_target_x_speed * move_input.x,
+			kd.air_accl
+		)
 
 # -- Climbing utils
 func should_start_climbing():
@@ -892,9 +737,8 @@ func falling_state_fn(_delta) -> void:
 	handle_platform_fall_near_miss_correction()
 	# -- maybe we wanna go through the air slightly slower?
 	
-	#move()
 	wall_jump_fast_utility()
-	fn(_delta)
+	non_groudned_horizontal_movement( _delta )
 	# -- ledge climbing target position is mutated / saved in is_ledge_grabbing()
 	if is_ledge_grabbing(true) and ledge_grab_buffer_timer.is_stopped():
 		velocity = Vector2.ZERO
@@ -945,7 +789,7 @@ func wall_sliding_state_fn(_delta) -> void:
 func item_moving_state_fn(_delta) -> void:
 	if $ItemManager.active_movement_override.allows_horizontal_movement():
 		if !move_input.is_zero_approx():
-			velocity.x = move_toward(velocity.x, move_input.x * move_speed * move_speed_modifier, kd.MOV_ACCL / 3.0)
+			velocity.x = move_toward(velocity.x, move_input.x * kd.baseline_speed, kd.DECL / 12.0)
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, kd.DECL / 12.0)
 
@@ -995,9 +839,7 @@ func ledge_grabbing_state_fn(delta) -> void:
 			target_ledge_grabbing_climb_pos,
 			ledge_climb_progress * ledge_climb_progress # -- x^2 easing
 		)
-		#velocity = (target_pos - global_position) / delta
-	
-	
+
 	if ledge_climb_progress >= 1.0 or move_input.y < -0.6:
 		$CollisionShape2D.set_deferred("disabled", false)
 		ledge_grab_buffer_timer.start()
@@ -1060,15 +902,12 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 					MovementStates.FALLING:
 						current_platform_displacement_ref = null
 			MovementStates.JUMPING:
-				# -- see refactored mvoement code (fn)
-				buffered_input_dir = 0.0
 				match new_movement_state:
 					MovementStates.FALLING:
 						hang_time_modifier = 1.0
 					MovementStates.WALL_SLIDING:
 						velocity = velocity.clamp(Vector2(0., 50), Vector2(0., 100))
 			MovementStates.FALLING:
-				buffered_input_dir = 0.0
 				hang_time_modifier = 1.0
 				var play_landing_effect = false
 				match new_movement_state:
@@ -1099,7 +938,7 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 				if $CollisionShape2D.disabled:
 					$CollisionShape2D.set_deferred("disabled", false)
 			MovementStates.METABALL:
-				$Sprite2D.visible = true
+				$CharacterVisuals/Body.visible = true
 				go_2_capsule_shape()
 				do_jump_out_of_metaball_vfx()
 
@@ -1109,7 +948,6 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 		# ----------------- maybe separate and call it such
 		state_target_x_speed = get_horizontal_target_speed_from_state( new_movement_state )
 		# -----------------------------------------
-		set_acceleration_coeffs_from_state(new_movement_state)
 		# ----------------------------------
 		if new_movement_state == MovementStates.METABALL:
 			integrate_motion = false
@@ -1145,71 +983,6 @@ func do_jump_out_of_metaball_vfx():
 	Events.world_effect.emit( name.to_int(), metaball_jump_out_effect )
 
 # -------------------------------------------------------------------------------------------- utils
-
-func set_acceleration_coeffs_from_state(new_movement_state: MovementStates):
-	match new_movement_state:
-		MovementStates.IDLE:
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = kd.ground_accl
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = 10. * kd.ground_decl
-			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = kd.ground_accl
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.85
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.85
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_ZERO] = (
-				acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] * 0.3
-			)
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_LERP_TO_TARGET_SPEED] = 0.9
-		MovementStates.WALKING:
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = kd.ground_accl
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = kd.ground_decl
-			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = kd.ground_accl * 0.70
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.7
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.7
-		MovementStates.RUNNING:
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = kd.ground_accl * 2.0
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = kd.ground_decl
-			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = kd.ground_accl * 1.5
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.5
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.3
-		MovementStates.CROUCHING:
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = kd.ground_accl
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = kd.ground_decl
-			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = kd.ground_accl * 0.70
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.7
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.7
-		MovementStates.JUMPING:
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = kd.air_accl
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = kd.air_decl
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.5
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.1
-		MovementStates.FALLING:
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = kd.air_accl
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = kd.air_decl
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.5
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.5
-		_:
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_DECL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.TURN_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_ACCL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.AIR_DECL] = 0.0
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_ZERO] = 0.5
-			acceleration_coeffs_from_state[AcclCoeffs.GROUND_LERP_TO_TARGET_SPEED] = 0.5
-
-# -- this is replacing move_speed
 @onready var state_target_x_speed : float = kd.baseline_speed
 func get_horizontal_target_speed_from_state( s: MovementStates) -> float:
 	match s:
@@ -1376,27 +1149,8 @@ func apply_command( c: PlayerCommand):
 func update_visual_facing(horizontal_direction: float) -> void:
 	if absf(horizontal_direction) < 0.01:
 		return
-
 	animation_controller.set_facing_direction(horizontal_direction)
 # ------------------------------------------------------------------------------
-#
-#--TODO
-# -- completely replace this w/ proper visual, just here for tmp feedback
-#var can_burn: bool = true
-#func tmp_burn_handle() -> void:
-	#var d = abs((global_position.y + 0.5 * $CollisionShape2D.shape.height)- lava_ref.lava_fn( global_position.x))
-	#var hit_lava = d < 5
-	#
-	#if can_burn and hit_lava and lava_ref:
-		#var mat = $Sprite2D.material
-		#var burn_tween = create_tween()
-		#mat.set_shader_parameter("dummy_burn_timer", 0.)
-		#burn_tween.tween_property(mat, "shader_parameter/dummy_burn_timer", 5.0, 3.)
-		#can_burn = false
-#
-	## -- going back accross lava threshold after getting burned
-	#if !can_burn and hit_lava:
-		#can_burn = true
 
 # -- NOTE we're kind of mandating that this is only one layer deep for Node2d
 # --      children

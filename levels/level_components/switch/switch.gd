@@ -42,6 +42,7 @@ func _ready() -> void:
 			print("movement_finished emitted")
 			switch_finished.emit())
 		base_platform.get_node("MovingPlatformComponent").speed = speed
+		
 		# -- starting pos
 		await get_tree().process_frame
 		$PathFollowPlatformComponent.curve.clear_points()
