@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=21 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -17,12 +17,16 @@
 [ext_resource type="PackedScene" uid="uid://cntneundq200x" path="res://lava/lava.tscn" id="15_hb504"]
 [ext_resource type="PackedScene" uid="uid://dv6yjtu0iucn2" path="res://levels/level_manager.tscn" id="16_4cobl"]
 [ext_resource type="PackedScene" uid="uid://dkb4hsfhvjgih" path="res://UI/options_window/options_window.tscn" id="16_ee6o4"]
+[ext_resource type="Texture2D" uid="uid://ygdc3bmstf7a" path="res://assets/Sprites/GenGenie.png" id="17_ln7ps"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4cobl"]
 shader = ExtResource("10_hb504")
 shader_parameter/coll_extents = Vector2(0, 0)
 shader_parameter/player_rel_positions = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0)
 shader_parameter/circ_scale_increase = 2.0
+
+[sub_resource type="Curve2D" id="Curve2D_4cobl"]
+resource_local_to_scene = true
 
 [node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "lava", "camera", "world_effects_container")]
 script = ExtResource("1_dxrkv")
@@ -48,6 +52,7 @@ player_container_ref = NodePath("../PlayersContainer")
 [node name="PlayersContainer" type="Node2D" parent="World"]
 
 [node name="Camera" parent="World" instance=ExtResource("2_vasa2")]
+zoom = Vector2(0.95, 0.95)
 
 [node name="WorldEffects" type="Node2D" parent="World" node_paths=PackedStringArray("players_container")]
 script = ExtResource("8_y36n6")
@@ -82,6 +87,7 @@ apply = true
 metadata/_custom_type_script = "uid://dcocnrr1wxj00"
 
 [node name="PathFollowPlatformComponent" parent="World/Oasis" instance=ExtResource("13_ln7ps")]
+curve = SubResource("Curve2D_4cobl")
 
 [node name="Lava" parent="World" node_paths=PackedStringArray("game_ref") instance=ExtResource("15_hb504")]
 game_ref = NodePath("../..")
@@ -90,7 +96,7 @@ game_ref = NodePath("../..")
 scale = Vector2(1e-05, 1e-05)
 
 [node name="Marker2D" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(-16700001, -35600000)
+position = Vector2(-16600001, -38400000)
 
 [node name="Marker2D2" type="Marker2D" parent="World/InitialSpawnPoints"]
 position = Vector2(28700008, -34500000)
@@ -108,6 +114,10 @@ script = ExtResource("11_3vho3")
 z_index = 1000
 cam = NodePath("../Camera")
 lava_ref = NodePath("../Lava")
+
+[node name="GenGenie" type="Sprite2D" parent="World"]
+position = Vector2(-338, 563)
+texture = ExtResource("17_ln7ps")
 
 [node name="DeathTv" parent="." instance=ExtResource("12_qf6n1")]
 position = Vector2(-568, 405)
