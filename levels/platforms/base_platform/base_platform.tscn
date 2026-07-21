@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=3 uid="uid://5x7tnpyvft8y"]
+
+[ext_resource type="Script" uid="uid://bqcnegrewmkj2" path="res://levels/platforms/base_platform/base_platform.gd" id="1_5caue"]
+[ext_resource type="Script" uid="uid://htngcgst146o" path="res://levels/platforms/platform_components/sprite_collider_sync.gd" id="2_fkjpt"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="3_t5hbd"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fkjpt"]
+size = Vector2(100, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_t5hbd"]
+size = Vector2(110, 110)
+
+[node name="BasePlatform" type="AnimatableBody2D"]
+z_index = 1000
+collision_mask = 2
+script = ExtResource("1_5caue")
+coll_extents = Vector2(100, 100)
+sprite_2_coll_factor = 1.0
+
+[node name="SpriteCollisionSync" type="Node2D" parent="." node_paths=PackedStringArray("sprite", "coll_shape", "area_coll_shape")]
+script = ExtResource("2_fkjpt")
+sprite_2_coll_factor = 1.0
+sprite = NodePath("../Sprite2D")
+coll_shape = NodePath("../CollisionShape2D")
+area_coll_shape = NodePath("../Area2D/CollisionShape2D")
+coll_extents = Vector2(100, 100)
+metadata/_custom_type_script = "uid://htngcgst146o"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.78125, 0.78125)
+texture = ExtResource("3_t5hbd")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_fkjpt")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_t5hbd")
+debug_color = Color(0.87608176, 0.22123876, 0.65927917, 0.41960785)

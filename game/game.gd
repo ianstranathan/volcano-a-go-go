@@ -39,7 +39,7 @@ func _ready():
 
 	await get_tree().create_timer(0.1).timeout
 	
-	print("Spawning Game with ", NetManager.player_data.size(), " players.")
+	#print("Spawning Game with ", NetManager.player_data.size(), " players.")
 	
 	for id in NetManager.player_data:
 		var d = NetManager.player_data[id]

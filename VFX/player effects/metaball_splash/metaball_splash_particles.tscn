@@ -1,0 +1,39 @@
+[gd_scene load_steps=8 format=3 uid="uid://c1msfo50b2i3l"]
+
+[ext_resource type="Shader" uid="uid://bd16edjmwrglw" path="res://VFX/player effects/metaball_splash/metaball_splash.gdshader" id="1_bofo2"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_didtu"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_qqi7h"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_didtu"]
+shader = ExtResource("1_bofo2")
+shader_parameter/noise_tex = ExtResource("2_didtu")
+
+[sub_resource type="Curve" id="Curve_qqi7h"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.08988774), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_didtu"]
+curve = SubResource("Curve_qqi7h")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_b0xbu"]
+particle_flag_align_y = true
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+initial_velocity_min = 400.0
+initial_velocity_max = 1000.0
+gravity = Vector3(0, 1500, 0)
+scale_min = 0.099999994
+scale_max = 0.29999998
+scale_curve = SubResource("CurveTexture_didtu")
+
+[node name="MetaballSplash" type="GPUParticles2D"]
+material = SubResource("ShaderMaterial_didtu")
+rotation = 1.5707964
+emitting = false
+amount = 20
+texture = ExtResource("2_qqi7h")
+lifetime = 0.4
+one_shot = true
+explosiveness = 1.0
+randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_b0xbu")

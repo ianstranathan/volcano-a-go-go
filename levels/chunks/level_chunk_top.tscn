@@ -1,11 +1,16 @@
-[gd_scene load_steps=17 format=4 uid="uid://c23v6suw4eike"]
+[gd_scene load_steps=19 format=4 uid="uid://c23v6suw4eike"]
 
 [ext_resource type="Texture2D" uid="uid://bhsoxu716q2y6" path="res://assets/tile_sets/TinyRocks/TinyRocks.png" id="1_ns4w1"]
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_xj7i1"]
 [ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_mgbfs"]
 [ext_resource type="PackedScene" uid="uid://dxvt8fbol7y6b" path="res://fire_column/fire_column.tscn" id="4_pwrgd"]
 [ext_resource type="Resource" uid="uid://ub60nq8a6tk7" path="res://levels/level_data_rscs/level_chunk_top_data.tres" id="5_q630d"]
-[ext_resource type="PackedScene" uid="uid://ctebu6bfyckrw" path="res://platforms/animated_placeholder_platform/animated_placeholder_platform.tscn" id="6_q630d"]
+[ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="6_q630d"]
+[ext_resource type="Script" uid="uid://b1quk135kfj1v" path="res://levels/platforms/platform_components/moving_platform_component.gd" id="7_t4eux"]
+[ext_resource type="PackedScene" uid="uid://d35o6xeqnfe5h" path="res://levels/platforms/platform_components/path_follow_platform_component/path_follow_platform_component.tscn" id="8_bnv6i"]
+[ext_resource type="Script" uid="uid://71ctjk2u6580" path="res://levels/chunks/paths_container.gd" id="8_pn6oq"]
+[ext_resource type="PackedScene" uid="uid://csg4yx0oqcs6p" path="res://levels/level_components/switch/switch.tscn" id="8_wto44"]
+[ext_resource type="PackedScene" uid="uid://duuhb8bajrvql" path="res://levels/level_components/door/door.tscn" id="9_ghx8o"]
 
 [sub_resource type="Resource" id="Resource_re8k8"]
 script = ExtResource("2_mgbfs")
@@ -155,35 +160,19 @@ size = Vector2(2000, 532)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xj7i1"]
 size = Vector2(500, 500)
 
-[sub_resource type="Curve2D" id="Curve2D_q630d"]
-_data = {
-"points": PackedVector2Array(-291.8739, -3.1384292, 291.8739, 3.1384292, -2040, -646, -9.415287, -109.845024, 9.415287, 109.845024, -1748, -402, 203.9979, 18.830576, -203.9979, -18.830576, -2065, -163, 3.1384292, 222.82848, -3.1384292, -222.82848, -2373, -424, 0, 0, 0, 0, -2040, -646)
-}
-point_count = 5
-
-[sub_resource type="Curve2D" id="Curve2D_t4eux"]
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, -1140, -184, 0, 0, 0, 0, -1140, -425, 0, 0, 0, 0, -1140, -808)
-}
-point_count = 3
-
-[sub_resource type="Curve2D" id="Curve2D_pn6oq"]
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, -433, -635, 0, 0, 0, 0, 425, -631)
-}
-point_count = 2
-
 [sub_resource type="Curve2D" id="Curve2D_bnv6i"]
+resource_local_to_scene = true
 _data = {
-"points": PackedVector2Array(0, 0, 0, 0, -2151, -184, 0, 0, 0, 0, -1498, -176)
+"points": PackedVector2Array(0, 0, 0, 0, -2227, -222, 0, 0, 0, 0, -2231, -603)
 }
 point_count = 2
 
 [sub_resource type="Curve2D" id="Curve2D_wto44"]
+resource_local_to_scene = true
 _data = {
-"points": PackedVector2Array(0, 0, 0, 0, -967, -186, 0, 0, 0, 0, -962, -514)
+"points": PackedVector2Array(0, 0, 0, 0, -658, -990, 0, 0, 0, 0, -1013, -812, 0, 0, 0, 0, -1002, -546, 0, 0, 0, 0, -747, -329, 0, 0, 0, 0, -384, -522, 0, 0, 0, 0, -250, -788, 0, 0, 0, 0, -661, -998)
 }
-point_count = 2
+point_count = 7
 
 [node name="LevelChunkTop" type="Node2D" node_paths=PackedStringArray("tickable_geometry_container", "bottom_marker", "top_marker", "left_marker", "right_marker")]
 script = ExtResource("1_xj7i1")
@@ -246,84 +235,38 @@ level_chunk_data = ExtResource("5_q630d")
 
 [node name="tickables_container" type="Node2D" parent="."]
 
-[node name="BigCirclePlatform" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
-position = Vector2(-1837, -826)
-speed = 500.0
-path_follow = NodePath("../../Paths/loopBigCircle/PathFollow2D")
-transition_type = 6
-easing_type = 1
-coll_extents = Vector2(200, 100)
-color = Color(0, 0.8901961, 0, 1)
+[node name="Switch" parent="tickables_container" instance=ExtResource("8_wto44")]
+position = Vector2(-1880, -112)
+coll_extents = Vector2(100, 100)
 
-[node name="ElevatorModPlatform" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
-position = Vector2(-1144, -184)
-speed = 400.0
-path_follow = NodePath("../../Paths/ModuloElevator/PathFollow2D")
-transition_type = 4
-movement_type = 2
-coll_extents = Vector2(200, 50)
-color = Color(1, 0.37799093, 0.31005007, 1)
+[node name="Door" parent="tickables_container" node_paths=PackedStringArray("switch", "path_component") instance=ExtResource("9_ghx8o")]
+position = Vector2(-2227, -224)
+switch = NodePath("../Switch")
+coll_extents = Vector2(100, 300)
+path_component = NodePath("../../PathsContainer/PathFollowPlatformComponent")
 
-[node name="OscillatingPlatform" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
-position = Vector2(-430, -636)
+[node name="BasePlatform" parent="tickables_container" instance=ExtResource("6_q630d")]
+position = Vector2(-738, -330)
+
+[node name="MovingPlatformComponent" type="Node2D" parent="tickables_container/BasePlatform" node_paths=PackedStringArray("_path_follower_component")]
+script = ExtResource("7_t4eux")
+_path_follower_component = NodePath("../../../PathsContainer/LoopTest")
+metadata/_custom_type_script = "uid://b1quk135kfj1v"
+
+[node name="Switch2" parent="tickables_container" instance=ExtResource("8_wto44")]
+position = Vector2(-1508, -107)
+transition_type = 1
+easing_type = 2
 speed = 300.0
-path_follow = NodePath("../../Paths/Oscillating/PathFollow2D")
-transition_type = 4
-easing_type = 3
-movement_type = 0
-coll_extents = Vector2(300, 50)
-color = Color(0, 0.6117647, 0.80784315, 1)
+switch_type = 0
+coll_extents = Vector2(100, 100)
 
-[node name="RHSOscillatingBumpingTest" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
-position = Vector2(-1757, -178)
-path_follow = NodePath("../../Paths/Path2D/PathFollow2D")
-easing_type = 1
-movement_type = 0
-coll_extents = Vector2(200, 100)
-color = Color(0.99215686, 0.3372549, 0.011764706, 1)
+[node name="PathsContainer" type="Node2D" parent="."]
+script = ExtResource("8_pn6oq")
+metadata/_custom_type_script = "uid://71ctjk2u6580"
 
-[node name="OneShotTest" parent="tickables_container" node_paths=PackedStringArray("path_follow") instance=ExtResource("6_q630d")]
-position = Vector2(-962, -187)
-speed = 50.0
-path_follow = NodePath("../../Paths/Path2D2/PathFollow2D")
-movement_type = 3
-coll_extents = Vector2(50, 200)
-color = Color(0.83137256, 0, 1, 1)
-
-[node name="Paths" type="Node2D" parent="."]
-
-[node name="loopBigCircle" type="Path2D" parent="Paths"]
-position = Vector2(212, -411)
-curve = SubResource("Curve2D_q630d")
-
-[node name="PathFollow2D" type="PathFollow2D" parent="Paths/loopBigCircle"]
-position = Vector2(-2040, -646)
-rotation = 0.010752269
-
-[node name="ModuloElevator" type="Path2D" parent="Paths"]
-curve = SubResource("Curve2D_t4eux")
-
-[node name="PathFollow2D" type="PathFollow2D" parent="Paths/ModuloElevator"]
-position = Vector2(-1140, -184)
-rotation = -1.5707964
-
-[node name="Oscillating" type="Path2D" parent="Paths"]
-curve = SubResource("Curve2D_pn6oq")
-
-[node name="PathFollow2D" type="PathFollow2D" parent="Paths/Oscillating"]
-position = Vector2(-433, -635)
-rotation = 0.0046619712
-
-[node name="Path2D" type="Path2D" parent="Paths"]
+[node name="PathFollowPlatformComponent" parent="PathsContainer" instance=ExtResource("8_bnv6i")]
 curve = SubResource("Curve2D_bnv6i")
 
-[node name="PathFollow2D" type="PathFollow2D" parent="Paths/Path2D"]
-position = Vector2(-2151, -184)
-rotation = 0.012250535
-
-[node name="Path2D2" type="Path2D" parent="Paths"]
+[node name="LoopTest" parent="PathsContainer" instance=ExtResource("8_bnv6i")]
 curve = SubResource("Curve2D_wto44")
-
-[node name="PathFollow2D" type="PathFollow2D" parent="Paths/Path2D2"]
-position = Vector2(-967, -186)
-rotation = -1.5555536

@@ -16,7 +16,7 @@ func _ready() -> void:
 		call_deferred("queue_free"))
 	if player_ref:
 		g = player_ref.get_g()
-		accl_cut_off_speed = 1.5 * player_ref.TERMINAL_FALL_SPEED
+		accl_cut_off_speed = 1.2 * player_ref.TERMINAL_FALL_SPEED
 
 
 var interpolant := 0.0

@@ -1,0 +1,56 @@
+@tool
+extends Node2D
+class_name SpriteCollisionSync
+
+# -- sometimes you want them to be different values
+var _sprite_2_coll_factor: float = 1.0
+@export var sprite_2_coll_factor: float:
+	set(value):
+		_sprite_2_coll_factor = value
+		_update_sprite_scale() # Just update visuals, don't re-assign to yourself!
+	get:
+		return _sprite_2_coll_factor
+
+@export var sprite: Sprite2D
+@export var coll_shape: CollisionShape2D
+@export var area_coll_shape: CollisionShape2D
+
+# Backing variables for setters
+var _coll_extents: Vector2 = Vector2(50, 50)
+
+# Extents setter
+@export var coll_extents: Vector2:
+	set(value):
+		_coll_extents = value
+		_update_collision_shape()
+		_update_sprite_scale()
+	get:
+		return _coll_extents
+
+
+
+func _ready():
+	#if Engine.is_editor_hint():
+	_update_collision_shape()
+	_update_sprite_scale()
+
+
+func _update_collision_shape():
+	if not coll_shape or not area_coll_shape:
+		return
+	# Duplicate shape if it’s shared
+	if not coll_shape.shape.is_local_to_scene():
+		coll_shape.shape = coll_shape.shape.duplicate()
+		area_coll_shape.shape = area_coll_shape.shape.duplicate()
+	if coll_shape.shape is RectangleShape2D:
+		coll_shape.shape.extents = _coll_extents / 2.0
+		area_coll_shape.shape.extents = 1.1 * _coll_extents / 2.0
+
+func _update_sprite_scale():
+	if not sprite or not coll_shape or not sprite.texture:
+		return
+	var tex_size = sprite.texture.get_size()
+	sprite.scale = sprite_2_coll_factor * Vector2(
+		_coll_extents.x / tex_size.x,
+		_coll_extents.y / tex_size.y
+	)

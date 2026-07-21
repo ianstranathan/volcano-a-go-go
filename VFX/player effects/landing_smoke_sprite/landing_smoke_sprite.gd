@@ -2,7 +2,7 @@ extends Node2D
 
 func _ready() -> void:
 	# ----------------------------------------- vfx component setup
-	$VfxEffectComponent.start = func():
+	$VfxEffectComponent.start = func(_params):
 		$AnimationPlayer.play("RESET")
 		show()
 		$AnimationPlayer.play("smoke_fade")

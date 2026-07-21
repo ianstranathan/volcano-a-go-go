@@ -3,7 +3,7 @@ class_name PlayerKinematicData
 extends Resource
 
 # ------------------------------ Primary Core Values
-@export var baseline_speed: float = 380.0:
+@export var baseline_speed: float = 425.0:
 	set(value):
 		baseline_speed = value
 		_recalculate_physics()
@@ -12,6 +12,33 @@ extends Resource
 	set(value):
 		mass = value
 		inv_mass = 1.0 / mass if mass != 0 else 0.0
+
+# General idea: lerp for overspeed, move_toward for underspeed
+# trying to follow mario's lead:
+# Air Accel: Low (around 1:3 of ground). Once you jump, you are committed to the arc.
+# Turn Accel: Moderate (creates a distinct, satisfying sliding "skid" animation before reversing direction).
+
+# -----------------------------  ACCELERATIONS
+@export var ground_accl = 80.0
+#@export var ground_turn_accl = 4.0 * ground_accl # -- full ground turn accl
+@export var air_accl = ground_accl / 3.0
+
+# -- target speeds as a ratio of baseline speed
+@export var running_2_baseline_ratio: float = 1.6
+@export var crouching_2_baseline_ratio: float = 0.5
+@export var climbing_2_baseline_ratio: float = 0.7
+
+# -----------------------------  DECELERATIONS
+#@export var ground_decl = 0.8 * ground_accl
+@export var air_decl = air_accl
+
+# -----------------------------  Lerp percentages
+
+# &
+# -- ground_decl
+# -- air_decl
+# -- ground_turning_decl
+# -- air_turning_decl
 
 @export var MOV_ACCL: float = 50.0
 @export var TURN_ACCL: float = 500.0
@@ -47,6 +74,7 @@ var wall_slide_gravity: float = 0.0
 var jump_speed: float = 0.0
 var climb_speed: float = 0.0
 var wall_jump_scale: Vector2
+var crouching_speed: float
 
 func _init() -> void:
 	_recalculate_physics()
@@ -54,9 +82,9 @@ func _init() -> void:
 
 func _recalculate_physics() -> void:
 	v_x_peak_2_fall = baseline_speed * 0.75
-	climb_speed = baseline_speed * 0.7
+	climb_speed = baseline_speed * climbing_2_baseline_ratio
 	inv_mass = 1.0 / mass if mass != 0 else 0.0
-	
+	crouching_speed = baseline_speed * crouching_2_baseline_ratio
 	if baseline_speed > 0 and v_x_peak_2_fall > 0:
 		time_to_peak = jump_distance_to_peak / baseline_speed
 		time_to_ground = fall_distance_from_peak / v_x_peak_2_fall

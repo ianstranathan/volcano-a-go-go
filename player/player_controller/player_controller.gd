@@ -185,7 +185,10 @@ func _process(delta):
 		# -- normalize (0, 1) t
 		var t = (render_tick - point_a.tick) / float(point_b.tick - point_a.tick)
 		t = clamp(t, 0.0, 1.0)
-
+		
+		var visual_velocity:= point_a.vel.lerp(point_b.vel,t)
+		player.update_visual_facing(visual_velocity.x)
+		
 		# -- NOTE
 		# -- we're not interpolating the player's world position while they're on a moving platform.
 		# -- wee're interpolating their position relative to the platform, then reconstructing their world position 
@@ -230,7 +233,9 @@ func _process(delta):
 				player.global_position = point_a.pos
 		else:
 			player.global_position = point_a.pos
-
+		player.update_visual_facing(point_a.vel.x)
+		player.movement_state_transition_to(point_a.movement_state)
+		
 	player.pos_current = player.global_position
 
 #func _process(delta):

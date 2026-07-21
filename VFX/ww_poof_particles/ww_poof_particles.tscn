@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://cy4jsqc6evvj2"]
+
+[ext_resource type="Shader" uid="uid://ukux2j2ryt4j" path="res://VFX/ww_poof_particles/ww_poof_particles.gdshader" id="1_q4caj"]
+[ext_resource type="Texture2D" uid="uid://bb2ltkupo18nl" path="res://assets/particle_masks/GameCube - The Legend of Zelda_ The Wind Waker - Effects - Smoke.png" id="2_qnvi2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_j325g"]
+shader = ExtResource("1_q4caj")
+shader_parameter/cell_index = 2
+
+[node name="WwPoofParticles" type="Node2D"]
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+material = SubResource("ShaderMaterial_j325g")
+texture = ExtResource("2_qnvi2")

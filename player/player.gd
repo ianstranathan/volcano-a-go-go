@@ -5,12 +5,26 @@ class_name Player
 # -- emitted from player_controller when reconcilliation happens for
 # -- visual smoothing in the PlayerVisualInterpolator (sprite & item_manager)
 signal reconciled
+
 signal touched_bottom( peer_id: int)
 signal dropped_pickup_item( item_key: ItemsDb.ItemNames, item_slot: int, pos: Vector2)
 
+var integrate_motion := true
 @export var kd: PlayerKinematicData
-@onready var move_speed: float = kd.baseline_speed
-@onready var current_accel = 0.0
+
+
+enum AcclCoeffs {
+	GROUND_ACCL,
+	GROUND_DECL,
+	TURN_ACCL, # -- move_toward amt when turning
+	AIR_ACCL,
+	AIR_DECL,
+	GROUND_LERP_TO_ZERO,
+	GROUND_LERP_TO_TARGET_SPEED,
+	AIR_LERP_TO_ZERO,
+	AIR_LERP_TO_TARGET_SPEED
+}
+
 @onready var g: float = kd.jump_gravity
 
 # -- aliases of kinematic data for reference to player (e.g. items need this)
@@ -62,7 +76,7 @@ var is_on_ground := true
 var input_manager: LocalPlayerController
 @onready var player_controller = $PlayerController
 var is_replaying: bool = false
-
+@onready var animation_controller: PlayerAnimationController = ($PlayerAnimationController)
 
 # --------------------------------------------------- state sprite effects stuff
 var last_tocuhing_surface_state: MovementStates
@@ -83,6 +97,9 @@ enum MovementStates
 	CLOUD,
 	PORTAL,
 	SLIDING,
+	METABALL
+	# SLIDING
+	# GENIE_HAND
 }
 @export var movement_state: MovementStates = MovementStates.IDLE
 
@@ -97,16 +114,13 @@ var color: Color = Color(1., 1., 1., 1.);
 var can_run: bool = true
 
 func _ready() -> void:
+	animation_controller.set_movement_state(movement_state)
 	#----------------------------------------------------------- Running signals
 	$StaminaVisual.stamina_depleted.connect( func(): 
 		can_run = false)
 	$StaminaVisual.stamina_started_recharging.connect( func(): 
 		can_run = true)
-	
-	#---------------------------------------------------------------------------
-	$Sprite2D.material.set_shader_parameter("src_col", color)
-	$Sprite2D.material.set_shader_parameter("dummy_burn_timer", 5.0)
-	
+
 	$ClimbingInterface.climbing_area_entered.connect( func(): can_climb = true )
 	$ClimbingInterface.climbing_area_exited.connect( func(): can_climb = false)
 	#------------------------------------------------------- grabbable component
@@ -167,11 +181,15 @@ enum JumpTypes
 {
 	REGULAR,
 	SOMERSAULT_FLIP,
-	WALL
+	WALL,
+	METABALL
 }
 
-func check_for_jump() -> void:
+func check_for_jump(do_jump_override=null) -> void:
 	if !jump_buffer_timer.is_stopped():
+		if do_jump_override:
+			do_jump(do_jump_override)
+			return
 		if is_on_ground:
 			is_on_ground = false
 			#if !side_somersault_timer.is_stopped():
@@ -189,8 +207,7 @@ func check_for_jump() -> void:
 		elif movement_state == MovementStates.CLIMBING:
 			do_jump(JumpTypes.REGULAR)
 
-#@onready var kd.wall_jump_scale: Vector2 = Vector2(kd.jump_speed / 2.0,
-					 							#kd.jump_speed / 1.3)
+
 func do_jump(jump_type, velocity_override=null):
 	# -- logic of what to do for a specific jump
 	jump_buffer_timer.stop()
@@ -210,10 +227,21 @@ func do_jump(jump_type, velocity_override=null):
 			else:
 				velocity = velocity_override
 			# -- maybe want both components to be affected?
-
+		JumpTypes.METABALL:
+			var v = -(global_position - $MetaballManager.platform_ref.global_position).normalized()
+			var y_dir = 1. if is_zero_approx(v.y) else v.y
+			velocity =  Vector2(v.x *  kd.jump_speed / 2., 
+								y_dir * kd.jump_speed)
+			#print(velocity)
+			#if velocity_override:
+				#velocity = velocity_override
+			#else:
+				# -- get information from the metaball manager
+				
 	velocity.y *= jump_speed_modifier
 
 	movement_state_transition_to(MovementStates.JUMPING)
+	
 	if is_multiplayer_authority() and not is_replaying:
 		Events.emit_signal("play_world_sound",
 							AudioDb.WorldSoundId.JUMP,
@@ -247,6 +275,11 @@ func apply_external_impulse(impulse: Vector2):
 # -- for itnerpolating sprite / visual smoothing in reconcilliation
 var pos_previous: Vector2 = Vector2.ZERO
 var pos_current: Vector2 = Vector2.ZERO
+
+func frame_disp() -> Vector2:
+	return (pos_current - pos_previous)
+
+
 var last_collision_impulse := Vector2.ZERO
 var last_collision_id: int = -1
 
@@ -320,30 +353,43 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 				#
 				## -- rpc the client we collided with to tell them to updat their impulse
 				#predict_impact_notification.rpc_id(_collider.name.to_int(), impulse)
+	# ---------------------------------------------------------------------------
+	if integrate_motion:
+		global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
 	
-	global_position += (velocity * delta) + Vector2(0., (0.5 * delta * delta * get_g()))
-	
-	if velocity.y < kd.TERMINAL_FALL_SPEED:
-		velocity.y += get_g() * delta
+		if velocity.y < kd.TERMINAL_FALL_SPEED:
+			velocity.y += get_g() * delta
 
-	var collision = move_and_collide(Vector2.ZERO)
-	
-	if collision:
-		var normal = collision.get_normal()
-		is_on_ground = normal.dot(Vector2.UP) > 0.1 # TODO expose this
-		if is_on_ground:
-			# -- we want to be really exact, we can keep an explicit reference
-			# -- to a tangent and only move in that direction
-			# -- slide is good enough for now
-			#platform_tangent = normal.orthogonal()
-			current_platform_displacement_ref_check( collision )
-			#if velocity.y > 0:
-				#velocity.y = 0
-			velocity = velocity.slide(normal)
-				
+		var collision = move_and_collide(Vector2.ZERO)
+		
+		if collision:
+			var normal = collision.get_normal()
+			is_on_ground = normal.dot(Vector2.UP) > 0.1 # TODO expose this
+			if is_on_ground:
+				# -- we want to be really exact, we can keep an explicit reference
+				# -- to a tangent and only move in that direction
+				# -- slide is good enough for now
+				#platform_tangent = normal.orthogonal()
+				current_platform_displacement_ref_check(collision)
+
+				var tangent = Vector2(normal.y, -normal.x).normalized()
+
+				# Ensure the tangent points in the direction of movement.
+				if move_input.x != 0.0 and tangent.x * move_input.x < 0.0:
+					tangent = -tangent
+
+				# Preserve horizontal speed while following the slope.
+				if abs(tangent.x) > 0.001:
+					velocity = tangent * (velocity.x / tangent.x)
+			else:
+				var is_hitting_ceiling = normal.dot(Vector2.DOWN) > 0.1
+				if is_hitting_ceiling:
+					if velocity.y < 0:
+						velocity.y = 0.1 * velocity.y
+					velocity = velocity.slide(normal)
 	last_move_input = move_input
 	pos_current = global_position
-
+	
 # ------------------------------------------------------------------------------
 
 @rpc("any_peer", "unreliable")
@@ -360,18 +406,12 @@ func predict_impact_notification( impulse: Vector2):
 		)
 
 # ------------------------------------------------------------------------------
-
-
 # -- TODO
 func current_platform_displacement_ref_check(coll: KinematicCollision2D):
 	var collider = coll.get_collider()
 	if collider and collider.is_in_group("moving_platforms"):
 		current_platform_displacement_ref = collider.get_node_or_null("MovingPlatformComponent")
 
-
-#@rpc("any_peer", "call_local", "reliable")
-#func platform_displacement( collider_id ):
-	#pass
 
 func current_platform_for_remote_interpolating() -> void:
 	if my_is_on_floor():
@@ -387,11 +427,6 @@ func my_is_on_floor() -> bool:
 
 func is_falling():
 	return velocity.y >= 0 and not my_is_on_floor()
-
-
-#@onready var rhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/RHS, $WallCheckContainer/RHS1]
-#@onready var lhs_ledge_grab_pair: Array[RayCast2D] = [$LedgeRayContainer/LHS, $WallCheckContainer/LHS1]
-#@onready var ledge_grab_arrs = [rhs_ledge_grab_pair, lhs_ledge_grab_pair]
 
 
 @onready var lhs_wall_rays:  Array[RayCast2D] = [
@@ -445,83 +480,141 @@ func set_debug_label(new_movement_state: MovementStates) -> void:
 	$Label.text = MovementStates.keys()[new_movement_state]
 
 
-#------------------------------------------------- movement state fns
-
-#var platform_tangent: Vector2 = Vector2.ZERO  SEE NOTE AT BOTTOM OF EXECUTE TICK
-func move_resolution(move_speed_override=null):
-	var target_speed
-	if move_speed_override:
-		target_speed = move_input.x * move_speed_override * move_speed_modifier
-	else:
-		target_speed = move_input.x * move_speed * move_speed_modifier
-	var is_turning := move_input.x * velocity.x < 0
-	var is_overspeed : bool = abs(velocity.x) > abs(target_speed)
-	
-	var target_accel_rate = kd.TURN_ACCL if is_turning else kd.MOV_ACCL
-	current_accel = lerp(current_accel, float(target_accel_rate), 0.15)
-
-	if is_overspeed and not is_turning:
-		var _is_in_air = movement_state in [MovementStates.FALLING, MovementStates.JUMPING]
-		var decl_weight = kd.AIR_DECL if _is_in_air else kd.DECL
-		velocity.x = move_toward(velocity.x, 0, decl_weight)
-	else:
-		velocity.x = move_toward(velocity.x, target_speed, current_accel)
-
-
-func stop_resolution():
-	current_accel = move_toward(current_accel, kd.MOV_ACCL, kd.DECL)
-
-
-var testing: bool = false
-func move(move_func_override = null) -> void:
-	if testing:
-		return
-		
-	# -- we're entirely skipping the move_resolution 
-	# -- if moving under an item
-	if move_func_override:
-		move_func_override.call()
-		return
-
-	if manual_wall_jump_frame_counter > 0:
-		return
-
-	if not is_zero_approx(move_input.x):
-		move_resolution()
-	else:
-		stop_resolution()
-
-
 func check_for_falling() -> bool:
 	return is_falling() and coyote_timer.is_stopped()
+
+
+func crouching_state_fn(_delta: float):
+	grounded_horizontal_movement(_delta)
+	if check_for_falling():
+		coyote_timer.start()
+
+
+# -- callback from metaball's area2d
+func transition_to_metaball(collision_pt: Vector2,
+							platform_ref: BasePlatform) -> void:
+	if movement_state != MovementStates.METABALL:
+		$MetaballManager.initialize_metaball_state( collision_pt, platform_ref )
+		do_jump_out_of_metaball_vfx()
+		go_2_circle_shape()
+		#$CollisionShape2D.set_deferred("disabled", true)
+		$CharacterVisuals/Body.visible = false
+		movement_state_transition_to(MovementStates.METABALL)
+		velocity = Vector2.ZERO
+	
+	# -- switch over the collision stuff
+
+# -- used for crouching and metaball state currently
+var capsule_coll_shape_height = 100.0 # -- in px
+var default_coll_shape_radius = 20.0
+var circle_coll_shape_height: float = 2.0 * default_coll_shape_radius
+var default_2_circle_scale = (circle_coll_shape_height / capsule_coll_shape_height)
+
+@onready var all_raycasts_arr = [$WallCheckContainer,$LedgeRayContainer, 
+								$FloorCheckContainer, $CeilingCheckContainer,
+								$TopDownRayContainer]
+
+# -- NOTE we're not currently changing the radius ever, but more general I guess
+func my_change_collision_shape(h: float, r: float, s: float) -> void:
+	# -- params are height, radius, scale (see raycast_container.gd)
+	# -- set the collision shape in a deferred call
+	# -- recursively change all the positions of the raycasts
+	for ray_container in all_raycasts_arr:
+		ray_container.scale_raycast_positions(s)
+	$CollisionShape2D.shape.set_deferred("height", h)
+	$CollisionShape2D.shape.set_deferred("radius", r)
+
+# -- 
+func go_2_circle_shape():
+	my_change_collision_shape(circle_coll_shape_height, 
+							  default_coll_shape_radius, 
+							  default_2_circle_scale)
+
+
+func go_2_capsule_shape():
+	my_change_collision_shape(capsule_coll_shape_height, 
+							  default_coll_shape_radius, 
+							  1. / default_2_circle_scale)
+
+
+func metaball_state_fn(delta):
+	# -- ok, so we're gaurenteeing that the player is in a circle shape
+	# -- so whatever the global_position is, we can just offset it by the rel_pos direction
+	# -- of the platform + the radius
+	var rel_pos : Vector2 = (global_position - 
+		$MetaballManager.platform_ref.global_position).normalized()
+	var offset_vector = rel_pos * 1.5 * $CollisionShape2D.shape.radius
+	# -- increment perimeter, based on input
+	global_position = offset_vector + $MetaballManager.increment_perimeter(
+		delta,
+		Vector2(move_input.x, -move_input.y))
+	
+	check_for_jump(JumpTypes.METABALL)
 
 
 # -- consolidate the stuff that's always true on the ground
 func idle_state_fn(_delta) -> void:
 	check_for_jump()
 	velocity.x = move_toward(velocity.x, 0.0, kd.MOV_ACCL)
+	#fn(_delta)
+	
+	
 	if !is_zero_approx(move_input.x):
 		movement_state_transition_to( MovementStates.WALKING)
+		return
 	if check_for_falling():
 		coyote_timer.start()
+		
 
+func grounded_horizontal_movement( delta):
+	var target_speed : float= move_input.x * state_target_x_speed
+	# -- 0 at 0 and 1 at state speed
+	var t : float = clamp(abs(velocity.x) / state_target_x_speed, 0.0, 1.0)
+	var reversing := (
+		move_input.x != 0
+		and velocity.x * move_input.x < 0
+	)
+	if reversing:
+		# -- we're inverting the interpolant
+		# -- if reversing
+		# -- so it's 0 when we're at speed
+		# -- and 1 if we're at zero
+		t = 1.0 - t
 
-func walking_state_fn(_delta) -> void:
-	if is_zero_approx(move_input.x): #and side_somersault_timer.is_stopped():
-		movement_state_transition_to( MovementStates.IDLE)
+	var a0 = 2000.0
+	var a1 = 4000.0
+	var accel : float = lerp( a0, a1,
+		# -- this is giving us that satisfying start delay
+		t * t if !reversing else (1. - t) * (1. - t)
+	)
+	
+	velocity.x = move_toward(
+		velocity.x,
+		target_speed,
+		accel * delta
+	)
+	
+func walking_state_fn(delta) -> void:
 	check_for_jump()
-	move()
+	grounded_horizontal_movement( delta )
+
 	if check_for_falling():
 		coyote_timer.start()
+	#if #!has_horizontal_intent(): #and side_somersault_timer.is_stopped():
+	if is_zero_approx(velocity.x):
+		movement_state_transition_to( MovementStates.IDLE)
+		return
 
 
 func running_state_fn( _delta) -> void:
-	if is_zero_approx(move_input.x): #and side_somersault_timer.is_stopped():
-		movement_state_transition_to( MovementStates.IDLE)
 	check_for_jump()
-	move_resolution( 1.8 * move_speed )
+	grounded_horizontal_movement( _delta )
 	if check_for_falling():
 		coyote_timer.start()
+	if is_zero_approx(velocity.x):
+		movement_state_transition_to( MovementStates.IDLE)
+		return
+
 
 # -- case: where we want a wall jump as fast as possible
 func wall_jump_fast_utility():
@@ -535,13 +628,38 @@ func jumping_state_fn(_delta) -> void:
 	# -- be careful, I consciously took away an absolute value check
 	# -- jumping should always be a negative direction
 	hang_time_modifier = hang_time_curve.sample(1. - (velocity.y / kd.jump_speed))
-	
 	handle_corner_correction()
-	move()
 	wall_jump_fast_utility()
+	non_groudned_horizontal_movement( _delta )
+	
 	if is_falling():
 		movement_state_transition_to(MovementStates.FALLING)
+		return
 
+
+func non_groudned_horizontal_movement( _delta):
+	# -- if overspeed and not turning, keep riding the wave
+	# -- if overspeed and turning hard turn
+	#if manual_wall_jump_frame_counter > 0:
+		#return
+	var reversing := (
+		move_input.x != 0
+		and velocity.x * move_input.x < 0
+	)
+	var is_overspeed = abs(velocity.x) > state_target_x_speed * 1.05
+	if is_overspeed:
+		if reversing:
+			velocity.x = lerp(velocity.x, 
+							  state_target_x_speed * move_input.x, 
+							  0.5)
+		else:
+			return
+	else:
+		velocity.x = move_toward(
+			velocity.x,
+			state_target_x_speed * move_input.x,
+			kd.air_accl
+		)
 
 # -- Climbing utils
 func should_start_climbing():
@@ -562,7 +680,7 @@ var climb_move_override: Callable = (func():
 func climbing_state_fn(_delta):
 	$ItemManager.stop_using_item()
 	check_for_jump() # -- will change to jump state
-	move( climb_move_override )
+	#move( climb_move_override )
 	if !can_climb:
 		g = kd.fall_gravity
 		movement_state_transition_to(MovementStates.FALLING)
@@ -619,9 +737,8 @@ func falling_state_fn(_delta) -> void:
 	handle_platform_fall_near_miss_correction()
 	# -- maybe we wanna go through the air slightly slower?
 	
-	move()
 	wall_jump_fast_utility()
-	
+	non_groudned_horizontal_movement( _delta )
 	# -- ledge climbing target position is mutated / saved in is_ledge_grabbing()
 	if is_ledge_grabbing(true) and ledge_grab_buffer_timer.is_stopped():
 		velocity = Vector2.ZERO
@@ -633,9 +750,8 @@ func falling_state_fn(_delta) -> void:
 	elif can_wall_slide():
 		movement_state_transition_to(MovementStates.WALL_SLIDING)
 	elif my_is_on_floor():
-		if velocity.y / TERMINAL_FALL_SPEED > 0/9:
-			var land_shake = ShakeInstance.new(0.5, 0.1, Vector2.DOWN, MyMathUtils.inverted_parabola, false)
-			Events.shake_cam.emit(land_shake)
+			#var land_shake = ShakeInstance.new(0.5, 0.1, Vector2.DOWN, MyMathUtils.inverted_parabola, false)
+			#Events.shake_cam.emit(land_shake)
 		movement_state_transition_to(MovementStates.IDLE)
 
 
@@ -669,19 +785,11 @@ func wall_sliding_state_fn(_delta) -> void:
 		start_ledge_grab()
 
 
-func crouch_state_fn():
-	# -- it's walking with a slower speed override
-	check_for_jump()
-	move()
-	if check_for_falling():
-		coyote_timer.start()
-
-
 # -- probably move this elsewhere
 func item_moving_state_fn(_delta) -> void:
 	if $ItemManager.active_movement_override.allows_horizontal_movement():
 		if !move_input.is_zero_approx():
-			velocity.x = move_toward(velocity.x, move_input.x * move_speed * move_speed_modifier, kd.MOV_ACCL / 3.0)
+			velocity.x = move_toward(velocity.x, move_input.x * kd.baseline_speed, kd.DECL / 12.0)
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, kd.DECL / 12.0)
 
@@ -731,9 +839,7 @@ func ledge_grabbing_state_fn(delta) -> void:
 			target_ledge_grabbing_climb_pos,
 			ledge_climb_progress * ledge_climb_progress # -- x^2 easing
 		)
-		#velocity = (target_pos - global_position) / delta
-	
-	
+
 	if ledge_climb_progress >= 1.0 or move_input.y < -0.6:
 		$CollisionShape2D.set_deferred("disabled", false)
 		ledge_grab_buffer_timer.start()
@@ -815,17 +921,9 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						velocity = velocity.clamp(Vector2(0., 50), Vector2(0., 150))
 					MovementStates.JUMPING:
 						if last_tocuhing_surface_state == MovementStates.WALL_SLIDING:
-							Events.world_effect.emit(
-									name.to_int(), 
-									Effects.EffectNames.WALL_JUMP, 
-									global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
-									true if last_wall_normal.x < 0 else false)
+							do_wall_jump_vfx()
 				if play_landing_effect:
-					Events.world_effect.emit(
-						name.to_int(), 
-						Effects.EffectNames.LANDING_SMOKE, 
-						global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
-						false)
+					do_landing_vfx()
 					Events.emit_signal("play_world_sound",
 										AudioDb.WorldSoundId.JUMP_LAND,
 										global_position,0,randf_range(0.8, 1.20),
@@ -833,22 +931,88 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 			MovementStates.WALL_SLIDING:
 				match new_movement_state:
 					MovementStates.JUMPING:
-						Events.world_effect.emit(
-							name.to_int(), 
-							Effects.EffectNames.WALL_JUMP, 
-							global_position - Vector2(0., $CollisionShape2D.shape.height / 2.),
-							true if last_wall_normal.x < 0 else false)
+						do_wall_jump_vfx()
 			MovementStates.RUNNING:
 				$StaminaVisual.use( false )
+			MovementStates.ITEM_MOVING:
+				if $CollisionShape2D.disabled:
+					$CollisionShape2D.set_deferred("disabled", false)
+			MovementStates.METABALL:
+				$CharacterVisuals/Body.visible = true
+				go_2_capsule_shape()
+				do_jump_out_of_metaball_vfx()
+
+				integrate_motion = true
+		
+		# ----------------- things we do for all state transitions
+		# ----------------- maybe separate and call it such
+		state_target_x_speed = get_horizontal_target_speed_from_state( new_movement_state )
+		# -----------------------------------------
+		# ----------------------------------
+		if new_movement_state == MovementStates.METABALL:
+			integrate_motion = false
 		# ----------------------------------
 		if new_movement_state in [MovementStates.IDLE, MovementStates.WALKING, MovementStates.WALL_SLIDING]:
 			last_tocuhing_surface_state = new_movement_state
 		set_debug_label( new_movement_state )
 		movement_state = new_movement_state
+		animation_controller.set_movement_state(new_movement_state)
+
+# --------------------------------------------------------------------------------------------------
+# -- move this all to a vfx manager on the player
+# -- this is really just a dictionary or struct with some editor sugar
+# -- (i.e. it's really just a data container, but if it's a class, I don't forget the params)
+@onready var landing_effect = EffectParameters.new(Effects.EffectNames.LANDING_SMOKE, Vector2.ZERO, false, Vector2.ZERO)
+@onready var wall_jump_effect = EffectParameters.new(Effects.EffectNames.WALL_JUMP, Vector2.ZERO, false, Vector2.ZERO)
+@onready var metaball_jump_out_effect = EffectParameters.new(Effects.EffectNames.JUMPED_OUT_OF_METABALL, Vector2.ZERO, false, Vector2.ZERO)
+
+func do_landing_vfx():
+	landing_effect.pos = global_position - Vector2(0., $CollisionShape2D.shape.height / 2.)
+	landing_effect.flip = false
+	Events.world_effect.emit( name.to_int(), landing_effect )
+
+func do_wall_jump_vfx():
+	wall_jump_effect.pos = global_position - Vector2(0., $CollisionShape2D.shape.height / 2.)
+	wall_jump_effect.flip = true if last_wall_normal.x < 0 else false
+	Events.world_effect.emit( name.to_int(), wall_jump_effect )
+
+func do_jump_out_of_metaball_vfx():
+	var n = $MetaballManager.perimeter_normal()
+	metaball_jump_out_effect.pos = global_position - $CollisionShape2D.shape.height * n
+	metaball_jump_out_effect.dir = n
+	Events.world_effect.emit( name.to_int(), metaball_jump_out_effect )
+
+# -------------------------------------------------------------------------------------------- utils
+@onready var state_target_x_speed : float = kd.baseline_speed
+func get_horizontal_target_speed_from_state( s: MovementStates) -> float:
+	match s:
+		MovementStates.IDLE:
+			return 0.0
+		MovementStates.WALKING:
+			return kd.baseline_speed
+		MovementStates.RUNNING:
+			return kd.baseline_speed * kd.running_2_baseline_ratio
+		MovementStates.JUMPING:
+			return kd.baseline_speed
+		MovementStates.FALLING:
+			return kd.v_x_peak_2_fall
+		MovementStates.CROUCHING:
+			return kd.crouching_speed
+		MovementStates.WALL_SLIDING:
+			return kd.baseline_speed
+		#MovementStates.LEDGE_GRABBING:
+			#return kd.baseline_speed
+		MovementStates.CLIMBING:
+			return kd.climb_speed
+		MovementStates.CLOUD:
+			return 2. * kd.baseline_speed
+		MovementStates.PORTAL:
+			return 0.0
+		_:
+			return 0.0
 
 
-# ------------------------------------------------------- utils
-func gravity_from_state():
+func gravity_from_state() -> float:
 	match movement_state:
 		MovementStates.IDLE:
 			return kd.jump_gravity
@@ -865,16 +1029,17 @@ func gravity_from_state():
 		MovementStates.WALL_SLIDING:
 			return kd.fall_gravity / 100.0
 		MovementStates.LEDGE_GRABBING:
-			return 0
+			return 0.0
 		MovementStates.ITEM_MOVING:
 			return kd.jump_gravity
 		MovementStates.CLIMBING:
-			return 0
+			return 0.0
 		MovementStates.CLOUD:
-			return 0
+			return 0.0
 		MovementStates.PORTAL:
-			return 0
-
+			return 0.0
+		_:
+			return 0.0
 
 func entered_portal():
 	velocity = Vector2.ZERO
@@ -929,12 +1094,22 @@ var max_pickup_item_throw_magnitude := 1000
 
 func apply_command( c: PlayerCommand):
 	move_input = c.move_input
+	update_visual_facing(move_input.x)
+	
 	if c.jump_pressed:
 		jump_buffer_timer.start()
 
 	if c.jump_released and movement_state == MovementStates.JUMPING:
-		velocity.y *= 0.4
+		velocity.y *= 0.5
 		movement_state_transition_to(MovementStates.FALLING)
+		
+	if c.crouch_pressed:
+		if movement_state == MovementStates.CROUCHING:
+			go_2_capsule_shape()
+			movement_state_transition_to(MovementStates.IDLE)
+		else:
+			go_2_circle_shape()
+			movement_state_transition_to(MovementStates.CROUCHING)
 	#print("aiming dir from cmd: ", c.aiming_input)
 	
 	# -- FIXME in local player controller
@@ -970,26 +1145,12 @@ func apply_command( c: PlayerCommand):
 		# -- we were running and we just let off of run
 		if movement_state == MovementStates.RUNNING:
 			movement_state_transition_to(MovementStates.WALKING)
-
+			
+func update_visual_facing(horizontal_direction: float) -> void:
+	if absf(horizontal_direction) < 0.01:
+		return
+	animation_controller.set_facing_direction(horizontal_direction)
 # ------------------------------------------------------------------------------
-#
-#--TODO
-# -- completely replace this w/ proper visual, just here for tmp feedback
-#var can_burn: bool = true
-#func tmp_burn_handle() -> void:
-	#var d = abs((global_position.y + 0.5 * $CollisionShape2D.shape.height)- lava_ref.lava_fn( global_position.x))
-	#var hit_lava = d < 5
-	#
-	#if can_burn and hit_lava and lava_ref:
-		#var mat = $Sprite2D.material
-		#var burn_tween = create_tween()
-		#mat.set_shader_parameter("dummy_burn_timer", 0.)
-		#burn_tween.tween_property(mat, "shader_parameter/dummy_burn_timer", 5.0, 3.)
-		#can_burn = false
-#
-	## -- going back accross lava threshold after getting burned
-	#if !can_burn and hit_lava:
-		#can_burn = true
 
 # -- NOTE we're kind of mandating that this is only one layer deep for Node2d
 # --      children

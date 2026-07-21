@@ -4,7 +4,7 @@ extends Node2D
 @onready var pos_x_offset:float = (_texture.get_size() * $AnimatedSprite2D.scale).x / 2.
 
 func _ready() -> void:
-	$VfxEffectComponent.start = (func():
+	$VfxEffectComponent.start = (func( _params):
 		# -- position goes neg-x if flip
 		# -- otherwise pos-x
 		if $AnimatedSprite2D.flip_h:

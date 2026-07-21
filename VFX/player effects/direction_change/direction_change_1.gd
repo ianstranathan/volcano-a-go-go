@@ -2,7 +2,7 @@ extends Node2D
 
 func _ready() -> void:
 	hide()
-	$VfxEffectComponent.start = func():
+	$VfxEffectComponent.start = func(_params):
 		show()
 		$AnimatedSprite2D.frame = 0
 		$AnimatedSprite2D.play("default")

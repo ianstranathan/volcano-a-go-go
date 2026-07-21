@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://dpq5rj6a7eyvw"]
+
+[ext_resource type="Shader" uid="uid://b4b1lrasl85eg" path="res://levels/platforms/platform_components/metaball_platform_component/metaball_platform.gdshader" id="1_xm4xq"]
+
+[resource]
+shader = ExtResource("1_xm4xq")
+shader_parameter/coll_extents = Vector2(0, 0)

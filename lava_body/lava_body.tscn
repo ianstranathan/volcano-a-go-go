@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://dw8xbw1eowf42"]
 
-[ext_resource type="Script" uid="uid://ba5khv4uf4vm0" path="res://lava_body/lavable_body.gd" id="1_dg4h2"]
+[ext_resource type="Script" uid="uid://ba5khv4uf4vm0" path="res://levels/platforms/platform_components/float_in_lava_platform_component.gd" id="1_dg4h2"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_xobjf"]
-[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://platforms/palceholder_platform/placeholder_platform.gdshader" id="2_yn4me"]
+[ext_resource type="Shader" uid="uid://bv5njxihvo5tf" path="res://levels/platforms/palceholder_platform/placeholder_platform.gdshader" id="2_yn4me"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_yn4me"]
 size = Vector2(128, 128)
@@ -14,7 +14,6 @@ shader_parameter/source_col = Color(0.49411765, 0.7921569, 0.85490197, 1)
 
 [node name="LavaBody" type="AnimatableBody2D"]
 script = ExtResource("1_dg4h2")
-is_falling = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_yn4me")

@@ -16,6 +16,6 @@ func set_subviewports_game_world(w: World2D):
 	##$SubViewport.own_world_2d = false
 	#$SubViewport.transparent_bg = false
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if target_player:
 		$SubViewport/Camera2D.global_position = target_player.global_position
