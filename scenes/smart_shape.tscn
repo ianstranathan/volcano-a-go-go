@@ -1028,7 +1028,6 @@ position = Vector2(2041, -344)
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="Parallax" type="Node2D" parent="CanvasLayer"]
-z_index = -1
 
 [node name="Parallax2D" type="Parallax2D" parent="CanvasLayer/Parallax"]
 scroll_scale = Vector2(0.6, 0.6)
@@ -1089,6 +1088,6 @@ scroll_scale = Vector2(0.05, 0.05)
 
 [node name="Sprite2D" type="Sprite2D" parent="CanvasLayer/Parallax/Parallax2D7"]
 z_index = -7
-position = Vector2(137, -824)
+position = Vector2(116, -875)
 scale = Vector2(25, 25)
 texture = ExtResource("21_ko1wx")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=28 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -18,6 +18,13 @@
 [ext_resource type="PackedScene" uid="uid://dv6yjtu0iucn2" path="res://levels/level_manager.tscn" id="16_4cobl"]
 [ext_resource type="PackedScene" uid="uid://dkb4hsfhvjgih" path="res://UI/options_window/options_window.tscn" id="16_ee6o4"]
 [ext_resource type="Texture2D" uid="uid://ygdc3bmstf7a" path="res://assets/Sprites/GenGenie.png" id="17_ln7ps"]
+[ext_resource type="Texture2D" uid="uid://bqf0ruikrb11k" path="res://assets/parallax1.png" id="18_8bboj"]
+[ext_resource type="Texture2D" uid="uid://cadtx0r1vjb4b" path="res://assets/parallax2.png" id="19_q52ks"]
+[ext_resource type="Texture2D" uid="uid://c6y6i34rlh244" path="res://assets/parallax3.png" id="20_jucfl"]
+[ext_resource type="Texture2D" uid="uid://ckv3b5kil1shb" path="res://assets/parallax4.png" id="21_jdpby"]
+[ext_resource type="Texture2D" uid="uid://cp1ndlk06x1ct" path="res://assets/parallax5.png" id="22_58yx1"]
+[ext_resource type="Texture2D" uid="uid://dx4eb72xhov84" path="res://assets/parallax6.png" id="23_hbvmx"]
+[ext_resource type="Texture2D" uid="uid://b23vlbcnhs5nq" path="res://assets/parallax7.png" id="24_fegy3"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4cobl"]
 shader = ExtResource("10_hb504")
@@ -118,6 +125,73 @@ lava_ref = NodePath("../Lava")
 [node name="GenGenie" type="Sprite2D" parent="World"]
 position = Vector2(-338, 563)
 texture = ExtResource("17_ln7ps")
+
+[node name="Parallax" type="Node2D" parent="World"]
+z_index = -1
+position = Vector2(2, 766)
+
+[node name="Parallax2D" type="Parallax2D" parent="World/Parallax"]
+scroll_scale = Vector2(0.6, 0.6)
+
+[node name="Sprite2D" type="Sprite2D" parent="World/Parallax/Parallax2D"]
+z_index = -1
+position = Vector2(137, -824)
+scale = Vector2(25, 25)
+texture = ExtResource("18_8bboj")
+
+[node name="Parallax2D2" type="Parallax2D" parent="World/Parallax"]
+scroll_scale = Vector2(0.5, 0.5)
+
+[node name="Sprite2D" type="Sprite2D" parent="World/Parallax/Parallax2D2"]
+z_index = -2
+position = Vector2(137, -824)
+scale = Vector2(25, 25)
+texture = ExtResource("19_q52ks")
+
+[node name="Parallax2D3" type="Parallax2D" parent="World/Parallax"]
+scroll_scale = Vector2(0.4, 0.4)
+
+[node name="Sprite2D" type="Sprite2D" parent="World/Parallax/Parallax2D3"]
+z_index = -3
+position = Vector2(137, -824)
+scale = Vector2(25, 25)
+texture = ExtResource("20_jucfl")
+
+[node name="Parallax2D4" type="Parallax2D" parent="World/Parallax"]
+scroll_scale = Vector2(0.3, 0.3)
+
+[node name="Sprite2D" type="Sprite2D" parent="World/Parallax/Parallax2D4"]
+z_index = -4
+position = Vector2(137, -824)
+scale = Vector2(25, 25)
+texture = ExtResource("21_jdpby")
+
+[node name="Parallax2D5" type="Parallax2D" parent="World/Parallax"]
+scroll_scale = Vector2(0.2, 0.2)
+
+[node name="Sprite2D" type="Sprite2D" parent="World/Parallax/Parallax2D5"]
+z_index = -5
+position = Vector2(137, -824)
+scale = Vector2(25, 25)
+texture = ExtResource("22_58yx1")
+
+[node name="Parallax2D6" type="Parallax2D" parent="World/Parallax"]
+scroll_scale = Vector2(0.1, 0.1)
+
+[node name="Sprite2D" type="Sprite2D" parent="World/Parallax/Parallax2D6"]
+z_index = -6
+position = Vector2(137, -824)
+scale = Vector2(25, 25)
+texture = ExtResource("23_hbvmx")
+
+[node name="Parallax2D7" type="Parallax2D" parent="World/Parallax"]
+scroll_scale = Vector2(0.05, 0.05)
+
+[node name="Sprite2D" type="Sprite2D" parent="World/Parallax/Parallax2D7"]
+z_index = -7
+position = Vector2(137, -824)
+scale = Vector2(25, 25)
+texture = ExtResource("24_fegy3")
 
 [node name="DeathTv" parent="." instance=ExtResource("12_qf6n1")]
 position = Vector2(-568, 405)
