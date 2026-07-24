@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_v6dui")
-level_index = 0
+level_index = 2
 level_height = 4078.0
 offset_to_chunk_origin = -1196.0
 level_width = 4574.0

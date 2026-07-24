@@ -566,6 +566,12 @@ func idle_state_fn(_delta) -> void:
 		coyote_timer.start()
 		
 
+func grounded_easing(t: float, reversing: bool, b: bool = true) -> float:
+	if b:
+		return t * t if !reversing else (1. - t) * (1. - t)
+	return t if !reversing else (1. - t)
+
+
 func grounded_horizontal_movement( delta):
 	var target_speed : float= move_input.x * state_target_x_speed
 	# -- 0 at 0 and 1 at state speed
@@ -581,11 +587,16 @@ func grounded_horizontal_movement( delta):
 		# -- and 1 if we're at zero
 		t = 1.0 - t
 
-	var a0 = 2000.0
-	var a1 = 4000.0
+	#TODO NOTE
+	# -- these don't have to be the same, they can also change or have pairs
+	# -- depending on what we're doing
+	var a0 = 8000.0
+	var a1 = 2000.0
+	
 	var accel : float = lerp( a0, a1,
 		# -- this is giving us that satisfying start delay
-		t * t if !reversing else (1. - t) * (1. - t)
+		pow((1. - t), 3.0) if !reversing else t
+		#grounded_easing(t, reversing, false)
 	)
 	
 	velocity.x = move_toward(
