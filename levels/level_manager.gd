@@ -37,6 +37,7 @@ var current_chunk_idx: int = 0
 
 var moving_platform_network_id = 0
 
+var cam_ref: Camera2D # -- for parallaxing, to give to children chunks
 # ------------------------------------------------------------------------------
 func _ready() -> void:
 	_load_level_chunks_globally()
@@ -215,6 +216,7 @@ func _instantiate_chunk(idx: int, packed_scene: PackedScene) -> void:
 		c.network_id = moving_platform_network_id
 		moving_platform_network_id += 1)
 	
+	chunk_instance.cam_ref = cam_ref
 	chunk_container.add_child(chunk_instance)
 	
 	var height = chunk_instance.level_data.level_height

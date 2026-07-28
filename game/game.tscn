@@ -52,7 +52,7 @@ player_container_ref = NodePath("../PlayersContainer")
 [node name="PlayersContainer" type="Node2D" parent="World"]
 
 [node name="Camera" parent="World" instance=ExtResource("2_vasa2")]
-zoom = Vector2(0.95, 0.95)
+zoom = Vector2(1, 1)
 
 [node name="WorldEffects" type="Node2D" parent="World" node_paths=PackedStringArray("players_container")]
 script = ExtResource("8_y36n6")
@@ -80,9 +80,8 @@ movement_type = 0
 _path_follower_component = NodePath("../../PathFollowPlatformComponent")
 metadata/_custom_type_script = "uid://b1quk135kfj1v"
 
-[node name="MetaballPlatformComponent" type="Node2D" parent="World/Oasis/BasePlatform" node_paths=PackedStringArray("sprite_ref")]
+[node name="MetaballPlatformComponent" type="Node2D" parent="World/Oasis/BasePlatform"]
 script = ExtResource("11_ee6o4")
-sprite_ref = NodePath("../Sprite2D")
 apply = true
 metadata/_custom_type_script = "uid://dcocnrr1wxj00"
 
@@ -96,7 +95,7 @@ game_ref = NodePath("../..")
 scale = Vector2(1e-05, 1e-05)
 
 [node name="Marker2D" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(-114200000, 7500004)
+position = Vector2(-11299992, -34700004)
 
 [node name="Marker2D2" type="Marker2D" parent="World/InitialSpawnPoints"]
 position = Vector2(28700008, -34500000)

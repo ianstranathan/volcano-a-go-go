@@ -28,6 +28,9 @@ func _ready():
 	world_pickup_items_manager.load_pickup_items_from_level_chunks(
 		world_level_manager.get_all_pickup_item_definitions()
 	)
+	assert( camera )
+	
+	world_level_manager.cam_ref = camera
 	world_level_manager.level_ready.connect( on_level_manager_loaded_first_chunk )
 	#post_processing_quad.transition_finished.connect( func():
 		 #)

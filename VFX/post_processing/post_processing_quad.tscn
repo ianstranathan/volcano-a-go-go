@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dxmpk01mcxy4u" path="res://VFX/post_processing/post_processing_quad.gd" id="1_f8chi"]
 [ext_resource type="Shader" uid="uid://bknmw032rabjm" path="res://VFX/post_processing/post_processing_quad.gdshader" id="1_l2s4n"]
-[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_8ldvm"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="2_8ldvm"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_n4uac"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_n4uac"]

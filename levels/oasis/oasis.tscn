@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://dqh3gfimhcbfj" path="res://assets/adamsaltsman.png" id="1_eypol"]
 [ext_resource type="Shader" uid="uid://c7ctopwcsc2n3" path="res://levels/oasis/oasis.gdshader" id="1_oed3a"]
 [ext_resource type="Script" uid="uid://dso72jwgq4una" path="res://levels/oasis/oasis.gd" id="1_vrkva"]
-[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_pgp5g"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="2_pgp5g"]
 [ext_resource type="Shader" uid="uid://b32e4k6df1joa" path="res://levels/oasis/voclano_portal.gdshader" id="5_5ovu8"]
 [ext_resource type="Texture2D" uid="uid://blfgm3idfq4a3" path="res://assets/volcano_icon_4.png" id="5_sko6r"]
 

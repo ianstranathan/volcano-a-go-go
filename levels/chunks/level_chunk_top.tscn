@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=4 uid="uid://c23v6suw4eike"]
+[gd_scene load_steps=28 format=4 uid="uid://c23v6suw4eike"]
 
 [ext_resource type="Texture2D" uid="uid://bhsoxu716q2y6" path="res://assets/tile_sets/TinyRocks/TinyRocks.png" id="1_ns4w1"]
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_xj7i1"]
@@ -11,6 +11,14 @@
 [ext_resource type="Script" uid="uid://71ctjk2u6580" path="res://levels/chunks/paths_container.gd" id="8_pn6oq"]
 [ext_resource type="PackedScene" uid="uid://csg4yx0oqcs6p" path="res://levels/level_components/switch/switch.tscn" id="8_wto44"]
 [ext_resource type="PackedScene" uid="uid://duuhb8bajrvql" path="res://levels/level_components/door/door.tscn" id="9_ghx8o"]
+[ext_resource type="Script" uid="uid://c3wcsvbgbx2rk" path="res://levels/platforms/platform_components/dissolving_platform_component/dissolving_platform_component.gd" id="10_v3jip"]
+[ext_resource type="Script" uid="uid://dpkkawt7f4diq" path="res://levels/level_components/platform_path/platform_path.gd" id="11_6yedq"]
+[ext_resource type="PackedScene" uid="uid://dx2v0c6arxv4a" path="res://levels/platforms/platform_components/dissolving_platform_component/dissolving_platform_component.tscn" id="12_v75bh"]
+[ext_resource type="PackedScene" uid="uid://btfesvm7e2l65" path="res://levels/level_components/column_log_roll/column_log_roll.tscn" id="13_p3w7t"]
+[ext_resource type="Script" uid="uid://b5ino50r17sff" path="res://levels/background/background_generator.gd" id="16_jkn5b"]
+[ext_resource type="Script" uid="uid://drehek2argxvr" path="res://levels/chunks/parallax_manager.gd" id="16_lrkj0"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="17_gjqpy"]
+[ext_resource type="Material" uid="uid://3v66203jd2su" path="res://levels/background/bg_1.tres" id="18_nvyv2"]
 
 [sub_resource type="Resource" id="Resource_re8k8"]
 script = ExtResource("2_mgbfs")
@@ -160,6 +168,12 @@ size = Vector2(2000, 532)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xj7i1"]
 size = Vector2(500, 500)
 
+[sub_resource type="Curve2D" id="Curve2D_v75bh"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 643, -438, 0, 0, 0, 0, 1011, -376, 0, 0, 0, 0, 1313, -501, 0, 0, 0, 0, 1679, -603, 0, 0, 0, 0, 1945, -711)
+}
+point_count = 5
+
 [sub_resource type="Curve2D" id="Curve2D_bnv6i"]
 resource_local_to_scene = true
 _data = {
@@ -174,9 +188,10 @@ _data = {
 }
 point_count = 7
 
-[node name="LevelChunkTop" type="Node2D" node_paths=PackedStringArray("tickable_geometry_container", "bottom_marker", "top_marker", "left_marker", "right_marker")]
+[node name="LevelChunkTop" type="Node2D" node_paths=PackedStringArray("tickable_geometry_container", "parallax_manager", "bottom_marker", "top_marker", "left_marker", "right_marker")]
 script = ExtResource("1_xj7i1")
 tickable_geometry_container = NodePath("tickables_container")
+parallax_manager = NodePath("ParallaxManager")
 bottom_marker = NodePath("BottomMarker")
 top_marker = NodePath("TopMarker")
 left_marker = NodePath("LeftMarker")
@@ -231,6 +246,7 @@ position = Vector2(-2452, 0)
 position = Vector2(2122, 0)
 
 [node name="FireColumn" parent="." instance=ExtResource("4_pwrgd")]
+z_index = -50
 level_chunk_data = ExtResource("5_q630d")
 
 [node name="tickables_container" type="Node2D" parent="."]
@@ -261,6 +277,41 @@ speed = 300.0
 switch_type = 0
 coll_extents = Vector2(100, 100)
 
+[node name="DissolveTest" parent="tickables_container" instance=ExtResource("6_q630d")]
+position = Vector2(5, -364)
+
+[node name="DissolvingPlatformComponent" type="Node2D" parent="tickables_container/DissolveTest" node_paths=PackedStringArray("sprite", "p")]
+script = ExtResource("10_v3jip")
+sprite = NodePath("../Sprite2D")
+p = NodePath("..")
+metadata/_custom_type_script = "uid://c3wcsvbgbx2rk"
+
+[node name="DissolveTest2" parent="tickables_container" instance=ExtResource("6_q630d")]
+position = Vector2(-952, -173)
+
+[node name="DissolvingPlatformComponent" type="Node2D" parent="tickables_container/DissolveTest2" node_paths=PackedStringArray("sprite", "p")]
+script = ExtResource("10_v3jip")
+sprite = NodePath("../Sprite2D")
+p = NodePath("..")
+metadata/_custom_type_script = "uid://c3wcsvbgbx2rk"
+
+[node name="PlatformPath" type="Path2D" parent="tickables_container"]
+curve = SubResource("Curve2D_v75bh")
+script = ExtResource("11_6yedq")
+platform_scene = ExtResource("6_q630d")
+component_modifier = ExtResource("12_v75bh")
+make_bridge = true
+blocks_should_rotate = true
+metadata/_custom_type_script = "uid://dpkkawt7f4diq"
+
+[node name="ColumnLogRoll" parent="tickables_container" instance=ExtResource("13_p3w7t")]
+position = Vector2(-1636, -454)
+rotation = 0.64041466
+coll_extents = Vector2(1000, 100)
+
+[node name="BasePlatform2" parent="tickables_container" instance=ExtResource("6_q630d")]
+position = Vector2(-1726, -198)
+
 [node name="PathsContainer" type="Node2D" parent="."]
 script = ExtResource("8_pn6oq")
 metadata/_custom_type_script = "uid://71ctjk2u6580"
@@ -270,3 +321,20 @@ curve = SubResource("Curve2D_bnv6i")
 
 [node name="LoopTest" parent="PathsContainer" instance=ExtResource("8_bnv6i")]
 curve = SubResource("Curve2D_wto44")
+
+[node name="ParallaxManager" type="Node2D" parent="." node_paths=PackedStringArray("backgrond_layer")]
+z_index = -100
+script = ExtResource("16_lrkj0")
+backgrond_layer = NodePath("BackgroundLayer")
+background_material = ExtResource("18_nvyv2")
+
+[node name="BackgroundLayer" type="Node2D" parent="ParallaxManager" node_paths=PackedStringArray("top", "bottom", "left", "right")]
+script = ExtResource("16_jkn5b")
+buffer_amount = 3
+_apply = null
+texture = ExtResource("17_gjqpy")
+mat = ExtResource("18_nvyv2")
+top = NodePath("../../TopMarker")
+bottom = NodePath("../../BottomMarker")
+left = NodePath("../../LeftMarker")
+right = NodePath("../../RightMarker")

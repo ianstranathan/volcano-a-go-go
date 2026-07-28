@@ -7,9 +7,12 @@ signal moveable_platform_made( c: MovingPlatformComponent, fn: Callable )
 @onready var players_container_ref: Node2D
 @export var coin_manager: Node2D
 @export var tickable_geometry_container: Node2D
+@export var parallax_manager:Node2D
 var tickable_geometry: Array
-#
-#
+
+var cam_ref: Camera2D # -- from: game -> level manager -> chunkinstance
+
+
 func execute_tick( delta: float ):
 	if !tickable_geometry.is_empty():
 		for c in tickable_geometry:
@@ -17,6 +20,8 @@ func execute_tick( delta: float ):
 	if coin_manager:
 		coin_manager.execute_tick( delta )
 
+	if parallax_manager:
+		parallax_manager.cam_ref = cam_ref
 
 @export var bottom_marker: Marker2D
 @export var top_marker: Marker2D

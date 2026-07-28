@@ -1,0 +1,19 @@
+[gd_scene load_steps=5 format=3 uid="uid://bngkid70ivk0c"]
+
+[ext_resource type="Script" uid="uid://dpkkawt7f4diq" path="res://levels/level_components/platform_path/platform_path.gd" id="1_seiuc"]
+[ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="2_d7bcn"]
+[ext_resource type="PackedScene" uid="uid://dx2v0c6arxv4a" path="res://levels/platforms/platform_components/dissolving_platform_component/dissolving_platform_component.tscn" id="3_wovmp"]
+
+[sub_resource type="Curve2D" id="Curve2D_seiuc"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 85, 124, 0, 0, 0, 0, 260, 190, 0, 0, 0, 0, 428, 220, 0, 0, 0, 0, 542, 134, 0, 0, 0, 0, 749, 133)
+}
+point_count = 5
+
+[node name="PlatformPath" type="Path2D"]
+curve = SubResource("Curve2D_seiuc")
+script = ExtResource("1_seiuc")
+platform_scene = ExtResource("2_d7bcn")
+component_modifier = ExtResource("3_wovmp")
+make_bridge = true
+blocks_should_rotate = null

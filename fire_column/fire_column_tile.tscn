@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://bwf7886442a5j"]
 
 [ext_resource type="Shader" uid="uid://dscditq8agmtp" path="res://fire_column/fire_column.gdshader" id="1_n3isg"]
-[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_wpqo6"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="2_wpqo6"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="3_q7ne5"]
 [ext_resource type="Script" uid="uid://dvmtkup3y12ma" path="res://fire_column/fire_column_tile.gd" id="4_wpqo6"]
 

@@ -97,7 +97,8 @@ enum MovementStates
 	CLOUD,
 	PORTAL,
 	SLIDING,
-	METABALL
+	METABALL,
+	LOG_ROLL
 	# SLIDING
 	# GENIE_HAND
 }
@@ -366,21 +367,26 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 			var normal = collision.get_normal()
 			is_on_ground = normal.dot(Vector2.UP) > 0.1 # TODO expose this
 			if is_on_ground:
-				# -- we want to be really exact, we can keep an explicit reference
-				# -- to a tangent and only move in that direction
-				# -- slide is good enough for now
-				#platform_tangent = normal.orthogonal()
 				current_platform_displacement_ref_check(collision)
 
-				var tangent = Vector2(normal.y, -normal.x).normalized()
-
-				# Ensure the tangent points in the direction of movement.
-				if move_input.x != 0.0 and tangent.x * move_input.x < 0.0:
-					tangent = -tangent
-
-				# Preserve horizontal speed while following the slope.
-				if abs(tangent.x) > 0.001:
-					velocity = tangent * (velocity.x / tangent.x)
+				# --  max floor angle (e.g. 45 degrees ~ cos(45°) ≈ 0.707)
+				# -- dot product = |a||b|cos(theta) = a dot b
+				# -- normal and Vector2.UP are length 1 => this is cos(45 deg) approx
+				if normal.dot(Vector2.UP) > 0.7: 
+					var tangent = Vector2(normal.y, -normal.x).normalized()
+					# -- nsure velocity aligns correctly with the player's intended dir
+					# -- flip tangent dir if they dont agree
+					#if move_input.x != 0.0 and tangent.x * move_input.x < 0.0:
+						#tangent = -tangent
+					scale_vel_along_tangent(tangent)
+					#var speed = velocity.length()
+					#if abs(tangent.x) > 0.1:
+						#var scale_factor = clamp(velocity.x / tangent.x, -speed * 10, speed * 10)
+						#velocity = tangent * scale_factor
+				else:
+					# Treat steep contacts as walls, not ground
+					is_on_ground = false
+					velocity = velocity.slide(normal)
 			else:
 				var is_hitting_ceiling = normal.dot(Vector2.DOWN) > 0.1
 				if is_hitting_ceiling:
@@ -391,6 +397,15 @@ func execute_tick(delta: float, cmd: PlayerCommand):
 	pos_current = global_position
 	
 # ------------------------------------------------------------------------------
+func scale_vel_along_tangent( _tangent : Vector2) -> void:
+	var tangent = _tangent
+	if move_input.x != 0.0 and tangent.x * move_input.x < 0.0:
+		tangent = -tangent
+	var speed = velocity.length()
+	if abs(tangent.x) > 0.1:
+		var scale_factor = clamp(velocity.x / tangent.x, -speed * 10, speed * 10)
+		velocity = tangent * scale_factor
+
 
 @rpc("any_peer", "unreliable")
 func predict_impact_notification( impulse: Vector2):
@@ -489,6 +504,53 @@ func crouching_state_fn(_delta: float):
 	if check_for_falling():
 		coyote_timer.start()
 
+var surface_rotation_vel: float = 0.
+var log_normal: Vector2 = Vector2.ZERO
+var log_tangent: Vector2 = Vector2.ZERO
+func start_log_rolling( w: float, n: Vector2) -> void:
+	is_on_ground = true
+	# -- zero normal part of velocity:
+	var vel_in_normal_dir := velocity.dot( n ) * n
+	velocity -= vel_in_normal_dir
+	surface_rotation_vel = w
+	log_normal = n
+	log_tangent = Vector2(n.y, -n.x)
+	#print("normal", log_normal)
+	#print("velocity direction", log_normal * surface_rotation_vel)
+	movement_state_transition_to(MovementStates.LOG_ROLL)
+
+# -- called by the log area
+
+func fall_off_log() -> void:
+	if movement_state != MovementStates.JUMPING:
+		movement_state_transition_to(MovementStates.FALLING)
+		is_on_ground = false
+	#elif velocity.y > 0:
+		#is_on_ground = false
+
+func apply_log_tangent_movement( _tangent : Vector2) -> void:
+	var tangent = _tangent
+	if move_input.x != 0.0 and tangent.x * move_input.x < 0.0:
+		tangent = -tangent
+	
+	# -- project/scale only the component moving along the tangent, or blend
+	var current_speed = velocity.length()
+	if abs(tangent.x) > 0.1:
+		var scale_factor = clamp(velocity.x / tangent.x, -current_speed * 1.5, current_speed * 1.5)
+		
+		# -- keep normal component while updating the tangent component
+		var tangent_velocity = tangent * scale_factor
+		var normal_component = velocity.project(log_normal)
+		velocity = tangent_velocity + normal_component
+		
+
+func log_roll_state_fn(_delta:):
+	grounded_horizontal_movement( _delta )
+	apply_log_tangent_movement(log_tangent)
+	check_for_jump()
+	velocity += log_normal * _delta * 10. * (surface_rotation_vel - move_input.y * kd.baseline_speed)
+
+
 
 # -- callback from metaball's area2d
 func transition_to_metaball(collision_pt: Vector2,
@@ -566,7 +628,13 @@ func idle_state_fn(_delta) -> void:
 		coyote_timer.start()
 		
 
-func grounded_horizontal_movement( delta):
+func grounded_easing(t: float, reversing: bool, b: bool = true) -> float:
+	if b:
+		return t * t if !reversing else (1. - t) * (1. - t)
+	return t if !reversing else (1. - t)
+
+
+func grounded_horizontal_movement( delta ):
 	var target_speed : float= move_input.x * state_target_x_speed
 	# -- 0 at 0 and 1 at state speed
 	var t : float = clamp(abs(velocity.x) / state_target_x_speed, 0.0, 1.0)
@@ -581,19 +649,24 @@ func grounded_horizontal_movement( delta):
 		# -- and 1 if we're at zero
 		t = 1.0 - t
 
-	var a0 = 2000.0
-	var a1 = 4000.0
+	#TODO NOTE
+	# -- these don't have to be the same, they can also change or have pairs
+	# -- depending on what we're doing
+	var a0 = 8000.0
+	var a1 = 2000.0
+	
 	var accel : float = lerp( a0, a1,
 		# -- this is giving us that satisfying start delay
-		t * t if !reversing else (1. - t) * (1. - t)
+		pow((1. - t), 3.0) if !reversing else t
+		#grounded_easing(t, reversing, false)
 	)
-	
 	velocity.x = move_toward(
 		velocity.x,
 		target_speed,
 		accel * delta
 	)
-	
+
+
 func walking_state_fn(delta) -> void:
 	check_for_jump()
 	grounded_horizontal_movement( delta )
@@ -1006,6 +1079,8 @@ func get_horizontal_target_speed_from_state( s: MovementStates) -> float:
 			return kd.climb_speed
 		MovementStates.CLOUD:
 			return 2. * kd.baseline_speed
+		MovementStates.LOG_ROLL:
+			return kd.baseline_speed
 		MovementStates.PORTAL:
 			return 0.0
 		_:
@@ -1035,6 +1110,8 @@ func gravity_from_state() -> float:
 		MovementStates.CLIMBING:
 			return 0.0
 		MovementStates.CLOUD:
+			return 0.0
+		MovementStates.LOG_ROLL:
 			return 0.0
 		MovementStates.PORTAL:
 			return 0.0

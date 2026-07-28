@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dx2v0c6arxv4a"]
+
+[ext_resource type="Script" uid="uid://c3wcsvbgbx2rk" path="res://levels/platforms/platform_components/dissolving_platform_component/dissolving_platform_component.gd" id="1_if88e"]
+
+[node name="DisappearingPlatformComponent" type="Node2D"]
+script = ExtResource("1_if88e")
