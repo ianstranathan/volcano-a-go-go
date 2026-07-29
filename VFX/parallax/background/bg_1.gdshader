@@ -41,7 +41,7 @@ vec2 rotated_UV(vec2 uv, mat2 rota){
 uniform float max_blur_level = 4.0;
 void fragment(){
 	//vec2 adjusted_world_pos = world_position - TIME;
-    vec2 _UV = (world_position - 0.5 * camera_pos) / (level_dims / 2.0);
+    vec2 _UV = (world_position - 0.8 * camera_pos) / (level_dims / 2.0);
 	//vec2 _UV = (world_position - parallax_offset) / (level_dims / 2.);
 	//_UV = UV;
 	// -- rock and diffuse light

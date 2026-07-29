@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=32 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -18,6 +18,13 @@
 [ext_resource type="PackedScene" uid="uid://dv6yjtu0iucn2" path="res://levels/level_manager.tscn" id="16_4cobl"]
 [ext_resource type="PackedScene" uid="uid://dkb4hsfhvjgih" path="res://UI/options_window/options_window.tscn" id="16_ee6o4"]
 [ext_resource type="Texture2D" uid="uid://ygdc3bmstf7a" path="res://assets/Sprites/GenGenie.png" id="17_ln7ps"]
+[ext_resource type="Material" uid="uid://3v66203jd2su" path="res://VFX/parallax/background/bg_1.tres" id="18_dxwpq"]
+[ext_resource type="Script" uid="uid://c1v1wffkshhet" path="res://VFX/parallax/background/background_manager.gd" id="18_mhvfb"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="19_dxwpq"]
+[ext_resource type="Script" uid="uid://d2hrglvsb7qwg" path="res://VFX/parallax/background/follow_cam_container.gd" id="20_leid8"]
+[ext_resource type="Script" uid="uid://cr80xpke88uhc" path="res://VFX/parallax/background/mesh_2_viewport_component.gd" id="21_5e03w"]
+[ext_resource type="Shader" uid="uid://ftymhn0l1uan" path="res://vfx/parallax/background/background_screen_quad.gdshader" id="22_5e03w"]
+[ext_resource type="Script" uid="uid://buaw6vowb1vpp" path="res://VFX/parallax/background/follow_cam_component.gd" id="24_8bboj"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4cobl"]
 shader = ExtResource("10_hb504")
@@ -27,6 +34,17 @@ shader_parameter/circ_scale_increase = 2.0
 
 [sub_resource type="Curve2D" id="Curve2D_4cobl"]
 resource_local_to_scene = true
+
+[sub_resource type="QuadMesh" id="QuadMesh_mhvfb"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_leid8"]
+shader = ExtResource("22_5e03w")
+shader_parameter/blur_radius = 2.0
+
+[sub_resource type="QuadMesh" id="QuadMesh_dxwpq"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_mhvfb"]
+viewport_path = NodePath("World/BackgroundManager/Layer1/SubViewportLayer0")
 
 [node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "lava", "camera", "world_effects_container")]
 script = ExtResource("1_dxrkv")
@@ -117,6 +135,43 @@ lava_ref = NodePath("../Lava")
 [node name="GenGenie" type="Sprite2D" parent="World"]
 position = Vector2(-338, 563)
 texture = ExtResource("17_ln7ps")
+
+[node name="BackgroundManager" type="Node2D" parent="World" node_paths=PackedStringArray("backgrond_layer", "cam_ref")]
+z_index = -1001
+script = ExtResource("18_mhvfb")
+backgrond_layer = NodePath("Layer1")
+background_material = ExtResource("18_dxwpq")
+cam_ref = NodePath("../Camera")
+
+[node name="Layer1" type="Node2D" parent="World/BackgroundManager"]
+
+[node name="SubViewportLayer0" type="SubViewport" parent="World/BackgroundManager/Layer1"]
+
+[node name="FollowMainCam" type="Node2D" parent="World/BackgroundManager/Layer1/SubViewportLayer0" node_paths=PackedStringArray("cam", "sub_cam")]
+script = ExtResource("20_leid8")
+cam = NodePath("../../../../Camera")
+sub_cam = NodePath("Camera2D")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="World/BackgroundManager/Layer1/SubViewportLayer0/FollowMainCam" node_paths=PackedStringArray("cam")]
+material = ExtResource("18_dxwpq")
+mesh = SubResource("QuadMesh_mhvfb")
+texture = ExtResource("19_dxwpq")
+script = ExtResource("21_5e03w")
+cam = NodePath("../Camera2D")
+
+[node name="Camera2D" type="Camera2D" parent="World/BackgroundManager/Layer1/SubViewportLayer0/FollowMainCam"]
+
+[node name="Layer0_render_target" type="MeshInstance2D" parent="World/BackgroundManager/Layer1" node_paths=PackedStringArray("cam")]
+material = SubResource("ShaderMaterial_leid8")
+mesh = SubResource("QuadMesh_dxwpq")
+texture = SubResource("ViewportTexture_mhvfb")
+script = ExtResource("21_5e03w")
+cam = NodePath("../SubViewportLayer0/FollowMainCam/Camera2D")
+
+[node name="Node2D" type="Node2D" parent="World/BackgroundManager/Layer1/Layer0_render_target" node_paths=PackedStringArray("target_2_move", "cam")]
+script = ExtResource("24_8bboj")
+target_2_move = NodePath("..")
+cam = NodePath("../../../../Camera")
 
 [node name="DeathTv" parent="." instance=ExtResource("12_qf6n1")]
 position = Vector2(-568, 405)
