@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1_b35qc")
 level_index = 0
-level_height = 3873.0
-offset_to_chunk_origin = -3494.0
-level_width = 8817.0
-player_spawn_points = [Vector2(2227, -386), Vector2(1909, -351), Vector2(2464, -347), Vector2(2041, -344)]
+level_height = 8584.0
+offset_to_chunk_origin = -8205.0
+level_width = 14266.0
+player_spawn_points = [Vector2(155, -178), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
 chunk_scene_path = "res://scenes/smart_shape.tscn"
 metadata/_custom_type_script = "uid://cptvpu01udgc8"

@@ -51,6 +51,7 @@ world_effects_container = NodePath("World/WorldEffects")
 metadata/_edit_group_ = true
 
 [node name="World" type="Node2D" parent="."]
+position = Vector2(0, 1000)
 
 [node name="LevelManager" parent="World" node_paths=PackedStringArray("lava_ref", "player_container_ref") instance=ExtResource("16_4cobl")]
 lava_ref = NodePath("../Lava")
@@ -103,16 +104,14 @@ game_ref = NodePath("../..")
 scale = Vector2(1e-05, 1e-05)
 
 [node name="Marker2D" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(19900008, -35500004)
+position = Vector2(26200002, -39000004)
 
 [node name="Marker2D2" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(28700008, -34500000)
+position = Vector2(57600004, -24000002)
 
 [node name="Marker2D3" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(22100000, 52800000)
 
 [node name="Marker2D4" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(-67900000, 59800000)
 
 [node name="WorldPickupItemsManager" type="Node2D" parent="World"]
 script = ExtResource("11_3vho3")
@@ -127,6 +126,7 @@ position = Vector2(-338, 563)
 texture = ExtResource("17_ln7ps")
 
 [node name="Parallax" type="Node2D" parent="World"]
+visible = false
 z_index = -1
 position = Vector2(2, 766)
 

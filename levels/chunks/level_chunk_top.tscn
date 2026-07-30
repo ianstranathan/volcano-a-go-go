@@ -1,8 +1,7 @@
-[gd_scene load_steps=19 format=4 uid="uid://c23v6suw4eike"]
+[gd_scene load_steps=17 format=4 uid="uid://c23v6suw4eike"]
 
 [ext_resource type="Texture2D" uid="uid://bhsoxu716q2y6" path="res://assets/tile_sets/TinyRocks/TinyRocks.png" id="1_ns4w1"]
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_xj7i1"]
-[ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_mgbfs"]
 [ext_resource type="PackedScene" uid="uid://dxvt8fbol7y6b" path="res://fire_column/fire_column.tscn" id="4_pwrgd"]
 [ext_resource type="Resource" uid="uid://ub60nq8a6tk7" path="res://levels/level_data_rscs/level_chunk_top_data.tres" id="5_q630d"]
 [ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="6_q630d"]
@@ -11,16 +10,6 @@
 [ext_resource type="Script" uid="uid://71ctjk2u6580" path="res://levels/chunks/paths_container.gd" id="8_pn6oq"]
 [ext_resource type="PackedScene" uid="uid://csg4yx0oqcs6p" path="res://levels/level_components/switch/switch.tscn" id="8_wto44"]
 [ext_resource type="PackedScene" uid="uid://duuhb8bajrvql" path="res://levels/level_components/door/door.tscn" id="9_ghx8o"]
-
-[sub_resource type="Resource" id="Resource_re8k8"]
-script = ExtResource("2_mgbfs")
-level_index = 2
-level_height = 4078.0
-offset_to_chunk_origin = -1196.0
-level_width = 4574.0
-player_spawn_points = [Vector2(-1079, -189.99997), Vector2(-1747, -178), Vector2(1122, -192), Vector2(1750, -203)]
-chunk_scene_path = "res://levels/chunks/level_chunk_top.tscn"
-metadata/_custom_type_script = "uid://cptvpu01udgc8"
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_xj7i1"]
 texture = ExtResource("1_ns4w1")
@@ -181,7 +170,6 @@ bottom_marker = NodePath("BottomMarker")
 top_marker = NodePath("TopMarker")
 left_marker = NodePath("LeftMarker")
 right_marker = NodePath("RightMarker")
-level_data = SubResource("Resource_re8k8")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
 position = Vector2(-148, 0)

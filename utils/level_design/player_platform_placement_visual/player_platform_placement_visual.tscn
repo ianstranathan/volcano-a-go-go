@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://tpumo6ph2m3j"]
+[gd_scene load_steps=12 format=3 uid="uid://tpumo6ph2m3j"]
 
 [ext_resource type="Script" uid="uid://ppbwk80qmhly" path="res://utils/level_design/player_platform_placement_visual/player_platform_placement_visual.gd" id="1_hrbk4"]
 [ext_resource type="Resource" uid="uid://dhmx6u1dpspmo" path="res://player/kinematic_data_rscs/default_player_kinematic_data.tres" id="2_2pupy"]
@@ -12,9 +12,8 @@ shader_parameter/src_col = Color(0.19607843, 0, 0.39215687, 0.64705884)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_aveob"]
 shader = ExtResource("3_uhcfi")
-shader_parameter/dummy_burn_timer = 0.0
-shader_parameter/radius = 0.0
-shader_parameter/height = 0.355
+shader_parameter/height = 0.47
+shader_parameter/radius = 0.31
 shader_parameter/src_col = Color(0, 0.50980395, 0.69411767, 0.5372549)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hdfnd"]
@@ -28,6 +27,10 @@ shader_parameter/src_col = Color(0.14117648, 0.92941177, 0.6784314, 0.4117647)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_47qnk"]
 shader = ExtResource("3_jdjta")
 shader_parameter/src_col = Color(0.6392157, 0.25882354, 0, 0.6784314)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_jdjta"]
+radius = 20.0
+height = 100.0
 
 [node name="PlayerPlatformPlacementVisual" type="Node2D" node_paths=PackedStringArray("right_regular_jump_arc", "left_regular_jump_arc", "right_wall_jump_arc", "left_wall_jump_arc")]
 script = ExtResource("1_hrbk4")
@@ -64,3 +67,6 @@ texture_mode = 1
 material = SubResource("ShaderMaterial_47qnk")
 points = PackedVector2Array(0, 0, -31.666666, -43.70406, -63.333332, -77.38034, -95, -101.02885, -126.666664, -114.649574, -158.33333, -118.24252, -190, -112.76033, -221.66667, -99.15564, -253.33334, -77.42845, -285, -47.578762, -316.66666, -9.606571, -348.3333, 36.48812, -379.99997, 90.70531, -411.66663, 153.045, -443.33328, 223.50719)
 texture_mode = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_jdjta")
