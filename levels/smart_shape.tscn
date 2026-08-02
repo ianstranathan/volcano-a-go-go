@@ -1,4 +1,4 @@
-[gd_scene load_steps=801 format=4 uid="uid://fooirwkjdwxl"]
+[gd_scene load_steps=799 format=4 uid="uid://fooirwkjdwxl"]
 
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_hy8xc"]
 [ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_go1yl"]
@@ -18,6 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://kg8m5o45ix3h" path="res://assets/volcano fill 2.png" id="16_jv26l"]
 [ext_resource type="Texture2D" uid="uid://b2affa2yike87" path="res://assets/volcano ground.png" id="17_yy7ml"]
 [ext_resource type="Texture2D" uid="uid://btg280ipditcw" path="res://assets/volcanobg2.png" id="18_8aauq"]
+[ext_resource type="PackedScene" uid="uid://dxvt8fbol7y6b" path="res://fire_column/fire_column.tscn" id="19_go1yl"]
 
 [sub_resource type="Resource" id="Resource_b0i2u"]
 script = ExtResource("2_go1yl")
@@ -25,29 +26,37 @@ level_index = 0
 level_height = 8584.0
 offset_to_chunk_origin = -8205.0
 level_width = 14266.0
-player_spawn_points = [Vector2(155, -178), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
+player_spawn_points = [Vector2(801, -5988), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
 chunk_scene_path = "res://levels/smart_shape.tscn"
 metadata/_custom_type_script = "uid://cptvpu01udgc8"
 
 [sub_resource type="Resource" id="Resource_uttf1"]
 script = ExtResource("5_lv54x")
-position = Vector2(-1032, 0)
+position = Vector2(-7376.0356, 228.73486)
 
 [sub_resource type="Resource" id="Resource_2n1er"]
 script = ExtResource("5_lv54x")
-position = Vector2(6896, 0)
+position = Vector2(7181.643, -68.948)
 
 [sub_resource type="Resource" id="Resource_qsbao"]
 script = ExtResource("5_lv54x")
-position = Vector2(6872, 360)
+position = Vector2(7098.5444, 488.04663)
 
 [sub_resource type="Resource" id="Resource_3thr8"]
 script = ExtResource("5_lv54x")
-position = Vector2(-1032, 336)
+position = Vector2(-4810.7173, 926.9844)
 
 [sub_resource type="Resource" id="Resource_hbh6u"]
 script = ExtResource("5_lv54x")
-position = Vector2(-1032, 0)
+position = Vector2(-7376.0356, 228.73486)
+
+[sub_resource type="Resource" id="Resource_5ghxw"]
+script = ExtResource("5_lv54x")
+position = Vector2(-7101.232, -17.026123)
+
+[sub_resource type="Resource" id="Resource_lv54x"]
+script = ExtResource("5_lv54x")
+position = Vector2(-6787.831, 242.64868)
 
 [sub_resource type="Resource" id="Resource_tfy5d"]
 script = ExtResource("6_rywxm")
@@ -56,25 +65,27 @@ _points = {
 1: SubResource("Resource_2n1er"),
 2: SubResource("Resource_qsbao"),
 3: SubResource("Resource_3thr8"),
-4: SubResource("Resource_hbh6u")
+4: SubResource("Resource_hbh6u"),
+5: SubResource("Resource_5ghxw"),
+6: SubResource("Resource_lv54x")
 }
-_point_order = PackedInt32Array(0, 1, 2, 3, 4)
+_point_order = PackedInt32Array(0, 5, 6, 1, 2, 3, 4)
 _constraints = {
 Vector2i(0, 4): 15
 }
-_next_key = 5
+_next_key = 7
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_7hxsd"]
 _surfaces = [{
-"aabb": AABB(-1032, 0, 0, 7928, 360, 1e-05),
-"attribute_data": PackedByteArray("/////wCA10EAAAAAAIDXQQAAAAD/////AMDWQQAAtD8AwNZBAAC0P/////8AAIHAAACoPwAAgcAAAKg//////wAAgcAAAAAAAACBwAAAAAA="),
+"aabb": AABB(-7376.0356, -68.948, 0, 14557.679, 995.9324, 1e-05),
+"attribute_data": PackedByteArray("/////6Ye1MEQpnI/ph7UwRCmcj//////JW3gQWDlib4lbeBBYOWJvv////9b1N1B+AX0P1vU3UH4BfQ//////71VlsEAv2dAvVWWwQC/Z0D/////SYDmwSC8ZD9JgObBILxkP//////b6d3BgDWIvdvp3cGANYi9"),
 "format": 34359742527,
-"index_count": 9,
-"index_data": PackedByteArray("AAABAAIAAgADAAMAAwAAAAIA"),
+"index_count": 15,
+"index_data": PackedByteArray("AAABAAIAAAACAAMAAwAEAAQABAAFAAAAAAADAAQA"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
-"vertex_count": 4,
-"vertex_data": PackedByteArray("AIDXRQAAAAAAAAAAAMDWRQAAtEMAAAAAAACBxAAAqEMAAAAAAACBxAAAAAAAAAAA/////////7//////////v/////////+//////////78=")
+"vertex_count": 6,
+"vertex_data": PackedByteArray("ph7UxRCmckMAAAAAJW3gRWDlicIAAAAAW9TdRfgF9EMAAAAAvVWWxQC/Z0QAAAAASYDmxSC8ZEMAAAAA2+ndxYA1iMEAAAAA/////////7//////////v/////////+//////////7//////////v/////////+/")
 }]
 
 [sub_resource type="Resource" id="Resource_1lqyb"]
@@ -85,81 +96,62 @@ z_index = -10
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_8eetp"]
 _surfaces = [{
-"aabb": AABB(-1038.4, -6.3999996, 0, 64, 64, 1e-05),
-"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8AAIA/AACAPwAAgD8AAIA//////wAAgD8AAAAAAACAPwAAAAA="),
+"aabb": AABB(-7395.284, 17.28788, 0, 295.4707, 215.99362, 1e-05),
+"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8AAKBAAACAPwAAoEAAAIA//////wAAoEAAAAAAAACgQAAAAAA="),
 "format": 34359742527,
 "index_count": 6,
 "index_data": PackedByteArray("AAABAAIAAAACAAMA"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 4,
-"vertex_data": PackedByteArray("zcyBxGZmZkIAAAAAmplzxGZmZkIAAAAAmplzxMzMzMAAAAAAzcyBxMzMzMAAAAAA/3//f/9//n//f/9//3/+f/9//3//f/5//3//f/9//n8=")
+"vertex_data": PackedByteArray("RhrnxRBIaUMAAAAA/CflxbCRWkMAAAAAgt7dxeh7aEIAAAAAw2jfxZRNikEAAAAA/3//f+bIjFv/f/9/0ssVWv9//3+SxLZd/3//fy3E6F0=")
 }]
 
 [sub_resource type="Resource" id="Resource_wmxir"]
 script = ExtResource("7_m8ier")
-texture = ExtResource("9_cie1a")
+texture = ExtResource("10_dukmt")
 mesh = SubResource("ArrayMesh_8eetp")
-force_no_tiling = true
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_rb7e7"]
 _surfaces = [{
-"aabb": AABB(-974.4, -6.3999996, 0, 7813.2256, 64, 1e-05),
-"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8AAPRCAACAPwAA9EIAAIA//////wAA9EIAAAAAAAD0QgAAAAA="),
+"aabb": AABB(-7149.095, -25.375805, 0, 96.987305, 83.49681, 1e-05),
+"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8AAIA/AACAPwAAgD8AAIA//////wAAgD8AAAAAAACAPwAAAAA="),
 "format": 34359742527,
 "index_count": 6,
 "index_data": PackedByteArray("AAABAAIAAAACAAMA"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 4,
-"vertex_data": PackedByteArray("mplzxMzMzMAAAAAAmplzxGZmZkIAAAAAjJTVRcTjZUIAAAAAm7bVRaxYzMAAAAAA/3//f/7/AED/f/9//v8AQP9//3/+//8//3//f/7//z8=")
+"vertex_data": PackedByteArray("w2jfxZRNikEAAAAAgt7dxeh7aEIAAAAA3WDcxTBRd0EAAAAAHuvdxaYBy8EAAAAA/3//f5HDNl7/f/9/kcM2Xv9//3+RwzZe/3//f5HDNl4=")
 }]
 
 [sub_resource type="Resource" id="Resource_8f2ow"]
 script = ExtResource("7_m8ier")
-texture = ExtResource("10_dukmt")
+texture = ExtResource("9_cie1a")
 mesh = SubResource("ArrayMesh_rb7e7")
+force_no_tiling = true
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_jsv45"]
 _surfaces = [{
-"aabb": AABB(6834.5684, -6.385824, 0, 68.257324, 63.858253, 1e-05),
-"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8AAIA/AACAPwAAgD8AAIA//////wAAgD8AAAAAAACAPwAAAAA="),
+"aabb": AABB(-7099.8135, -73.99346, 0, 14224.815, 369.51834, 1e-05),
+"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////+NsLRAAACAP42wtEAAAIA//////42wtEAAAAAAjbC0QAAAAAD/////AABfQwAAgD8AAF9DAACAP/////8AAF9DAAAAAAAAX0MAAAAA"),
 "format": 34359742527,
-"index_count": 6,
-"index_data": PackedByteArray("AAABAAIAAAACAAMA"),
+"index_count": 12,
+"index_data": PackedByteArray("AAABAAIAAAACAAMAAwACAAQAAwAEAAUA"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
-"vertex_count": 4,
-"vertex_data": PackedByteArray("m7bVRaxYzMAAAAAAjJTVRcTjZUIAAAAAjJTXRcTjZUIAAAAAm7bXRaxYzMAAAAAA/3//f////z//f/9/////P/9//3////8//3//f////z8=")
+"vertex_count": 6,
+"vertex_data": PackedByteArray("3WDcxTBRd0EAAAAAgt7dxeh7aEIAAAAA0bHUxS/Dk0MAAAAAkwnUxSMUa0MAAAAAd1zeRdAaK8EAAAAABKjeRaf8k8IAAAAA/3//f7fGXCP/f/9/xMZiI/9//3/93n4v/3//fxvfjS//f/9/Nv1jQf9//382/WNB")
 }]
 
 [sub_resource type="Resource" id="Resource_8atcb"]
 script = ExtResource("7_m8ier")
-texture = ExtResource("9_cie1a")
+texture = ExtResource("10_dukmt")
 mesh = SubResource("ArrayMesh_jsv45")
-force_no_tiling = true
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_ko1wx"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_go1yl"]
 _surfaces = [{
-"aabb": AABB(6818.232, 57.472427, 0, 80.336426, 245.07457, 1e-05),
-"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8AAIBAAACAPwAAgEAAAIA//////wAAgEAAAAAAAACAQAAAAAA="),
-"format": 34359742527,
-"index_count": 6,
-"index_data": PackedByteArray("AAABAAIAAAACAAMA"),
-"primitive": 3,
-"uv_scale": Vector4(0, 0, 0, 0),
-"vertex_count": 4,
-"vertex_data": PackedByteArray("jJTXRcTjZUIAAAAAjJTVRcTjZUIAAAAA2xHVRSQtl0MAAAAA2hHXRQRGl0MAAAAA/3//f/53AAT/f/9//ncABP9//3//dwAE/3//f/93/wM=")
-}]
-
-[sub_resource type="Resource" id="Resource_dq6ul"]
-script = ExtResource("7_m8ier")
-texture = ExtResource("10_dukmt")
-mesh = SubResource("ArrayMesh_ko1wx")
-
-[sub_resource type="ArrayMesh" id="ArrayMesh_agc63"]
-_surfaces = [{
-"aabb": AABB(6813.9746, 302.35266, 0, 68.256836, 64.05261, 1e-05),
+"aabb": AABB(7115.558, -75.42066, 0, 73.427734, 64.726616, 1e-05),
 "attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8AAIA/AACAPwAAgD8AAIA//////wAAgD8AAAAAAACAPwAAAAA="),
 "format": 34359742527,
 "index_count": 6,
@@ -167,69 +159,32 @@ _surfaces = [{
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 4,
-"vertex_data": PackedByteArray("2hHXRQRGl0MAAAAA2xHVRSQtl0MAAAAAzO/URQAbt0MAAAAAy+/WReAzt0MAAAAA/3//f/93AAT/f/9//3cABP9//3//dwAE/3//f/93AAQ=")
+"vertex_data": PackedByteArray("BKjeRaf8k8IAAAAAd1zeRdAaK8EAAAAAVlzgRZzwQcEAAAAA46fgRWHXlsIAAAAA/3//fzT9ZUH/f/9/NP1lQf9//380/WVB/3//fzT9ZUE=")
 }]
 
-[sub_resource type="Resource" id="Resource_0dgyc"]
+[sub_resource type="Resource" id="Resource_rywxm"]
 script = ExtResource("7_m8ier")
 texture = ExtResource("9_cie1a")
-mesh = SubResource("ArrayMesh_agc63")
+mesh = SubResource("ArrayMesh_go1yl")
 force_no_tiling = true
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_hbh6u"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_m8ier"]
 _surfaces = [{
-"aabb": AABB(-974.40027, 278.5749, 0, 7792.6323, 87.63605, 1e-05),
-"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8AAPRCAACAPwAA9EIAAIA//////wAA9EIAAAAAAAD0QgAAAAA="),
+"aabb": AABB(-7395.284, -12.121243, 0, 14574.826, 945.7543, 1e-05),
+"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8ff/RAAACAPx9/9EAAAIA//////x9/9EAAAAAAH3/0QAAAAAD/////5KpBQwAAgD/kqkFDAACAP//////kqkFDAAAAAOSqQUMAAAAA/////wAAa0MAAIA/AABrQwAAgD//////AABrQwAAAAAAAGtDAAAAAA=="),
 "format": 34359742527,
-"index_count": 6,
-"index_data": PackedByteArray("AAABAAIAAAACAAMA"),
+"index_count": 18,
+"index_data": PackedByteArray("AAABAAIAAAACAAMAAwACAAQAAwAEAAUABQAEAAYABQAGAAcA"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
-"vertex_count": 4,
-"vertex_data": PackedByteArray("zO/URQAbt0MAAAAA2xHVRSQtl0MAAAAAnplzxJZJi0MAAAAAnplzxJZJq0MAAAAA/3//f2MAMUD/f/9/YwAxQP9//39jADFA/3//f2MAMUA=")
+"vertex_count": 8,
+"vertex_data": PackedByteArray("VlzgRZzwQcEAAAAAd1zeRdAaK8EAAAAAocDcRQvC4EMAAAAA+xXeRcub+EMAAAAAYCGWxVCDWUQAAAAA2luWxYRoaUQAAAAA/CflxbCRWkMAAAAARhrnxRBIaUMAAAAA/3//f+Jyjgb/f/9/HnNwBv9//38OPXgh/3//f2c8yyH/f/9/cQw4Rv9//3+BDEBG/3//f0kbpE3/f/9/SxulTQ==")
 }]
 
-[sub_resource type="Resource" id="Resource_7hxsd"]
+[sub_resource type="Resource" id="Resource_hy7c0"]
 script = ExtResource("7_m8ier")
 texture = ExtResource("10_dukmt")
-mesh = SubResource("ArrayMesh_hbh6u")
-
-[sub_resource type="ArrayMesh" id="ArrayMesh_1lqyb"]
-_surfaces = [{
-"aabb": AABB(-1038.4, 278.38055, 0, 63.999756, 64.194336, 1e-05),
-"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8AAIA/AACAPwAAgD8AAIA//////wAAgD8AAAAAAACAPwAAAAA="),
-"format": 34359742527,
-"index_count": 6,
-"index_data": PackedByteArray("AAABAAIAAAACAAMA"),
-"primitive": 3,
-"uv_scale": Vector4(0, 0, 0, 0),
-"vertex_count": 4,
-"vertex_data": PackedByteArray("nplzxJZJq0MAAAAAnplzxJZJi0MAAAAAzcyBxLYwi0MAAAAAzcyBxLYwq0MAAAAA/3//f2MAMUD/f/9/YwAxQP9//39jADFA/3//f2MAMUA=")
-}]
-
-[sub_resource type="Resource" id="Resource_8eetp"]
-script = ExtResource("7_m8ier")
-texture = ExtResource("9_cie1a")
-mesh = SubResource("ArrayMesh_1lqyb")
-force_no_tiling = true
-
-[sub_resource type="ArrayMesh" id="ArrayMesh_wmxir"]
-_surfaces = [{
-"aabb": AABB(-1038.4, 57.6, 0, 64, 220.97488, 1e-05),
-"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8AAEBAAACAPwAAQEAAAIA//////wAAQEAAAAAAAABAQAAAAAA="),
-"format": 34359742527,
-"index_count": 6,
-"index_data": PackedByteArray("AAABAAIAAAACAAMA"),
-"primitive": 3,
-"uv_scale": Vector4(0, 0, 0, 0),
-"vertex_count": 4,
-"vertex_data": PackedByteArray("zcyBxLYwi0MAAAAAnplzxJZJi0MAAAAAmplzxGZmZkIAAAAAzcyBxGZmZkIAAAAA/3//f/9//n//f/9//3/+f/9//3//f/5//3//f/9//n8=")
-}]
-
-[sub_resource type="Resource" id="Resource_rb7e7"]
-script = ExtResource("7_m8ier")
-texture = ExtResource("10_dukmt")
-mesh = SubResource("ArrayMesh_wmxir")
+mesh = SubResource("ArrayMesh_m8ier")
 
 [sub_resource type="Resource" id="Resource_8wbed"]
 script = ExtResource("12_pcc7t")
@@ -5316,6 +5271,9 @@ script = ExtResource("14_iakei")
 fill_textures = Array[Texture2D]([ExtResource("18_8aauq")])
 fill_texture_scale = 6.35
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_go1yl"]
+size = Vector2(10000, 532)
+
 [node name="SmartShape" type="Node2D" node_paths=PackedStringArray("bottom_marker", "top_marker", "left_marker", "right_marker")]
 script = ExtResource("1_hy8xc")
 bottom_marker = NodePath("Bottom")
@@ -5344,7 +5302,7 @@ position = Vector2(-2355, -603)
 [node name="SpawnPoints" type="Node2D" parent="."]
 
 [node name="Marker2D" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(155, -178)
+position = Vector2(801, -5988)
 
 [node name="Marker2D2" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(-163, -143)
@@ -5357,22 +5315,23 @@ position = Vector2(-31, -136)
 
 [node name="Platforms" type="Node2D" parent="."]
 
-[node name="StaticBody2D" type="StaticBody2D" parent="Platforms"]
+[node name="Ground" type="StaticBody2D" parent="Platforms"]
+collision_layer = 65
 
-[node name="Ground Level" type="Node2D" parent="Platforms/StaticBody2D"]
+[node name="Ground Level" type="Node2D" parent="Platforms/Ground"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_tfy5d")
-_meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_1lqyb"), SubResource("Resource_wmxir"), SubResource("Resource_8f2ow"), SubResource("Resource_8atcb"), SubResource("Resource_dq6ul"), SubResource("Resource_0dgyc"), SubResource("Resource_7hxsd"), SubResource("Resource_8eetp"), SubResource("Resource_rb7e7")])
+_meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_1lqyb"), SubResource("Resource_wmxir"), SubResource("Resource_8f2ow"), SubResource("Resource_8atcb"), SubResource("Resource_rywxm"), SubResource("Resource_hy7c0")])
 shape_material = SubResource("Resource_33pxp")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Platforms/StaticBody2D"]
-polygon = PackedVector2Array(-1032, 0, 6896, 0, 6872, 360, -1032, 336)
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Platforms/Ground"]
+polygon = PackedVector2Array(-7376.0356, 228.73486, -7101.232, -17.026123, -6787.831, 242.64868, 7181.643, -68.948, 7098.5444, 488.04663, -4810.7173, 926.9844)
 
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
+[node name="Rest" type="StaticBody2D" parent="Platforms"]
 
-[node name="SS2D_Shape" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_l4d8t")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_yt6i0"), SubResource("Resource_skq07"), SubResource("Resource_u6kd4"), SubResource("Resource_jc1ox"), SubResource("Resource_spgob"), SubResource("Resource_p7suu"), SubResource("Resource_by321"), SubResource("Resource_pskrs"), SubResource("Resource_x3vou"), SubResource("Resource_b8bvo"), SubResource("Resource_8om0u"), SubResource("Resource_u02gj")])
@@ -5380,10 +5339,10 @@ shape_material = SubResource("Resource_h3vhi")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-1000, 8, -4896, 8, -4896, -112, -2680, -112, -2680, -200, -2464, -200, -2464, -112, -1144, -112)
 
-[node name="SS2D_Shape2" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape2" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_3lcnt")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_tvk2s"), SubResource("Resource_dav6x"), SubResource("Resource_34pvs"), SubResource("Resource_kgmij"), SubResource("Resource_gegwn"), SubResource("Resource_n3ew4"), SubResource("Resource_hq367"), SubResource("Resource_gr6tv"), SubResource("Resource_7kll1")])
@@ -5391,10 +5350,10 @@ shape_material = SubResource("Resource_xxw7a")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D2")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-1040, -320, -2384, -320, -2384, -536, -1040, -536)
 
-[node name="SS2D_Shape3" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape3" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_r1f3a")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_xdjew"), SubResource("Resource_83s1f"), SubResource("Resource_nxk0q"), SubResource("Resource_1f3a8"), SubResource("Resource_170xu"), SubResource("Resource_ko5n0"), SubResource("Resource_05d8a"), SubResource("Resource_frsyg"), SubResource("Resource_g88fv"), SubResource("Resource_locjm"), SubResource("Resource_hqfm2"), SubResource("Resource_088yb"), SubResource("Resource_qt76c"), SubResource("Resource_j27bo"), SubResource("Resource_xen7r")])
@@ -5402,10 +5361,10 @@ shape_material = SubResource("Resource_finbn")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D3")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-2760, -328, -4933.0254, -325.27344, -5200, -304, -5435.1743, -319.8933, -5600, -304, -5784.885, -327.06683, -5888, -288, -6024, -328, -6104, -296, -6224, -312, -6416, -280, -6640, -280, -6648, -344, -6456, -400, -6168, -464, -5912, -520, -5672, -624, -5368, -704, -5208, -832, -4952, -880, -4808, -976, -4616, -984, -4328, -1176, -4160, -1144, -2760, -1144, -2760, -824, -4160, -824, -4160, -544, -2760, -544)
 
-[node name="SS2D_Shape4" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape4" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_xgqj7")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_fffek"), SubResource("Resource_4idjs"), SubResource("Resource_7wf7c"), SubResource("Resource_ccuf4"), SubResource("Resource_nlxo5"), SubResource("Resource_juaji"), SubResource("Resource_8kxmx"), SubResource("Resource_chlte"), SubResource("Resource_wx7yo")])
@@ -5413,10 +5372,10 @@ shape_material = SubResource("Resource_8svnd")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D4")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-4896, -112, -4896, 8, -7456, 0, -6272, -2104, -6048, -2048, -5752, -1984, -5536, -1800, -5216, -1728, -4912, -1600, -4616, -1520, -4352, -1480, -4352, -1400, -4472, -1400, -4688, -1392, -5080, -1272, -5344, -1088, -5648, -1008, -5968, -792, -6368, -728, -6584, -592, -6824, -536, -6976, -416, -7029, -341, -7046.703, -307.01563, -7060.375, -270.875, -7064.791, -252.61133, -7067.1094, -234.54688, -7066.967, -216.92773, -7064, -200, -7057.26, -184.59961, -7046.453, -171.29688, -7032.201, -159.93945, -7015.125, -150.375, -6974.9844, -136.01563, -6931, -127, -6816, -120, -6216, -112, -5776, -80, -5424, -96, -5144, -72)
 
-[node name="SS2D_Shape5" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape5" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-5, 0)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_8v4ir")
@@ -5425,11 +5384,11 @@ shape_material = SubResource("Resource_pr8hp")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D5")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D5" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D5" type="CollisionPolygon2D" parent="Platforms/Rest"]
 position = Vector2(0, 5)
 polygon = PackedVector2Array(-2381, -829, -2384, -1149, -1448, -1149, -1445, -829)
 
-[node name="SS2D_Shape6" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape6" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_1js5i")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_rht5n"), SubResource("Resource_oe4sj"), SubResource("Resource_mt6nv"), SubResource("Resource_dp0od"), SubResource("Resource_6j1wp")])
@@ -5437,10 +5396,10 @@ shape_material = SubResource("Resource_6sd5b")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D6")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D6" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D6" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-1040, -448, -1184, -536, -1000, -640, -880, -792, -752, -928, -440, -944, -448, -1504, -648, -1704, -808, -1912, -1000, -2056, -1264, -2176, -1496, -2320, -1784, -2392, -1856, -2672, -1856, -2992, -1240, -2992, -704, -2832, -184, -2656, 264, -2456, 752, -2400, 1072, -2392, 1000, -2176, 576, -2088, 352, -1760, 24, -1520, -72, -1136, -208, -912, -392, -776, -616, -672, -832, -520)
 
-[node name="SS2D_Shape7" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape7" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_hamju")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_cj8n6"), SubResource("Resource_13y1a"), SubResource("Resource_c431n"), SubResource("Resource_ngpoe"), SubResource("Resource_k8krf"), SubResource("Resource_p8f5n"), SubResource("Resource_afs0l"), SubResource("Resource_q21b4"), SubResource("Resource_lsbv4"), SubResource("Resource_1nd18"), SubResource("Resource_pbf72"), SubResource("Resource_utrvn"), SubResource("Resource_wg8fe"), SubResource("Resource_0qhrq"), SubResource("Resource_iscbm"), SubResource("Resource_6nqtq")])
@@ -5448,10 +5407,10 @@ shape_material = SubResource("Resource_bqv1k")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D7")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D7" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D7" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-3888, -1544, -4056, -1760, -4352, -1872, -4736, -1936, -5032, -2048, -5328, -2104, -5488, -2160, -5488, -2256, -5176, -2224, -4784, -2200, -4552, -2152, -4288, -2136, -4136, -2104, -3920, -2104, -3920, -2200, -3784, -2200, -3784, -2104, -3176, -2096, -3176, -2008, -2480, -2008, -2480, -1896, -1560, -1904, -1512, -1712, -1576, -1552, -1696, -1536, -2360, -1504, -3008, -1552, -3456, -1528)
 
-[node name="SS2D_Shape8" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape8" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_73ip8")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_svlfg"), SubResource("Resource_q6det"), SubResource("Resource_8nn5b"), SubResource("Resource_rhak4"), SubResource("Resource_i3lv5"), SubResource("Resource_8wi82"), SubResource("Resource_0rcfc"), SubResource("Resource_miokw"), SubResource("Resource_0m5k5")])
@@ -5459,10 +5418,10 @@ shape_material = SubResource("Resource_h4lvt")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D8")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D8" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D8" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-1456, -1040, -1512, -1144, -992, -1520, -840, -1520, -840, -1392, -968, -1392)
 
-[node name="SS2D_Shape9" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape9" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_fvh84")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_0p5s1")])
@@ -5470,10 +5429,10 @@ shape_material = SubResource("Resource_rwe4p")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D9")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D9" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D9" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-1296, -1664, -1296, -1848, -1176, -1848, -1176, -1664)
 
-[node name="SS2D_Shape10" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape10" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-3110, -673)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_fvh84")
@@ -5482,11 +5441,11 @@ shape_material = SubResource("Resource_rwe4p")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D10")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D10" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D10" type="CollisionPolygon2D" parent="Platforms/Rest"]
 position = Vector2(-3110, -673)
 polygon = PackedVector2Array(-1296, -1664, -1296, -1848, -1176, -1848, -1176, -1664)
 
-[node name="SS2D_Shape13" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape13" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-3322, -1442)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_fvh84")
@@ -5495,11 +5454,11 @@ shape_material = SubResource("Resource_rwe4p")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D11")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D11" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D11" type="CollisionPolygon2D" parent="Platforms/Rest"]
 position = Vector2(-3322, -1442)
 polygon = PackedVector2Array(-1296, -1664, -1296, -1848, -1176, -1848, -1176, -1664)
 
-[node name="SS2D_Shape11" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape11" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-1178, -1027)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_fvh84")
@@ -5508,11 +5467,11 @@ shape_material = SubResource("Resource_rwe4p")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D12")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D12" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D12" type="CollisionPolygon2D" parent="Platforms/Rest"]
 position = Vector2(-1178, -1027)
 polygon = PackedVector2Array(-1296, -1664, -1296, -1848, -1176, -1848, -1176, -1664)
 
-[node name="SS2D_Shape12" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape12" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_hvlqe")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_3awqd"), SubResource("Resource_1wtp4"), SubResource("Resource_l11ls"), SubResource("Resource_wqvmu"), SubResource("Resource_06vvx"), SubResource("Resource_v2iwk"), SubResource("Resource_d0v0k"), SubResource("Resource_sjeh8"), SubResource("Resource_4hnns"), SubResource("Resource_qc81a")])
@@ -5520,10 +5479,10 @@ shape_material = SubResource("Resource_uixis")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D13")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D13" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D13" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-6080, -2472, -5224, -3624, -4824, -3520, -4824, -3464, -5096, -3464, -5096, -3216, -4832, -3216, -4832, -2536, -5080, -2568, -5352, -2560, -5672, -2496, -5920, -2464)
 
-[node name="SS2D_Shape14" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape14" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_sjbnf")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_2bsmj")])
@@ -5531,10 +5490,10 @@ shape_material = SubResource("Resource_3lrsk")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D14")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D14" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D14" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-4104, -2408, -4096, -3136, -2680, -3136, -2680, -3048, -4024, -3048, -4032, -2408)
 
-[node name="SS2D_Shape15" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape15" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-2182, 60)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_1qwnu")
@@ -5543,14 +5502,14 @@ shape_material = SubResource("Resource_5lckg")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D46")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D46" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D46" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-4374, -2980, -4206, -2980, -4206, -2884, -4374, -2884)
 
-[node name="CollisionPolygon2D15" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D15" type="CollisionPolygon2D" parent="Platforms/Rest"]
 position = Vector2(-2182, 60)
-polygon = PackedVector2Array(-2192, -3040, -2024, -3040, -2024, -2944, -2192, -2944)
+polygon = PackedVector2Array(-1538, -2468, -1538, -2548, -570, -2540, -570, -2828, -498, -2828, -498, -2460)
 
-[node name="SS2D_Shape16" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape16" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-2478, 289)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_1qwnu")
@@ -5559,14 +5518,14 @@ shape_material = SubResource("Resource_5lckg")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D45")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D45" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D45" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-4670, -2751, -4502, -2751, -4502, -2655, -4670, -2655)
 
-[node name="CollisionPolygon2D16" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D16" type="CollisionPolygon2D" parent="Platforms/Rest"]
 position = Vector2(-2478, 289)
 polygon = PackedVector2Array(-1242, -2697, -1242, -2777, -274, -2769, -274, -3057, -202, -3057, -202, -2689)
 
-[node name="SS2D_Shape17" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape17" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_1qwnu")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_djiua")])
@@ -5574,13 +5533,13 @@ shape_material = SubResource("Resource_5lckg")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D44")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D44" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D44" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-2192, -3040, -2024, -3040, -2024, -2944, -2192, -2944)
 
-[node name="CollisionPolygon2D17" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D17" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-3720, -2408, -3720, -2488, -2752, -2480, -2752, -2768, -2680, -2768, -2680, -2400)
 
-[node name="SS2D_Shape18" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape18" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_b0n4m")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_x3wto")])
@@ -5588,14 +5547,14 @@ shape_material = SubResource("Resource_04gj5")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D15")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D18" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D18" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-3720, -2408, -3720, -2488, -2752, -2480, -2752, -2768, -2680, -2768, -2680, -2400)
 
-[node name="CollisionPolygon2D19" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D19" type="CollisionPolygon2D" parent="Platforms/Rest"]
 position = Vector2(0, -3)
-polygon = PackedVector2Array(99, -615, -53, -687, -165, -951, -77, -1151, 179, -1159, 339, -1151, 587, -1135, 715, -1087, 691, -1007, 563, -1055, 243, -1071, -16, -992, 27, -743, 659, -743, 579, -647, 427, -583)
+polygon = PackedVector2Array(99, -612, -53, -684, -165, -948, -77, -1148, 179, -1156, 339, -1148, 587, -1132, 715, -1084, 691, -1004, 563, -1052, 243, -1068, -16, -989, 27, -740, 659, -740, 579, -644, 427, -580)
 
-[node name="SS2D_Shape19" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape19" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-175, 10)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_l8wey")
@@ -5604,11 +5563,11 @@ shape_material = SubResource("Resource_224se")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D20")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D20" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D20" type="CollisionPolygon2D" parent="Platforms/Rest"]
 position = Vector2(-175, 10)
 polygon = PackedVector2Array(1568, -2416, 2272, -2416, 2264, -2272, 2056, -2208, 1736, -2136, 1576, -2248)
 
-[node name="SS2D_Shape20" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape20" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-29, 81)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_2s387")
@@ -5617,11 +5576,11 @@ shape_material = SubResource("Resource_wwh5c")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D19")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D21" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D21" type="CollisionPolygon2D" parent="Platforms/Rest"]
 position = Vector2(0, -4)
 polygon = PackedVector2Array(2256, -2428, 2368, -2452, 2504, -2548, 2632, -2628, 2776, -2676, 2944, -2708, 3000, -2708, 3000, -2620, 2816, -2612, 2680, -2564, 2544, -2484, 2400, -2364, 2256, -2356)
 
-[node name="SS2D_Shape23" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape23" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_46qdr")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_1v5x1")])
@@ -5629,13 +5588,13 @@ shape_material = SubResource("Resource_i85ie")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D21")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D22" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D22" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(3128, -3248, 3040, -3216, 2704, -3288, 2208, -3400, 1616, -3256, 1264, -3024, 1176, -2768, 1024, -2720, 696, -2760, 272, -2944, 24, -3216, -728, -3352, -1520, -3424, -2368, -3448, -3352, -3456, -4816, -3520, -5216, -3632, -5040, -3904, 3128, -3768, 3128, -3520)
 
-[node name="CollisionPolygon2D23" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D23" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(2872, -736, 3408, -736, 3339, -600, 3200, -616, 3115, -512, 2984, -592, 2896, -648)
 
-[node name="SS2D_Shape21" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape21" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(2168, 0)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_qt6r3")
@@ -5644,7 +5603,7 @@ shape_material = SubResource("Resource_ecs1f")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D23")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="SS2D_Shape24" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape24" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_jxftk")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_tg307"), SubResource("Resource_u4cqu"), SubResource("Resource_muosl"), SubResource("Resource_8kmnf")])
@@ -5652,7 +5611,7 @@ shape_material = SubResource("Resource_t8v27")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D22")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="SS2D_Shape22" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape22" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(781, 0)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_qt6r3")
@@ -5661,7 +5620,7 @@ shape_material = SubResource("Resource_ecs1f")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D24")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="SS2D_Shape25" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape25" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-289, -4)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_ljdrq")
@@ -5670,10 +5629,10 @@ shape_material = SubResource("Resource_ipn88")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D26")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D26" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D26" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(3399, -732, 3547, -696, 3707, -632, 3819, -560, 3907, -528, 4067, -528, 4067, -480, 3907, -480, 3707, -552, 3619, -616, 3515, -648, 3359, -684)
 
-[node name="SS2D_Shape26" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape26" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_iyub6")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_shq8o")])
@@ -5681,10 +5640,10 @@ shape_material = SubResource("Resource_tfj5e")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D43")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D43" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D43" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(4304, 0, 4304, -320, 4440, -320, 4680, -592, 4840, -592, 4840, -536, 4736, -536, 4560, -320, 4712, -320, 4712, 0)
 
-[node name="SS2D_Shape27" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape27" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_4lfym")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_ak406")])
@@ -5692,10 +5651,10 @@ shape_material = SubResource("Resource_u0yuf")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D42")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D42" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D42" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(4264, -656, 4512, -656, 4480, -584, 4296, -600)
 
-[node name="SS2D_Shape28" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape28" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_kxdh7")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_dqjmy")])
@@ -5703,10 +5662,10 @@ shape_material = SubResource("Resource_7i5mn")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D41")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D41" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D41" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(4664, -752, 4664, -896, 5952, -888, 5952, -648, 5888, -648, 5888, -840, 4712, -848, 4712, -752)
 
-[node name="SS2D_Shape29" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape29" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_uhvc6")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_twrhl")])
@@ -5714,10 +5673,10 @@ shape_material = SubResource("Resource_wd41s")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D40")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D40" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D40" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(4992, -640, 4992, -688, 5616, -688, 5616, -640)
 
-[node name="SS2D_Shape30" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape30" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(0, -1)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_qthlc")
@@ -5726,10 +5685,10 @@ shape_material = SubResource("Resource_0r3fo")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D39")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D39" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D39" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(5784, -425, 5784, -489, 6240, -489, 6240, -425)
 
-[node name="SS2D_Shape31" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape31" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_plihb")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_67pvg")])
@@ -5737,21 +5696,21 @@ shape_material = SubResource("Resource_fqry6")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D38")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D38" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D38" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(6576, 0, 6296, 0, 6296, -320, 6472, -320, 6472, -184, 6576, -184)
 
-[node name="CollisionPolygon2D25" type="CollisionPolygon2D" parent="StaticBody2D"]
-polygon = PackedVector2Array(6864, 0, 6864, -200, 6808, -512, 6696, -776, 6576, -1000, 6568, -1568, 6288, -1768, 6208, -1880, 6016, -1944, 5968, -2200, 5752, -2344, 5432, -2432, 5040, -2528, 4456, -2624, 3840, -2928, 3824, -3216, 6560, -3224, 7136, 8)
-
-[node name="SS2D_Shape32" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape32" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_nk0i4")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_prjrt"), SubResource("Resource_2evag"), SubResource("Resource_i7aho"), SubResource("Resource_3jj5r"), SubResource("Resource_v4wu7"), SubResource("Resource_go1yl"), SubResource("Resource_k2k0m")])
 shape_material = SubResource("Resource_yrwy4")
-collision_polygon_node_path = NodePath("../SS2D_Shape10/StaticBody2D/CollisionPolygon2D")
+collision_polygon_node_path = NodePath("../CollisionPolygon2D25")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="SS2D_Shape33" type="Node2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D25" type="CollisionPolygon2D" parent="Platforms/Rest"]
+polygon = PackedVector2Array(6864, 0, 6864, -200, 6808, -512, 6696, -776, 6576, -1000, 6568, -1568, 6288, -1768, 6208, -1880, 6016, -1944, 5968, -2200, 5752, -2344, 5432, -2432, 5040, -2528, 4456, -2624, 3840, -2928, 3824, -3216, 6560, -3224, 7136, 8)
+
+[node name="SS2D_Shape33" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_gmkqe")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_jbcvv")])
@@ -5759,10 +5718,10 @@ shape_material = SubResource("Resource_rgk0t")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D27")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D27" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D27" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(4672, -1136, 4672, -1304, 5888, -1296, 5888, -1392, 6160, -1360, 6160, -1144, 5960, -1120)
 
-[node name="SS2D_Shape34" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape34" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_l4bs8")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_udt2v")])
@@ -5770,10 +5729,10 @@ shape_material = SubResource("Resource_rhsj4")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D37")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D37" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D37" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(5936, -816, 6144, -816, 6208, -880, 6288, -880, 6208, -736, 5944, -656)
 
-[node name="SS2D_Shape35" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape35" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_7fosb")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_4sbu5")])
@@ -5781,10 +5740,10 @@ shape_material = SubResource("Resource_s3i7g")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D36")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D36" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D36" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(6320, -992, 6320, -1448, 6384, -1448, 6384, -992)
 
-[node name="SS2D_Shape36" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape36" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_imk0l")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_ewbd7")])
@@ -5792,10 +5751,10 @@ shape_material = SubResource("Resource_th545")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D35")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D35" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D35" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(5920, -1384, 5912, -1288, 5872, -1288, 5864, -1560, 5912, -1568)
 
-[node name="SS2D_Shape37" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape37" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(0, -2)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_schjx")
@@ -5804,10 +5763,10 @@ shape_material = SubResource("Resource_hiqx6")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D34")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D34" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D34" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(5144, -1290, 5096, -1282, 5104, -1474, 5168, -1674, 5232, -1674, 5232, -1442, 5192, -1442, 5192, -1626, 5144, -1474)
 
-[node name="SS2D_Shape38" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape38" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_baw0w")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_7uvxk")])
@@ -5815,10 +5774,10 @@ shape_material = SubResource("Resource_73d4b")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D28")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D28" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D28" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(5880, -1744, 5832, -1728, 5808, -1832, 5720, -1928, 5616, -1992, 5528, -2024, 5400, -1960, 5352, -1888, 5312, -1792, 5264, -1816, 5280, -1856, 5360, -1992, 5528, -2072, 5608, -2048, 5720, -1984, 5840, -1872)
 
-[node name="SS2D_Shape39" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape39" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-53, 42)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_r0vkq")
@@ -5827,10 +5786,10 @@ shape_material = SubResource("Resource_vbqbh")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D29")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D29" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D29" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(4851, -1766, 5059, -1766, 5056, -1704, 4939, -1686)
 
-[node name="SS2D_Shape40" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape40" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-305, -82)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_r0vkq")
@@ -5839,10 +5798,10 @@ shape_material = SubResource("Resource_vbqbh")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D30")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D30" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D30" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(4599, -1890, 4807, -1890, 4804, -1828, 4687, -1810)
 
-[node name="SS2D_Shape41" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape41" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-546, -216)
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_r0vkq")
@@ -5851,10 +5810,10 @@ shape_material = SubResource("Resource_vbqbh")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D31")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D31" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D31" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(4358, -2024, 4566, -2024, 4563, -1962, 4446, -1944)
 
-[node name="SS2D_Shape42" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape42" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_g478a")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_5gsnc")])
@@ -5862,10 +5821,10 @@ shape_material = SubResource("Resource_dli2s")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D32")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D32" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D32" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(4328, -2096, 3920, -2320, 3864, -2384, 3896, -2408, 4328, -2144)
 
-[node name="SS2D_Shape43" type="Node2D" parent="StaticBody2D"]
+[node name="SS2D_Shape43" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_bjbw8")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_1y3ir")])
@@ -5873,8 +5832,21 @@ shape_material = SubResource("Resource_6aw35")
 collision_polygon_node_path = NodePath("../CollisionPolygon2D33")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 
-[node name="CollisionPolygon2D33" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D33" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(3736, -2448, 3144, -2448, 3144, -2720, 3736, -2720)
 
-[node name="CollisionPolygon2D24" type="CollisionPolygon2D" parent="StaticBody2D"]
+[node name="CollisionPolygon2D24" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(1485, -736, 2021, -736, 1952, -600, 1813, -616, 1728, -512, 1597, -592, 1509, -648)
+
+[node name="FireColumn" parent="." node_paths=PackedStringArray("root") instance=ExtResource("19_go1yl")]
+z_index = -50
+root = NodePath("..")
+apply = false
+
+[node name="CloudStart" type="Area2D" parent="."]
+position = Vector2(0, -6994)
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CloudStart"]
+position = Vector2(0, 2598)
+shape = SubResource("RectangleShape2D_go1yl")

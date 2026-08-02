@@ -8,11 +8,12 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wp3km"]
 shader = ExtResource("1_wp3km")
 shader_parameter/noise_tex = ExtResource("2_trxax")
-shader_parameter/texture_size = Vector2(512, 512)
+shader_parameter/target_size = Vector2(1000, 1000)
 
 [node name="FireColumn" type="Node2D"]
 z_index = -100
 script = ExtResource("1_trxax")
+apply = null
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 material = SubResource("ShaderMaterial_wp3km")

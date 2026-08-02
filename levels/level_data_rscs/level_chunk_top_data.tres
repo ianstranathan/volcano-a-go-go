@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="LevelChunkData" load_steps=2 format=3 uid="uid://ub60nq8a6tk7"]
+
+[ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="1_v6dui"]
+
+[resource]
+script = ExtResource("1_v6dui")
+level_index = 0
+level_height = 4078.0
+offset_to_chunk_origin = -1196.0
+level_width = 12046.0
+player_spawn_points = [Vector2(-2522, -163), Vector2(-1747, -178), Vector2(1122, -192), Vector2(1750, -203)]
+chunk_scene_path = "res://levels/chunks/level_chunk_top.tscn"
+metadata/_custom_type_script = "uid://cptvpu01udgc8"

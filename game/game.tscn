@@ -113,6 +113,7 @@ position = Vector2(-690, 490)
 
 [node name="Lava" parent="World" node_paths=PackedStringArray("game_ref") instance=ExtResource("15_hb504")]
 game_ref = NodePath("../..")
+initial_world_lava_level = 0
 
 [node name="InitialSpawnPoints" type="Node2D" parent="World"]
 

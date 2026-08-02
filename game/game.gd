@@ -220,6 +220,8 @@ func on_level_manager_loaded_first_chunk( _spawn_points: Array ):
 
 
 func on_player_touched_bottom( _player_id):
+	#lava.global_position = Vector2(0., 0.)
+	#lava.start_race()
 	race_started = true
 	ui.visible = true
 

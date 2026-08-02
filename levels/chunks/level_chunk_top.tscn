@@ -1,10 +1,9 @@
-[gd_scene load_steps=24 format=4 uid="uid://c23v6suw4eike"]
+[gd_scene load_steps=23 format=4 uid="uid://c23v6suw4eike"]
 
 [ext_resource type="Texture2D" uid="uid://bhsoxu716q2y6" path="res://assets/tile_sets/TinyRocks/TinyRocks.png" id="1_ns4w1"]
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_xj7i1"]
 [ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_mgbfs"]
 [ext_resource type="PackedScene" uid="uid://dxvt8fbol7y6b" path="res://fire_column/fire_column.tscn" id="4_pwrgd"]
-[ext_resource type="Resource" uid="uid://ub60nq8a6tk7" path="res://levels/level_data_rscs/level_chunk_top_data.tres" id="5_q630d"]
 [ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="6_q630d"]
 [ext_resource type="Script" uid="uid://b1quk135kfj1v" path="res://levels/platforms/platform_components/moving_platform_component.gd" id="7_t4eux"]
 [ext_resource type="PackedScene" uid="uid://d35o6xeqnfe5h" path="res://levels/platforms/platform_components/path_follow_platform_component/path_follow_platform_component.tscn" id="8_bnv6i"]
@@ -240,9 +239,10 @@ position = Vector2(-7243, 0)
 [node name="RightMarker" type="Marker2D" parent="."]
 position = Vector2(4803, 0)
 
-[node name="FireColumn" parent="." instance=ExtResource("4_pwrgd")]
+[node name="FireColumn" parent="." node_paths=PackedStringArray("root") instance=ExtResource("4_pwrgd")]
 z_index = -50
-level_chunk_data = ExtResource("5_q630d")
+root = NodePath("..")
+apply = true
 
 [node name="tickables_container" type="Node2D" parent="."]
 
