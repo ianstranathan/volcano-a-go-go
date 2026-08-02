@@ -12,9 +12,8 @@ shader_parameter/src_col = Color(0.19607843, 0, 0.39215687, 0.64705884)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_aveob"]
 shader = ExtResource("3_uhcfi")
-shader_parameter/dummy_burn_timer = 0.0
-shader_parameter/radius = 0.0
 shader_parameter/height = 0.355
+shader_parameter/radius = 0.3
 shader_parameter/src_col = Color(0, 0.50980395, 0.69411767, 0.5372549)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hdfnd"]

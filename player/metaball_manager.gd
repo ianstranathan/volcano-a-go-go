@@ -1,5 +1,8 @@
 extends Node2D
 
+"""
+Every piece of geometry is computed in the same coordinate system until the very end
+"""
 # -- w
 @onready var player: Player= get_parent()
 @onready var MAX_METABALL_SPEED : float = player.kd.baseline_speed
@@ -25,30 +28,29 @@ func initialize_metaball_state(contact_pt: Vector2, _platform_ref: BasePlatform)
 	#print("Platform Global Pos: ", platform_ref.global_position)
 	#print("Calculated Perimeter Dist: ", perimeter_distance)
 
-
 func increment_perimeter(delta: float, move_input: Vector2) -> Vector2:
 	var target_speed := 0.0
+
 	if move_input.length_squared() > 0.01:
 		var tangent = perimeter_tangent()
 		var alignment = move_input.dot(tangent)
 		target_speed = alignment * MAX_METABALL_SPEED
-	else:
-		target_speed = 0.0
-	
+
 	metaball_speed = move_toward(
 		metaball_speed,
 		target_speed,
 		METABALL_ACCEL
 	)
-	
-	perimeter_distance += metaball_speed * delta
+
 	perimeter_distance = wrapf(
-		perimeter_distance,
+		perimeter_distance + metaball_speed * delta,
 		0.0,
 		perimeter
 	)
-	
-	return perimeter_to_world()
+
+	# -- the caller (player) decides what coordinate space it wants.
+	return perimeter_to_local()
+
 
 func perimeter_to_local():
 	var d = perimeter_distance
@@ -88,9 +90,10 @@ func perimeter_to_local():
 		h * 0.5 - d
 	)
 
-
+# -- returns the point on the rectange in the platform's local space
 func perimeter_to_world():
 	return platform_ref.transform * perimeter_to_local()
+	#return platform_ref.transform * perimeter_to_local()
 
 
 
@@ -134,8 +137,9 @@ func perimeter_normal() -> Vector2:
 
 func project_point_to_perimeter(point: Vector2) -> float:
 	# Convert world point to platform local space
-	var local = platform_ref.transform.affine_inverse() * point
-	
+	#var local = platform_ref.transform.affine_inverse() * point
+	#var local = platform_ref.global_transform.affine_inverse() * point
+	var local = platform_ref.to_local(point)
 	var hw = rect_size.x * 0.5
 	var hh = rect_size.y * 0.5
 

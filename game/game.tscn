@@ -23,7 +23,7 @@
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="19_dxwpq"]
 [ext_resource type="Script" uid="uid://d2hrglvsb7qwg" path="res://VFX/parallax/background/follow_cam_container.gd" id="20_leid8"]
 [ext_resource type="Script" uid="uid://cr80xpke88uhc" path="res://VFX/parallax/background/mesh_2_viewport_component.gd" id="21_5e03w"]
-[ext_resource type="Shader" uid="uid://ftymhn0l1uan" path="res://vfx/parallax/background/background_screen_quad.gdshader" id="22_5e03w"]
+[ext_resource type="Shader" uid="uid://ftymhn0l1uan" path="res://VFX/parallax/background/background_screen_quad.gdshader" id="22_5e03w"]
 [ext_resource type="Script" uid="uid://buaw6vowb1vpp" path="res://VFX/parallax/background/follow_cam_component.gd" id="24_8bboj"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4cobl"]
@@ -62,6 +62,7 @@ world_effects_container = NodePath("World/WorldEffects")
 metadata/_edit_group_ = true
 
 [node name="World" type="Node2D" parent="."]
+position = Vector2(-3137, 0)
 
 [node name="LevelManager" parent="World" node_paths=PackedStringArray("lava_ref", "player_container_ref") instance=ExtResource("16_4cobl")]
 lava_ref = NodePath("../Lava")
@@ -98,31 +99,31 @@ movement_type = 0
 _path_follower_component = NodePath("../../PathFollowPlatformComponent")
 metadata/_custom_type_script = "uid://b1quk135kfj1v"
 
-[node name="MetaballPlatformComponent" type="Node2D" parent="World/Oasis/BasePlatform"]
+[node name="MetaballPlatformComponent" type="Node2D" parent="World/Oasis/BasePlatform" node_paths=PackedStringArray("sprite_ref")]
 script = ExtResource("11_ee6o4")
+sprite_ref = NodePath("../Sprite2D")
 apply = true
 metadata/_custom_type_script = "uid://dcocnrr1wxj00"
 
 [node name="PathFollowPlatformComponent" parent="World/Oasis" instance=ExtResource("13_ln7ps")]
 curve = SubResource("Curve2D_4cobl")
 
+[node name="DeathTVPosition" type="Marker2D" parent="World/Oasis"]
+position = Vector2(-690, 490)
+
 [node name="Lava" parent="World" node_paths=PackedStringArray("game_ref") instance=ExtResource("15_hb504")]
 game_ref = NodePath("../..")
 
 [node name="InitialSpawnPoints" type="Node2D" parent="World"]
-scale = Vector2(1e-05, 1e-05)
 
 [node name="Marker2D" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(-11299992, -34700004)
+position = Vector2(250, -350)
 
 [node name="Marker2D2" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(28700008, -34500000)
 
 [node name="Marker2D3" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(22100000, 52800000)
 
 [node name="Marker2D4" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(-67900000, 59800000)
 
 [node name="WorldPickupItemsManager" type="Node2D" parent="World"]
 script = ExtResource("11_3vho3")
@@ -173,5 +174,6 @@ script = ExtResource("24_8bboj")
 target_2_move = NodePath("..")
 cam = NodePath("../../../../Camera")
 
-[node name="DeathTv" parent="." instance=ExtResource("12_qf6n1")]
+[node name="DeathTv" parent="." node_paths=PackedStringArray("starting_position_marker") instance=ExtResource("12_qf6n1")]
 position = Vector2(-568, 405)
+starting_position_marker = NodePath("../World/Oasis/DeathTVPosition")

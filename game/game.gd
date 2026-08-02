@@ -19,6 +19,7 @@ var player_data_dict:Dictionary = {} # -- id to player_data
 @export var world_effects_container: Node2D
 
 func _ready():
+	
 	# -- we're gaurenteed that all children (level manager and world pickup items
 	# -- manager) are intialized
 	# ==> can just set the prev. world pickup items ready stuff to here
@@ -71,6 +72,7 @@ var world_is_ticking := false
 var race_started := false
 
 func execute_tick( delta: float ):
+	#print(players_container.get_child(0).global_position)
 	post_processing_quad.execute_tick( delta )
 	#if race_started:
 	if world_is_ticking:
@@ -99,12 +101,7 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	
 	# --
 	a_player.get_node_or_null("PlayerController").moving_platform_components_dict = world_level_manager.moving_platform_components_dict
-	# -- Spawn index has to be deterministic
-	# -- The Host must be the one to decide that
-	var points_count = spawn_points.get_child_count()
-	id_2_spawn_index[ peer_id ] = spawn_index
-	var actual_point = spawn_points.get_child(spawn_index % points_count)
-	a_player.global_position = actual_point.global_position
+	
 	
 	# -- assign multiplayer authority to the player before
 	# -- it's added to scene tree
@@ -134,14 +131,26 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	)
 	world_level_manager.setup_networked_level_player_connections(a_player)
 
-	if peer_id == multiplayer.get_unique_id():
-		camera.target_initialize(a_player)
-
 	players_container.add_child(a_player)
 
+	# -- Adding after child is added to player container so that the local transformation
+	# -- (the displacement of the original world)
+	# -- doesn't add to the players position
+	
+	# -- Spawn index has to be deterministic
+	# -- The Host must be the one to decide that
+	var points_count = spawn_points.get_child_count()
+	id_2_spawn_index[ peer_id ] = spawn_index
+	var spawn_marker_pos = spawn_points.get_child(spawn_index % points_count).global_position
+	a_player.global_position = spawn_marker_pos
+	
+	if peer_id == multiplayer.get_unique_id():
+		camera.target_initialize(a_player)
+		camera.global_position = a_player.global_position
+	
 	# -- we need the players to spawn before running this
 	world_effects_container.initialize_recurring_player_vfx()
-	
+	#print_tree_pretty()
 
 func get_spawn_point_from_child_node(spawn_points_node: Node2D, peer_id: int) -> Vector2:
 	var points_count = spawn_points_node.get_child_count()

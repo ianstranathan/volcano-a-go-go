@@ -190,6 +190,7 @@ body = NodePath("../CharacterVisuals/Body")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_ugqs2")
+debug_color = Color(0.90204775, 0.08549591, 0.724159, 0.41960785)
 
 [node name="FloorCheckContainer" type="Node2D" parent="."]
 script = ExtResource("6_wodsf")

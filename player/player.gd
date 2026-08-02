@@ -599,17 +599,41 @@ func go_2_capsule_shape():
 							  1. / default_2_circle_scale)
 
 
+#func metaball_state_fn(delta):
+	## -- ok, so we're gaurenteeing that the player is in a circle shape
+	## -- so whatever the global_position is, we can just offset it by the rel_pos direction
+	## -- of the platform + the radius
+	#var rel_pos : Vector2 = (global_position - 
+		#$MetaballManager.platform_ref.global_position).normalized()
+	#var offset_vector = rel_pos * 1.5 * $CollisionShape2D.shape.radius
+	## -- increment perimeter, based on input
+	#global_position = offset_vector + $MetaballManager.increment_perimeter(
+		#delta,
+		#Vector2(move_input.x, -move_input.y))
+	#
+	#check_for_jump(JumpTypes.METABALL)
 func metaball_state_fn(delta):
-	# -- ok, so we're gaurenteeing that the player is in a circle shape
-	# -- so whatever the global_position is, we can just offset it by the rel_pos direction
-	# -- of the platform + the radius
-	var rel_pos : Vector2 = (global_position - 
-		$MetaballManager.platform_ref.global_position).normalized()
-	var offset_vector = rel_pos * 1.5 * $CollisionShape2D.shape.radius
-	# -- increment perimeter, based on input
-	global_position = offset_vector + $MetaballManager.increment_perimeter(
+	var plat = $MetaballManager.platform_ref
+	# the metaball manager returns paltform local space coordinates
+	var local_target = $MetaballManager.increment_perimeter(
 		delta,
-		Vector2(move_input.x, -move_input.y))
+		Vector2(move_input.x, -move_input.y)
+	)
+
+	#  -- compute the outward normal in local space
+	var local_normal = $MetaballManager.perimeter_normal()
+	# -- still in locall space, don't change coords til end
+	var local_offset = local_normal * (
+		$CollisionShape2D.shape.radius * 1.5
+	)
+	var local_position = local_target + local_offset
+
+	# convert into world coordinates.
+	#global_position = plat.to_global(local_position)
+	global_position = global_position.move_toward(
+		plat.to_global(local_position),
+		kd.baseline_speed * delta
+		)
 	
 	check_for_jump(JumpTypes.METABALL)
 
