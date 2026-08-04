@@ -46,7 +46,7 @@ shader_parameter/blur_radius = 2.0
 [sub_resource type="ViewportTexture" id="ViewportTexture_mhvfb"]
 viewport_path = NodePath("World/BackgroundManager/Layer1/SubViewportLayer0")
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "lava", "camera", "world_effects_container")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "camera", "world_effects_container")]
 script = ExtResource("1_dxrkv")
 player_scene = ExtResource("2_4fuuu")
 players_container = NodePath("World/PlayersContainer")
@@ -56,13 +56,12 @@ post_processing_quad = NodePath("World/PostProcessingQuad")
 world_pickup_items_manager = NodePath("World/WorldPickupItemsManager")
 world_level_manager = NodePath("World/LevelManager")
 oasis = NodePath("World/Oasis")
-lava = NodePath("World/Lava")
 camera = NodePath("World/Camera")
 world_effects_container = NodePath("World/WorldEffects")
 metadata/_edit_group_ = true
 
 [node name="World" type="Node2D" parent="."]
-position = Vector2(-3137, 0)
+position = Vector2(-5000, 5000)
 
 [node name="LevelManager" parent="World" node_paths=PackedStringArray("lava_ref", "player_container_ref") instance=ExtResource("16_4cobl")]
 lava_ref = NodePath("../Lava")
@@ -111,8 +110,7 @@ curve = SubResource("Curve2D_4cobl")
 [node name="DeathTVPosition" type="Marker2D" parent="World/Oasis"]
 position = Vector2(-690, 490)
 
-[node name="Lava" parent="World" node_paths=PackedStringArray("game_ref") instance=ExtResource("15_hb504")]
-game_ref = NodePath("../..")
+[node name="Lava" parent="World" instance=ExtResource("15_hb504")]
 initial_world_lava_level = 0
 
 [node name="InitialSpawnPoints" type="Node2D" parent="World"]

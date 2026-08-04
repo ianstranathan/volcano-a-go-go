@@ -1,4 +1,4 @@
-[gd_scene load_steps=799 format=4 uid="uid://fooirwkjdwxl"]
+[gd_scene load_steps=801 format=4 uid="uid://fooirwkjdwxl"]
 
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_hy8xc"]
 [ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_go1yl"]
@@ -19,14 +19,29 @@
 [ext_resource type="Texture2D" uid="uid://b2affa2yike87" path="res://assets/volcano ground.png" id="17_yy7ml"]
 [ext_resource type="Texture2D" uid="uid://btg280ipditcw" path="res://assets/volcanobg2.png" id="18_8aauq"]
 [ext_resource type="PackedScene" uid="uid://dxvt8fbol7y6b" path="res://fire_column/fire_column.tscn" id="19_go1yl"]
+[ext_resource type="Script" uid="uid://dfndtocpf6lff" path="res://levels/pickup_editor_placeholder.gd" id="20_5ghxw"]
+[ext_resource type="Script" uid="uid://caucxban4octc" path="res://utils/debugging/marker_reflector.gd" id="21_k2k0m"]
 
 [sub_resource type="Resource" id="Resource_b0i2u"]
 script = ExtResource("2_go1yl")
 level_index = 0
-level_height = 8584.0
-offset_to_chunk_origin = -8205.0
-level_width = 14266.0
-player_spawn_points = [Vector2(801, -5988), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
+level_height = 7772.0
+offset_to_chunk_origin = -6990.0
+level_width = 14496.0
+player_spawn_points = [Vector2(527, -6749), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
+pickup_definitions = Array[Dictionary]([{
+"item_enum": 3,
+"position": Vector2(-927, 76)
+}, {
+"item_enum": 1,
+"position": Vector2(-708, 76)
+}, {
+"item_enum": 2,
+"position": Vector2(768, 20)
+}, {
+"item_enum": 0,
+"position": Vector2(-534, 52)
+}])
 chunk_scene_path = "res://levels/smart_shape.tscn"
 metadata/_custom_type_script = "uid://cptvpu01udgc8"
 
@@ -5283,16 +5298,16 @@ right_marker = NodePath("Right")
 level_data = SubResource("Resource_b0i2u")
 
 [node name="Left" type="Marker2D" parent="."]
-position = Vector2(-7366, 0)
+position = Vector2(-7366, -19)
 
 [node name="Right" type="Marker2D" parent="."]
-position = Vector2(6900, 0)
+position = Vector2(7130, 0)
 
 [node name="Top" type="Marker2D" parent="."]
-position = Vector2(0, -8205)
+position = Vector2(0, -6990)
 
 [node name="Bottom" type="Marker2D" parent="."]
-position = Vector2(0, 379)
+position = Vector2(0, 782)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -5302,7 +5317,7 @@ position = Vector2(-2355, -603)
 [node name="SpawnPoints" type="Node2D" parent="."]
 
 [node name="Marker2D" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(801, -5988)
+position = Vector2(527, -6749)
 
 [node name="Marker2D2" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(-163, -143)
@@ -5317,6 +5332,7 @@ position = Vector2(-31, -136)
 
 [node name="Ground" type="StaticBody2D" parent="Platforms"]
 collision_layer = 65
+collision_mask = 67
 
 [node name="Ground Level" type="Node2D" parent="Platforms/Ground"]
 script = ExtResource("4_k2k0m")
@@ -5330,6 +5346,7 @@ metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 polygon = PackedVector2Array(-7376.0356, 228.73486, -7101.232, -17.026123, -6787.831, 242.64868, 7181.643, -68.948, 7098.5444, 488.04663, -4810.7173, 926.9844)
 
 [node name="Rest" type="StaticBody2D" parent="Platforms"]
+collision_mask = 67
 
 [node name="SS2D_Shape" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
@@ -5505,10 +5522,6 @@ metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 [node name="CollisionPolygon2D46" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-4374, -2980, -4206, -2980, -4206, -2884, -4374, -2884)
 
-[node name="CollisionPolygon2D15" type="CollisionPolygon2D" parent="Platforms/Rest"]
-position = Vector2(-2182, 60)
-polygon = PackedVector2Array(-1538, -2468, -1538, -2548, -570, -2540, -570, -2828, -498, -2828, -498, -2460)
-
 [node name="SS2D_Shape16" type="Node2D" parent="Platforms/Rest"]
 position = Vector2(-2478, 289)
 script = ExtResource("4_k2k0m")
@@ -5536,19 +5549,12 @@ metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 [node name="CollisionPolygon2D44" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-2192, -3040, -2024, -3040, -2024, -2944, -2192, -2944)
 
-[node name="CollisionPolygon2D17" type="CollisionPolygon2D" parent="Platforms/Rest"]
-polygon = PackedVector2Array(-3720, -2408, -3720, -2488, -2752, -2480, -2752, -2768, -2680, -2768, -2680, -2400)
-
 [node name="SS2D_Shape18" type="Node2D" parent="Platforms/Rest"]
 script = ExtResource("4_k2k0m")
 _points = SubResource("Resource_b0n4m")
 _meshes = Array[ExtResource("7_m8ier")]([SubResource("Resource_x3wto")])
 shape_material = SubResource("Resource_04gj5")
-collision_polygon_node_path = NodePath("../CollisionPolygon2D15")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
-
-[node name="CollisionPolygon2D18" type="CollisionPolygon2D" parent="Platforms/Rest"]
-polygon = PackedVector2Array(-3720, -2408, -3720, -2488, -2752, -2480, -2752, -2768, -2680, -2768, -2680, -2400)
 
 [node name="CollisionPolygon2D19" type="CollisionPolygon2D" parent="Platforms/Rest"]
 position = Vector2(0, -3)
@@ -5850,3 +5856,40 @@ collision_mask = 2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CloudStart"]
 position = Vector2(0, 2598)
 shape = SubResource("RectangleShape2D_go1yl")
+
+[node name="PickupPlaceholders" type="Node2D" parent="."]
+position = Vector2(0, -41)
+
+[node name="PickupEditorPlaceholder" type="Marker2D" parent="PickupPlaceholders"]
+position = Vector2(-927, 76)
+script = ExtResource("20_5ghxw")
+item_enum_type = 3
+metadata/_custom_type_script = "uid://dfndtocpf6lff"
+
+[node name="PickupEditorPlaceholder2" type="Marker2D" parent="PickupPlaceholders"]
+position = Vector2(-708, 76)
+script = ExtResource("20_5ghxw")
+item_enum_type = 1
+metadata/_custom_type_script = "uid://dfndtocpf6lff"
+
+[node name="PickupEditorPlaceholder3" type="Marker2D" parent="PickupPlaceholders"]
+position = Vector2(768, 20)
+script = ExtResource("20_5ghxw")
+item_enum_type = 2
+metadata/_custom_type_script = "uid://dfndtocpf6lff"
+
+[node name="PickupEditorPlaceholder4" type="Marker2D" parent="PickupPlaceholders"]
+position = Vector2(-534, 52)
+script = ExtResource("20_5ghxw")
+item_enum_type = 0
+metadata/_custom_type_script = "uid://dfndtocpf6lff"
+
+[node name="Marker2D" type="Marker2D" parent="."]
+position = Vector2(0, 512)
+script = ExtResource("21_k2k0m")
+
+[node name="Label" type="Label" parent="Marker2D"]
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_font_sizes/font_size = 124
+text = "AHHHHHHHHHH"

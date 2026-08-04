@@ -204,9 +204,7 @@ var moving_platform_components_dict : Dictionary = {}
 
 func _instantiate_chunk(idx: int, packed_scene: PackedScene) -> void:
 	var chunk_instance = packed_scene.instantiate() as LevelChunk
-	# -- so, next_spawn_y starts at top of volcano and steps down by chunk height
-	chunk_instance.global_position = Vector2(0, 
-		next_spawn_y - chunk_instance.level_data.offset_to_chunk_origin)
+	
 	chunk_instance.players_container_ref = player_container_ref
 	
 	# -- the chunk's callback takes care of whatever (like tagging the object)
@@ -218,6 +216,9 @@ func _instantiate_chunk(idx: int, packed_scene: PackedScene) -> void:
 	
 	chunk_instance.cam_ref = cam_ref
 	chunk_container.add_child(chunk_instance)
+	# -- so, next_spawn_y starts at top of volcano and steps down by chunk height
+	chunk_instance.global_position = Vector2(0, 
+		next_spawn_y - chunk_instance.level_data.offset_to_chunk_origin)
 	
 	var height = chunk_instance.level_data.level_height
 	# -- what are the bounds for this chunk [next_spawn_y, next_spawn_y + however tall
@@ -231,7 +232,14 @@ func _instantiate_chunk(idx: int, packed_scene: PackedScene) -> void:
 	# -- to needlessly burn cycles in _maintain_chunks
 	active_chunk_idxs = instantiated_chunks.keys()
 	chunks_to_tick = chunk_container.get_children()
-
+	#print("Chunk root: ", chunk_instance.global_position.y)
+	#print("Top marker: ", chunk_instance.top_marker.global_position.y)
+	#print("Bottom marker: ", chunk_instance.bottom_marker.global_position.y)
+	#print("Height: ", chunk_instance.bottom_marker.global_position.y - chunk_instance.top_marker.global_position.y)
+	print("LevelManager:", global_position)
+	print("ChunkContainer:", chunk_container.global_position)
+	print("Chunk:", chunk_instance.global_position)
+	print("Chunk local:", chunk_instance.position)
 
 func _unload_and_clear_chunk(idx: int) -> void:
 	var chunk = instantiated_chunks.get(idx)
@@ -298,3 +306,15 @@ func get_all_pickup_item_definitions() -> Array[ Dictionary ]:
 		_local_next_spawn_y += level_chunk_data.level_height
 		
 	return ret
+
+
+func get_level_bottom_y() -> float:
+	var y := LEVEL_TOP_Y
+	var indices = LEVEL_CHUNK_DB.keys()
+	indices.sort()
+
+	for idx in indices:
+		var data := LEVEL_CHUNK_DB[idx] as LevelChunkData
+		y += data.level_height
+
+	return y

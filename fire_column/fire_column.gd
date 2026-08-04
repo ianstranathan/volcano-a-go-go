@@ -54,6 +54,6 @@ func make_fire_column():
 	if sprite.material:
 		sprite.material.set_shader_parameter("sprite_size", target_size)
 		
-	print(sprite.material)
-	print(target_size)
+	#print(sprite.material)
+	#print(target_size)
 	

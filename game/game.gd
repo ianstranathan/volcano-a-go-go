@@ -14,7 +14,9 @@ var player_data_dict:Dictionary = {} # -- id to player_data
 @export var world_pickup_items_manager: Node2D
 @export var world_level_manager: Node2D
 @export var oasis: Node2D
-@export var lava: TheLava
+
+@onready var the_lava: TheLava = $World/Lava
+#@onready var lava_scene: PackedScene = preload("res://lava/lava.tscn")
 @export var camera: Camera2D
 @export var world_effects_container: Node2D
 
@@ -62,7 +64,7 @@ func _ready():
 var world_is_ticking := false
 @onready var world_tickables : Array = [
 	world_level_manager, 
-	lava, 
+	#lava, 
 	world_pickup_items_manager, 
 	post_processing_quad, 
 	ui
@@ -192,6 +194,7 @@ func rand_skin_tone( seed_val: int) -> int:
 # -- hardcoding until someone makes a level
 @export var level_x_length = 10000
 @export var level_y_length = 10000
+@export var world_origin: Vector2 = Vector2.ZERO
 
 func get_level_dimensions() -> Vector2:
 	return Vector2(level_x_length, level_y_length)
@@ -217,7 +220,11 @@ func on_level_manager_loaded_first_chunk( _spawn_points: Array ):
 		idx += 1
 	post_processing_quad.start_transition_anim_back()
 	world_is_ticking = true
-
+	
+	the_lava.global_position = Vector2(0., $World/LevelManager.get_level_bottom_y() - 600)
+	print("bottom of volcano: ", $World/LevelManager.get_level_bottom_y())
+	the_lava.start_lava(Vector2(level_x_length, level_y_length))
+	
 
 func on_player_touched_bottom( _player_id):
 	#lava.global_position = Vector2(0., 0.)
