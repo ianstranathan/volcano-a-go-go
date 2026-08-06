@@ -7,7 +7,7 @@ class_name PlatformPath
 @export var component_modifier: PackedScene
 @export var block_width: float = 64.0:
 	set(value):
-		block_width = max(1.0, value) # Avoid division by zero
+		block_width = max(1.0, value) # no div by zero
 		if is_node_ready():
 			generate_platforms()
 
@@ -25,29 +25,21 @@ class_name PlatformPath
 		if is_node_ready():
 			generate_platforms()
 
-#
-func _ready() -> void:
-	var platforms_arr = get_children()
-	var total_length: float = curve.get_baked_length()
-	var platform_count: int = max(1, roundi(total_length / block_width))
-	var step_distance: float = total_length / platform_count
-	if !platforms_arr.is_empty():
-		for i in range(platform_count):
-			var distance: float = (i + 0.5) * step_distance
-			var xform: Transform2D = curve.sample_baked_with_rotation(distance)
-			platforms_arr[i].transform = xform
+#var _children;
+#func _ready() -> void:
+	#if !Engine.is_editor_hint():
+		#generate_platforms()
+		#assert( _children.size() > 0 ) 
 
-
+@onready var _children = get_children()
 func execute_tick(delta):
-	for c in get_children():
-		#print("here")
+	for c in _children:
 		c.execute_tick(delta)
 
 func generate_platforms() -> void:
 	if not platform_scene or curve == null:
 		return
 
-	# Clear previous instances (handles dynamic updates in tool mode)
 	for child in get_children():
 		child.queue_free()
 
@@ -80,3 +72,5 @@ func generate_platforms() -> void:
 		if component_modifier:
 			platform.add_child(component_modifier.instantiate())
 		platform.coll_extents = Vector2( block_width, block_height)
+
+	_children = get_children()

@@ -59,7 +59,7 @@ func _ready() -> void:
 				if b is Player and b not in has_started_cloud_list:
 					has_started_cloud_list.append( b )
 					b.start_cloud_descent())
-					
+
 
 # -- built-in Godot function; it triggers automatically scene is saved
 # -- so, workflow is, set the markers and save

@@ -215,10 +215,11 @@ func _instantiate_chunk(idx: int, packed_scene: PackedScene) -> void:
 		moving_platform_network_id += 1)
 	
 	chunk_instance.cam_ref = cam_ref
-	chunk_container.add_child(chunk_instance)
+	
 	# -- so, next_spawn_y starts at top of volcano and steps down by chunk height
 	chunk_instance.global_position = Vector2(0, 
 		next_spawn_y - chunk_instance.level_data.offset_to_chunk_origin)
+	chunk_container.add_child(chunk_instance)
 	
 	var height = chunk_instance.level_data.level_height
 	# -- what are the bounds for this chunk [next_spawn_y, next_spawn_y + however tall
@@ -236,10 +237,10 @@ func _instantiate_chunk(idx: int, packed_scene: PackedScene) -> void:
 	#print("Top marker: ", chunk_instance.top_marker.global_position.y)
 	#print("Bottom marker: ", chunk_instance.bottom_marker.global_position.y)
 	#print("Height: ", chunk_instance.bottom_marker.global_position.y - chunk_instance.top_marker.global_position.y)
-	print("LevelManager:", global_position)
-	print("ChunkContainer:", chunk_container.global_position)
-	print("Chunk:", chunk_instance.global_position)
-	print("Chunk local:", chunk_instance.position)
+	#print("LevelManager:", global_position)
+	#print("ChunkContainer:", chunk_container.global_position)
+	#print("Chunk:", chunk_instance.global_position)
+	#print("Chunk local:", chunk_instance.position)
 
 func _unload_and_clear_chunk(idx: int) -> void:
 	var chunk = instantiated_chunks.get(idx)

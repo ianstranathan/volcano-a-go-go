@@ -16,4 +16,3 @@ script = ExtResource("1_seiuc")
 platform_scene = ExtResource("2_d7bcn")
 component_modifier = ExtResource("3_wovmp")
 make_bridge = true
-blocks_should_rotate = null
