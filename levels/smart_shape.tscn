@@ -1,4 +1,4 @@
-[gd_scene load_steps=1310 format=4 uid="uid://fooirwkjdwxl"]
+[gd_scene load_steps=1315 format=4 uid="uid://fooirwkjdwxl"]
 
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_hy8xc"]
 [ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_go1yl"]
@@ -21,14 +21,17 @@
 [ext_resource type="PackedScene" uid="uid://dxvt8fbol7y6b" path="res://fire_column/fire_column.tscn" id="19_go1yl"]
 [ext_resource type="Script" uid="uid://dfndtocpf6lff" path="res://levels/pickup_editor_placeholder.gd" id="20_5ghxw"]
 [ext_resource type="Script" uid="uid://caucxban4octc" path="res://utils/debugging/marker_reflector.gd" id="21_k2k0m"]
+[ext_resource type="Script" uid="uid://dpkkawt7f4diq" path="res://levels/level_components/platform_path/platform_path.gd" id="22_m8ier"]
+[ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="23_hy7c0"]
+[ext_resource type="PackedScene" uid="uid://dx2v0c6arxv4a" path="res://levels/platforms/platform_components/dissolving_platform_component/dissolving_platform_component.tscn" id="24_cie1a"]
 
 [sub_resource type="Resource" id="Resource_b0i2u"]
 script = ExtResource("2_go1yl")
 level_index = 0
-level_height = 7772.0
-offset_to_chunk_origin = -6990.0
+level_height = 10751.0
+offset_to_chunk_origin = -9969.0
 level_width = 14496.0
-player_spawn_points = [Vector2(527, -6749), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
+player_spawn_points = [Vector2(527, -8885), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
 pickup_definitions = Array[Dictionary]([{
 "item_enum": 3,
 "position": Vector2(-927, 76)
@@ -7446,6 +7449,10 @@ script = ExtResource("14_iakei")
 _edge_meta_materials = Array[ExtResource("11_15kkk")]([SubResource("Resource_i8ao7")])
 fill_textures = Array[Texture2D]([ExtResource("8_hy7c0")])
 
+[sub_resource type="Resource" id="Resource_2lht7"]
+script = ExtResource("5_lv54x")
+position = Vector2(3904, -5288)
+
 [sub_resource type="Resource" id="Resource_evgrx"]
 script = ExtResource("5_lv54x")
 position = Vector2(3904, -5288)
@@ -7461,10 +7468,6 @@ position = Vector2(3968, -5432)
 [sub_resource type="Resource" id="Resource_elh7w"]
 script = ExtResource("5_lv54x")
 position = Vector2(3968, -5288)
-
-[sub_resource type="Resource" id="Resource_2lht7"]
-script = ExtResource("5_lv54x")
-position = Vector2(3904, -5288)
 
 [sub_resource type="Resource" id="Resource_iatgi"]
 script = ExtResource("6_rywxm")
@@ -8618,8 +8621,21 @@ fill_textures = Array[Texture2D]([ExtResource("8_hy7c0")])
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_go1yl"]
 size = Vector2(10000, 532)
 
-[node name="SmartShape" type="Node2D" node_paths=PackedStringArray("bottom_marker", "top_marker", "left_marker", "right_marker")]
+[sub_resource type="Curve2D" id="Curve2D_dukmt"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 616, -734, 0, 0, 0, 0, 1522, -720)
+}
+point_count = 2
+
+[sub_resource type="Curve2D" id="Curve2D_15kkk"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 1998, -716, 0, 0, 0, 0, 2886, -723)
+}
+point_count = 2
+
+[node name="SmartShape" type="Node2D" node_paths=PackedStringArray("tickable_geometry_container", "bottom_marker", "top_marker", "left_marker", "right_marker")]
 script = ExtResource("1_hy8xc")
+tickable_geometry_container = NodePath("Tickables")
 bottom_marker = NodePath("Bottom")
 top_marker = NodePath("Top")
 left_marker = NodePath("Left")
@@ -8633,7 +8649,7 @@ position = Vector2(-7366, -19)
 position = Vector2(7130, 0)
 
 [node name="Top" type="Marker2D" parent="."]
-position = Vector2(0, -6990)
+position = Vector2(0, -9969)
 
 [node name="Bottom" type="Marker2D" parent="."]
 position = Vector2(0, 782)
@@ -8646,7 +8662,7 @@ position = Vector2(4368, -4768)
 [node name="SpawnPoints" type="Node2D" parent="."]
 
 [node name="Marker2D" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(527, -6749)
+position = Vector2(527, -8885)
 
 [node name="Marker2D2" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(-163, -143)
@@ -9517,7 +9533,7 @@ root = NodePath("..")
 apply = false
 
 [node name="CloudStart" type="Area2D" parent="."]
-position = Vector2(0, -6994)
+position = Vector2(0, -10024)
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CloudStart"]
@@ -9560,3 +9576,21 @@ offset_right = 40.0
 offset_bottom = 23.0
 theme_override_font_sizes/font_size = 124
 text = "AHHHHHHHHHH"
+
+[node name="Tickables" type="Node2D" parent="."]
+
+[node name="PlatformPath" type="Path2D" parent="Tickables"]
+curve = SubResource("Curve2D_dukmt")
+script = ExtResource("22_m8ier")
+platform_scene = ExtResource("23_hy7c0")
+component_modifier = ExtResource("24_cie1a")
+make_bridge = true
+metadata/_custom_type_script = "uid://dpkkawt7f4diq"
+
+[node name="PlatformPath2" type="Path2D" parent="Tickables"]
+curve = SubResource("Curve2D_15kkk")
+script = ExtResource("22_m8ier")
+platform_scene = ExtResource("23_hy7c0")
+component_modifier = ExtResource("24_cie1a")
+make_bridge = true
+metadata/_custom_type_script = "uid://dpkkawt7f4diq"
