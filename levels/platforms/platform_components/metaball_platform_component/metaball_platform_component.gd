@@ -105,6 +105,7 @@ func get_rect_size() -> Vector2:
 func get_platform_transform() -> Transform2D:
 	return platform_ref.transform
 
+
 func null_player_at_idx(p: Player):
 	var _idx = player_2_idx.get(p.name)
 	if _idx != null:

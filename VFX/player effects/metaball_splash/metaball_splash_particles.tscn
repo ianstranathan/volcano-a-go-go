@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://c1msfo50b2i3l"]
 
 [ext_resource type="Shader" uid="uid://bd16edjmwrglw" path="res://VFX/player effects/metaball_splash/metaball_splash.gdshader" id="1_bofo2"]
-[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_didtu"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="2_didtu"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_qqi7h"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_didtu"]

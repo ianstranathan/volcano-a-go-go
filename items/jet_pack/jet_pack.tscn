@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bjn340ak6i1me" path="res://items/jet_pack/jet_pack.gd" id="1_4j3oo"]
 [ext_resource type="Script" uid="uid://du6dcuy4lm2fk" path="res://items/item_interface.gd" id="2_5fj2d"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_ssqh2"]
-[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_uejvu"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="2_uejvu"]
 [ext_resource type="Shader" uid="uid://rmh3y05hy1ef" path="res://items/jet_pack/jet_pack_v2.gdshader" id="3_5fj2d"]
 [ext_resource type="Script" uid="uid://dmm17nhn1wysy" path="res://items/item_components/movement_override_component.gd" id="5_5fj2d"]
 

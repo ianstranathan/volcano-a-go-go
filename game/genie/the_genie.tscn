@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cmw4mc183vist"]
+
+[ext_resource type="Texture2D" uid="uid://ygdc3bmstf7a" path="res://assets/Sprites/GenGenie.png" id="1_bdft2"]
+
+[node name="TheGenie" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("1_bdft2")

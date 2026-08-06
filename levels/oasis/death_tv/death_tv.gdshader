@@ -50,4 +50,5 @@ void fragment( )
 	vec2 resolution = 1.0 / SCREEN_PIXEL_SIZE;
 	vec2 screenSpace = crtCoords * resolution;
 	COLOR.rgb = scanline(screenSpace, COLOR.rgb);
+	//COLOR = vec4(1., 0., 1., 1.);
 }

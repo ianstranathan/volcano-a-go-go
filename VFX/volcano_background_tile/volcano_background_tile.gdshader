@@ -43,7 +43,9 @@ void fragment() {
 	pattern_mask *= (1. - rock_mask);
 	float m = (1. - (pattern_mask + rock_mask));
 	float magma_mask = 1. - (m * (1. - smoothstep(0.95, 1., m)));
+	
 	COLOR = vec4( vec3(magma_mask), 1.);
+	
 	//--------- rotating for pattern to look better
 	vec2 uv = 2. * _UV - 1.;
 	uv = rot(3.14 / 2.) * uv;

@@ -1,5 +1,5 @@
 @tool
-extends Node2D
+extends AnimatableBody2D
 class_name BasePlatform
 
 #signal collision_dimensions_changed(extents: Vector2)
@@ -44,3 +44,7 @@ func _ready() -> void:
 func execute_tick(delta: float):
 	for c in tickables:
 		c.execute_tick(delta)
+
+@onready var coll_shape := $CollisionShape2D
+func disable_collisions(b: bool):
+	coll_shape.set_deferred("disabled", b)

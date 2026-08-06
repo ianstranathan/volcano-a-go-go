@@ -37,12 +37,11 @@ func do_effect(player_id: int, params: EffectParameters):
 	if not effect: 
 		return
 	
-	if params.flip:
-		var sprite = effect.get_node_or_null("Sprite2D")
-		if not sprite:
-			sprite = effect.get_node_or_null("AnimatedSprite2D")
-		if sprite:
-			sprite.flip_h = params.flip
+	var sprite = effect.get_node_or_null("Sprite2D")
+	if not sprite:
+		sprite = effect.get_node_or_null("AnimatedSprite2D")
+	if sprite:
+		sprite.flip_h = params.flip
 	effect.global_position = params.pos
 	#print(effect.name)
 	#print(effect.global_position)

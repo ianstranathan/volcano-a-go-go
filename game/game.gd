@@ -14,11 +14,14 @@ var player_data_dict:Dictionary = {} # -- id to player_data
 @export var world_pickup_items_manager: Node2D
 @export var world_level_manager: Node2D
 @export var oasis: Node2D
-@export var lava: TheLava
+
+@onready var the_lava: TheLava = $World/Lava
+#@onready var lava_scene: PackedScene = preload("res://lava/lava.tscn")
 @export var camera: Camera2D
 @export var world_effects_container: Node2D
 
 func _ready():
+	
 	# -- we're gaurenteed that all children (level manager and world pickup items
 	# -- manager) are intialized
 	# ==> can just set the prev. world pickup items ready stuff to here
@@ -28,6 +31,9 @@ func _ready():
 	world_pickup_items_manager.load_pickup_items_from_level_chunks(
 		world_level_manager.get_all_pickup_item_definitions()
 	)
+	assert( camera )
+	
+	world_level_manager.cam_ref = camera
 	world_level_manager.level_ready.connect( on_level_manager_loaded_first_chunk )
 	#post_processing_quad.transition_finished.connect( func():
 		 #)
@@ -58,7 +64,7 @@ func _ready():
 var world_is_ticking := false
 @onready var world_tickables : Array = [
 	world_level_manager, 
-	lava, 
+	#lava, 
 	world_pickup_items_manager, 
 	post_processing_quad, 
 	ui
@@ -68,6 +74,7 @@ var world_is_ticking := false
 var race_started := false
 
 func execute_tick( delta: float ):
+	#print(players_container.get_child(0).global_position)
 	post_processing_quad.execute_tick( delta )
 	#if race_started:
 	if world_is_ticking:
@@ -96,12 +103,7 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	
 	# --
 	a_player.get_node_or_null("PlayerController").moving_platform_components_dict = world_level_manager.moving_platform_components_dict
-	# -- Spawn index has to be deterministic
-	# -- The Host must be the one to decide that
-	var points_count = spawn_points.get_child_count()
-	id_2_spawn_index[ peer_id ] = spawn_index
-	var actual_point = spawn_points.get_child(spawn_index % points_count)
-	a_player.global_position = actual_point.global_position
+	
 	
 	# -- assign multiplayer authority to the player before
 	# -- it's added to scene tree
@@ -131,14 +133,26 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	)
 	world_level_manager.setup_networked_level_player_connections(a_player)
 
-	if peer_id == multiplayer.get_unique_id():
-		camera.target_initialize(a_player)
-
 	players_container.add_child(a_player)
 
+	# -- Adding after child is added to player container so that the local transformation
+	# -- (the displacement of the original world)
+	# -- doesn't add to the players position
+	
+	# -- Spawn index has to be deterministic
+	# -- The Host must be the one to decide that
+	var points_count = spawn_points.get_child_count()
+	id_2_spawn_index[ peer_id ] = spawn_index
+	var spawn_marker_pos = spawn_points.get_child(spawn_index % points_count).global_position
+	a_player.global_position = spawn_marker_pos
+	
+	if peer_id == multiplayer.get_unique_id():
+		camera.target_initialize(a_player)
+		camera.global_position = a_player.global_position
+	
 	# -- we need the players to spawn before running this
 	world_effects_container.initialize_recurring_player_vfx()
-	
+	#print_tree_pretty()
 
 func get_spawn_point_from_child_node(spawn_points_node: Node2D, peer_id: int) -> Vector2:
 	var points_count = spawn_points_node.get_child_count()
@@ -180,6 +194,7 @@ func rand_skin_tone( seed_val: int) -> int:
 # -- hardcoding until someone makes a level
 @export var level_x_length = 10000
 @export var level_y_length = 10000
+@export var world_origin: Vector2 = Vector2.ZERO
 
 func get_level_dimensions() -> Vector2:
 	return Vector2(level_x_length, level_y_length)
@@ -205,9 +220,15 @@ func on_level_manager_loaded_first_chunk( _spawn_points: Array ):
 		idx += 1
 	post_processing_quad.start_transition_anim_back()
 	world_is_ticking = true
-
+	
+	the_lava.global_position = Vector2(0., $World/LevelManager.get_level_bottom_y() - 600)
+	print("bottom of volcano: ", $World/LevelManager.get_level_bottom_y())
+	the_lava.start_lava(Vector2(level_x_length, level_y_length))
+	
 
 func on_player_touched_bottom( _player_id):
+	#lava.global_position = Vector2(0., 0.)
+	#lava.start_race()
 	race_started = true
 	ui.visible = true
 

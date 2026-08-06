@@ -1,0 +1,58 @@
+[gd_scene load_steps=10 format=3 uid="uid://btfesvm7e2l65"]
+
+[ext_resource type="Script" uid="uid://bnoug720aora" path="res://levels/level_components/column_log_roll/column_log_roll.gd" id="1_pfwev"]
+[ext_resource type="Script" uid="uid://bqcnegrewmkj2" path="res://levels/platforms/base_platform/base_platform.gd" id="2_7hvrr"]
+[ext_resource type="Script" uid="uid://htngcgst146o" path="res://levels/platforms/platform_components/sprite_collider_sync.gd" id="3_mdn2c"]
+[ext_resource type="Shader" uid="uid://b81bgaya7yskd" path="res://levels/level_components/column_log_roll/column_log_roll.gdshader" id="4_rof2w"]
+[ext_resource type="Texture2D" uid="uid://g832rt407u8f" path="res://assets/arabesque/luke_background_0.png" id="5_mdn2c"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="5_yaifm"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bnlrd"]
+shader = ExtResource("4_rof2w")
+shader_parameter/pillar_tex = ExtResource("5_mdn2c")
+shader_parameter/coll_extents = Vector2(0, 0)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mdn2c"]
+size = Vector2(100, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rof2w"]
+size = Vector2(110, 110)
+
+[node name="ColumnLogRoll" type="Node2D"]
+z_index = -10
+script = ExtResource("1_pfwev")
+rotation_speed = 0.0
+coll_extents = Vector2(300, 100)
+debug_draw = true
+
+[node name="BasePlatform" type="AnimatableBody2D" parent="."]
+z_index = 1000
+collision_mask = 2
+script = ExtResource("2_7hvrr")
+coll_extents = Vector2(100, 100)
+sprite_2_coll_factor = 1.0
+
+[node name="SpriteCollisionSync" type="Node2D" parent="BasePlatform" node_paths=PackedStringArray("sprite", "coll_shape", "area_coll_shape")]
+script = ExtResource("3_mdn2c")
+sprite_2_coll_factor = 1.0
+sprite = NodePath("../Sprite2D")
+coll_shape = NodePath("../CollisionShape2D")
+area_coll_shape = NodePath("../Area2D/CollisionShape2D")
+coll_extents = Vector2(100, 100)
+metadata/_custom_type_script = "uid://htngcgst146o"
+
+[node name="Sprite2D" type="Sprite2D" parent="BasePlatform"]
+material = SubResource("ShaderMaterial_bnlrd")
+scale = Vector2(0.78125, 0.78125)
+texture = ExtResource("5_yaifm")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BasePlatform"]
+shape = SubResource("RectangleShape2D_mdn2c")
+disabled = true
+
+[node name="Area2D" type="Area2D" parent="BasePlatform"]
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BasePlatform/Area2D"]
+shape = SubResource("RectangleShape2D_rof2w")
+debug_color = Color(0.87608176, 0.22123876, 0.65927917, 0.41960785)

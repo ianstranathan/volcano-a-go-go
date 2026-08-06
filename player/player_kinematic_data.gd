@@ -3,7 +3,7 @@ class_name PlayerKinematicData
 extends Resource
 
 # ------------------------------ Primary Core Values
-@export var baseline_speed: float = 425.0:
+@export var baseline_speed: float = 435.0:
 	set(value):
 		baseline_speed = value
 		_recalculate_physics()

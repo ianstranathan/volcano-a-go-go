@@ -168,7 +168,7 @@ func generate_coins_along_path() -> void:
 		var xform: Transform2D = Transform2D.IDENTITY
 		xform = xform.translated(coin_position)
 		
-		# OPTIONAL: If you want coins to rotate to face the direction of the curve:
+		# coins to rotate to face the direction of the curve:
 		# var sample_transform = curve.sample_baked_with_rotation(distance)
 		# xform = sample_transform
 		

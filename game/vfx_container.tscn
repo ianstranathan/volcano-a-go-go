@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ft8ft4puh52p" path="res://game/vfx_container.gd" id="1_oj3hr"]
 [ext_resource type="Shader" uid="uid://bex3q7bc4xrdf" path="res://game/lava_heat_distortion.gdshader" id="2_5cqc1"]
-[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="3_fbtt3"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="3_fbtt3"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="4_qb1h1"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4cobl"]

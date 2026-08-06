@@ -4,7 +4,7 @@
 [ext_resource type="Shader" uid="uid://cw2joqlxm1yit" path="res://VFX/volcano_background_tile/volcano_background_tile.gdshader" id="2_3upxm"]
 [ext_resource type="Texture2D" uid="uid://g832rt407u8f" path="res://assets/arabesque/luke_background_0.png" id="2_jqq0j"]
 [ext_resource type="Texture2D" uid="uid://boh752oaa4a6x" path="res://assets/PBR textures/Lava_01_basecolor-1K.png" id="3_5s8sw"]
-[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="4_obf0s"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="4_obf0s"]
 [ext_resource type="Texture2D" uid="uid://cs5x25roea0b3" path="res://assets/PBR textures/Rocks011_2K-JPG_NormalGL.jpg" id="5_tc4dp"]
 [ext_resource type="Texture2D" uid="uid://opy7dao8ejop" path="res://assets/PBR textures/Rocks011_1K-PNG_Color.png" id="6_5s8sw"]
 

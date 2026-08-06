@@ -1,13 +1,13 @@
-[gd_scene load_steps=32 format=4 uid="uid://c7wysne7y31dn"]
+[gd_scene load_steps=42 format=4 uid="uid://c7wysne7y31dn"]
 
 [ext_resource type="Script" uid="uid://wdnq1duxrv52" path="res://levels/misc/smartshape_test.gd" id="1_qi5h8"]
 [ext_resource type="Script" uid="uid://dhdc4b8yddyej" path="res://addons/rmsmartshape/shapes/shape.gd" id="2_swyx3"]
 [ext_resource type="Script" uid="uid://bwcf4pjgprn0k" path="res://addons/rmsmartshape/shapes/point.gd" id="3_qi5h8"]
 [ext_resource type="Script" uid="uid://bo5f7qe27jfje" path="res://addons/rmsmartshape/shapes/point_array.gd" id="4_msnnq"]
 [ext_resource type="Script" uid="uid://llobjh5hvry" path="res://addons/rmsmartshape/shapes/mesh.gd" id="5_swyx3"]
-[ext_resource type="Shader" uid="uid://co4h7vjtu6vud" path="res://levels/misc/ss2d_test.gdshader" id="6_yrav4"]
+[ext_resource type="Shader" uid="uid://bqeum1wbpv5h6" path="res://levels/misc/darren_edge_test.gdshader" id="6_qi5h8"]
 [ext_resource type="Texture2D" uid="uid://opy7dao8ejop" path="res://assets/PBR textures/Rocks011_1K-PNG_Color.png" id="7_ew7sn"]
-[ext_resource type="Texture2D" uid="uid://cqmy8lvg0m80e" path="res://assets/tile_sets/TinyRocks/ceiling3.png" id="8_udfb6"]
+[ext_resource type="Texture2D" uid="uid://b2affa2yike87" path="res://assets/volcano ground.png" id="8_qi5h8"]
 [ext_resource type="Script" uid="uid://0lhxan4cqrc1" path="res://addons/rmsmartshape/materials/edge_material_metadata.gd" id="9_fs07m"]
 [ext_resource type="Script" uid="uid://d0xjijisx1woh" path="res://addons/rmsmartshape/materials/edge_material.gd" id="10_u0a7f"]
 [ext_resource type="Script" uid="uid://d218yx0d1ilsn" path="res://addons/rmsmartshape/normal_range.gd" id="11_fhjrn"]
@@ -15,15 +15,15 @@
 
 [sub_resource type="Resource" id="Resource_udfb6"]
 script = ExtResource("3_qi5h8")
-position = Vector2(-260.94983, -208.3941)
+position = Vector2(-182.71951, -157.62592)
 
 [sub_resource type="Resource" id="Resource_q7h38"]
 script = ExtResource("3_qi5h8")
-position = Vector2(-260.94983, -208.3941)
+position = Vector2(-182.71951, -157.62592)
 
 [sub_resource type="Resource" id="Resource_msnnq"]
 script = ExtResource("3_qi5h8")
-position = Vector2(423.35077, -150.75136)
+position = Vector2(379.57178, -212.24597)
 
 [sub_resource type="Resource" id="Resource_vbb0g"]
 script = ExtResource("3_qi5h8")
@@ -37,9 +37,10 @@ position = Vector2(47.74225, 311.40466)
 
 [sub_resource type="Resource" id="Resource_ew7sn"]
 script = ExtResource("3_qi5h8")
-position = Vector2(-304.7388, 212.02905)
+position = Vector2(-187.7388, 163.02905)
 point_in = Vector2(42.349976, 31.460022)
 point_out = Vector2(-42.349976, -31.460022)
+texture_idx = 8
 
 [sub_resource type="Resource" id="Resource_fs07m"]
 script = ExtResource("3_qi5h8")
@@ -47,11 +48,52 @@ position = Vector2(391.6659, 209.19562)
 
 [sub_resource type="Resource" id="Resource_qi5h8"]
 script = ExtResource("3_qi5h8")
-position = Vector2(151.1, -270.4)
+position = Vector2(61.73062, -345.75702)
 
 [sub_resource type="Resource" id="Resource_swyx3"]
 script = ExtResource("3_qi5h8")
-position = Vector2(487.48, 6.6900024)
+position = Vector2(527.41003, -42.920013)
+
+[sub_resource type="Resource" id="Resource_eos3n"]
+script = ExtResource("3_qi5h8")
+position = Vector2(-46.711, -235.781)
+
+[sub_resource type="Resource" id="Resource_hu8vq"]
+script = ExtResource("3_qi5h8")
+position = Vector2(7, -324)
+
+[sub_resource type="Resource" id="Resource_xrmc3"]
+script = ExtResource("3_qi5h8")
+position = Vector2(105, -336)
+
+[sub_resource type="Resource" id="Resource_k6612"]
+script = ExtResource("3_qi5h8")
+position = Vector2(222, -315)
+
+[sub_resource type="Resource" id="Resource_1b7qr"]
+script = ExtResource("3_qi5h8")
+position = Vector2(265, -206)
+texture_idx = -4
+
+[sub_resource type="Resource" id="Resource_r5m7d"]
+script = ExtResource("3_qi5h8")
+position = Vector2(172, -398)
+
+[sub_resource type="Resource" id="Resource_6lhj6"]
+script = ExtResource("3_qi5h8")
+position = Vector2(-159, -219)
+
+[sub_resource type="Resource" id="Resource_7fddi"]
+script = ExtResource("3_qi5h8")
+position = Vector2(-189, -75)
+
+[sub_resource type="Resource" id="Resource_uy6em"]
+script = ExtResource("3_qi5h8")
+position = Vector2(-172, -130)
+
+[sub_resource type="Resource" id="Resource_a7eja"]
+script = ExtResource("3_qi5h8")
+position = Vector2(-194, -182)
 
 [sub_resource type="Resource" id="Resource_8ckas"]
 script = ExtResource("4_msnnq")
@@ -64,33 +106,39 @@ _points = {
 83: SubResource("Resource_ew7sn"),
 86: SubResource("Resource_fs07m"),
 87: SubResource("Resource_qi5h8"),
-88: SubResource("Resource_swyx3")
+88: SubResource("Resource_swyx3"),
+89: SubResource("Resource_eos3n"),
+90: SubResource("Resource_hu8vq"),
+91: SubResource("Resource_xrmc3"),
+92: SubResource("Resource_k6612"),
+93: SubResource("Resource_1b7qr"),
+94: SubResource("Resource_r5m7d"),
+95: SubResource("Resource_6lhj6"),
+96: SubResource("Resource_7fddi"),
+97: SubResource("Resource_uy6em"),
+98: SubResource("Resource_a7eja")
 }
-_point_order = PackedInt32Array(79, 87, 80, 88, 86, 81, 82, 83, 0)
+_point_order = PackedInt32Array(79, 98, 95, 89, 90, 87, 91, 94, 92, 93, 80, 88, 86, 81, 82, 83, 96, 97, 0)
 _constraints = {
 Vector2i(79, 0): 15
 }
-_next_key = 89
+_next_key = 99
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1je6o"]
-shader = ExtResource("6_yrav4")
-shader_parameter/polygon_points = Array[Vector2]([Vector2(-260.94983, -208.3941), Vector2(151.1, -270.4), Vector2(423.35077, -150.75136), Vector2(487.48, 6.6900024), Vector2(391.6659, 209.19562), Vector2(297.49915, 264.54984), Vector2(47.74225, 311.40466), Vector2(-304.7388, 212.02905), Vector2(-260.94983, -208.3941), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
-shader_parameter/point_count = 9
-shader_parameter/marker_local_pos = Vector2(16, 49)
-shader_parameter/dist_scale = 100.0
-shader_parameter/burn_softness = 0.3
+shader = ExtResource("6_qi5h8")
+shader_parameter/tex = ExtResource("8_qi5h8")
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_fs07m"]
 _surfaces = [{
-"aabb": AABB(-315.76315, -270.4, 0, 803.24316, 581.8047, 1e-05),
-"attribute_data": PackedByteArray("/////5oZFz4zM4e+mhkXPjMzh77/////5qzTPlnAFr7mrNM+WcAWvv////9xvfM+gBTWO3G98z6AFNY7/////zzVwz4UMlE+PNXDPhQyUT7/////5L+UPmFGhD7kv5Q+YUaEPv////+Njo8+00GHPo2Ojz7TQYc+/////7vHiD7VBIo+u8eIPtUEij7/////gRFvPnrljj6BEW8+euWOPv/////mXhs+Fi2WPuZeGz4WLZY+/////xD4Pj3Ms5s+EPg+Pcyzmz7/////GMxnviXUcD4YzGe+JdRwPv////+Pt4q+4lRhPo+3ir7iVGE+/////47mkr5dVFo+juaSvl1UWj7/////kV6YvnAHVD6RXpi+cAdUPv/////xnJu+gB9KPvGcm76AH0o+/////xeCnb567jg+F4KdvnruOD7/////r+GdvtQQBT6v4Z2+1BAFPv/////eXJW+OK4fvN5clb44rh+8/////5R5gr7kZFC+lHmCvuRkUL4="),
+"aabb": AABB(-205.80228, -398, 0, 733.2123, 709.40466, 1e-05),
+"attribute_data": PackedByteArray("/////wAAQr4AADa+AABCvgAANr7/////AAAfvgAAW74AAB++AABbvv////8Q2Dq98MdrvhDYOr3wx2u+/////wAA4DsAAKK+AADgOwAAor7/////KOx2PebgrL4o7HY95uCsvv////8AANI9AACovgAA0j0AAKi+/////wAALD4AAMe+AAAsPgAAx77/////AABePgCAnb4AAF4+AICdvv////8AgIQ+AABOvgCAhD4AAE6+/////zDJvT74PlS+MMm9Pvg+VL7/////PtoDPxiuK70+2gM/GK4rvf////881cM+FDJRPjzVwz4UMlE+/////+S/lD5hRoQ+5L+UPmFGhD7/////jY6PPtNBhz6Njo8+00GHPv////+7x4g+1QSKPrvHiD7VBIo+/////4ERbz565Y4+gRFvPnrljj7/////5l4bPhYtlj7mXhs+Fi2WPv////8Q+D49zLObPhD4Pj3Ms5s+/////yK9O75wByM+Ir07vnAHIz7/////ZrtCvuIrGz5mu0K+4isbPv////+680e+zsQPPrrzR77OxA8+/////9SUS75WYQE+1JRLvlZhAT7/////Ys1NvjAh4T1izU2+MCHhPf////8qQEy+Ot4APSpATL463gA9/////wAAPb4AAJa9AAA9vgAAlr3/////AAAsvgAAAr4AACy+AAACvv////8yuDa+PKAdvjK4Nr48oB2+"),
 "format": 34359742527,
-"index_count": 54,
-"index_data": PackedByteArray("AAABAAIAAgADAAQABAAFAAYABgAHAAgACAAJAAoACgALAAwADAANAA4ADgAPABAAAAACAAQABAAGAAgACAAKAAwADAAOABAAAAAEAAgACAAMABAAAAAIABAAAAAQABEAEQASABIAEgAAABEA"),
+"index_count": 78,
+"index_data": PackedByteArray("AAABAAIAAgADAAQABQAGAAcACAAJAAoACgALAAwADAANAA4ADgAPABAAEAARABIAEgATABQAFAAVABYAFgAXABgAAgAEAAUABQAHAAgACAAKAAwADAAOABAAEAASABQAFAAWABgAAgAFAAgACAAMABAAEAAUABgAAAACAAgACAAQABgACAAYABkAGQAaABoAGgAAAAgACAAZABoA"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
-"vertex_count": 19,
-"vertex_data": PackedByteArray("mhkXQzMzh8MAAAAA5qzTQ1nAFsMAAAAAcb3zQ4AU1kAAAAAAPNXDQxQyUUMAAAAA5L+UQ2FGhEMAAAAAjY6PQ9NBh0MAAAAAu8eIQ9UEikMAAAAAgRFvQ3rljkMAAAAA5l4bQxYtlkMAAAAAEPg+Qsyzm0MAAAAAGMxnwyXUcEMAAAAAj7eKw+JUYUMAAAAAjuaSw11UWkMAAAAAkV6Yw3AHVEMAAAAA8Zybw4AfSkMAAAAAF4Kdw3ruOEMAAAAAr+Gdw9QQBUMAAAAA3lyVwziuH8EAAAAAlHmCw+RkUMMAAAAA/////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+//////////78=")
+"vertex_count": 27,
+"vertex_data": PackedByteArray("AABCwwAANsMAAAAAAAAfwwAAW8MAAAAAENg6wvDHa8MAAAAAAADgQAAAosMAAAAAKOx2QubgrMMAAAAAAADSQgAAqMMAAAAAAAAsQwAAx8MAAAAAAABeQwCAncMAAAAAAICEQwAATsMAAAAAMMm9Q/g+VMMAAAAAPtoDRBiuK8IAAAAAPNXDQxQyUUMAAAAA5L+UQ2FGhEMAAAAAjY6PQ9NBh0MAAAAAu8eIQ9UEikMAAAAAgRFvQ3rljkMAAAAA5l4bQxYtlkMAAAAAEPg+Qsyzm0MAAAAAIr07w3AHI0MAAAAAZrtCw+IrG0MAAAAAuvNHw87ED0MAAAAA1JRLw1ZhAUMAAAAAYs1NwzAh4UIAAAAAKkBMwzreAEIAAAAAAAA9wwAAlsIAAAAAAAAswwAAAsMAAAAAMrg2wzygHcMAAAAA/////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+//////////7//////////v/////////+/")
 }]
 
 [sub_resource type="Resource" id="Resource_u0a7f"]
@@ -100,27 +148,27 @@ mesh = SubResource("ArrayMesh_fs07m")
 material = SubResource("ShaderMaterial_1je6o")
 z_index = -10
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_u0a7f"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_qi5h8"]
 _surfaces = [{
-"aabb": AABB(-347.7198, -302.12012, 0, 867.1876, 645.44073, 1e-05),
-"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8m581AAACAPybnzUAAAIA//////ybnzUAAAAAAJufNQAAAAAD/////9WswQQAAgD/1azBBAACAP//////1azBBAAAAAPVrMEEAAAAA/////+BrWkEAAIA/4GtaQQAAgD//////4GtaQQAAAADga1pBAAAAAP////+G4ohBAACAP4biiEEAAIA//////4biiEEAAAAAhuKIQQAAAAD/////CmGWQQAAgD8KYZZBAACAP/////8KYZZBAAAAAAphlkEAAAAA/////8bbl0EAAIA/xtuXQQAAgD//////xtuXQQAAAADG25dBAAAAAP////+YqplBAACAP5iqmUEAAIA//////5iqmUEAAAAAmKqZQQAAAAD/////HxieQQAAgD8fGJ5BAACAP/////8fGJ5BAAAAAB8YnkEAAAAA/////6SWqEEAAIA/pJaoQQAAgD//////pJaoQQAAAACklqhBAAAAAP////8c9LVBAACAPxz0tUEAAIA//////xz0tUEAAAAAHPS1QQAAAAD/////ZJHZQQAAgD9kkdlBAACAP/////9kkdlBAAAAAGSR2UEAAAAA/////4CF30EAAIA/gIXfQQAAgD//////gIXfQQAAAACAhd9BAAAAAP////91uOFBAACAP3W44UEAAIA//////3W44UEAAAAAdbjhQQAAAAD/////rvbjQQAAgD+u9uNBAACAP/////+u9uNBAAAAAK7240EAAAAA/////0fW5kEAAIA/R9bmQQAAgD//////R9bmQQAAAABH1uZBAAAAAP////+aPu1BAACAP5o+7UEAAIA//////5o+7UEAAAAAmj7tQQAAAAD/////Hgr/QQAAgD8eCv9BAACAP/////8eCv9BAAAAAB4K/0EAAAAA/////wAADEIAAIA/AAAMQgAAgD//////AAAMQgAAAAAAAAxCAAAAAA=="),
+"aabb": AABB(-237.7521, -429.68253, 0, 796.9619, 772.24475, 1e-05),
+"attribute_data": PackedByteArray("/////wAAAAAAAAAAAAAAAAAAAAD/////AAAAAAAAgD8AAAAAAACAP/////8owt0+AACAPyjC3T4AAIA//////yjC3T4AAAAAKMLdPgAAAAD/////mqGdPwAAgD+aoZ0/AACAP/////+aoZ0/AAAAAJqhnT8AAAAA/////6lHQEAAAIA/qUdAQAAAgD//////qUdAQAAAAACpR0BAAAAAAP////8XwJNAAACAPxfAk0AAAIA//////xfAk0AAAAAAF8CTQAAAAAD/////ry2xQAAAgD+vLbFAAACAP/////+vLbFAAAAAAK8tsUAAAAAA/////7Bex0AAAIA/sF7HQAAAgD//////sF7HQAAAAACwXsdAAAAAAP/////CKfVAAACAP8Ip9UAAAIA//////8Ip9UAAAAAAwin1QAAAAAD/////wfoSQQAAgD/B+hJBAACAP//////B+hJBAAAAAMH6EkEAAAAA/////4tKMEEAAIA/i0owQQAAgD//////i0owQQAAAACLSjBBAAAAAP////8h90xBAACAPyH3TEEAAIA//////yH3TEEAAAAAIfdMQQAAAAD/////EpCCQQAAgD8SkIJBAACAP/////8SkIJBAAAAABKQgkEAAAAA/////6RVpkEAAIA/pFWmQQAAgD//////pFWmQQAAAACkVaZBAAAAAP/////S+rNBAACAP9L6s0EAAIA//////9L6s0EAAAAA0vqzQQAAAAD/////znm1QQAAgD/OebVBAACAP//////OebVBAAAAAM55tUEAAAAA/////9FNt0EAAIA/0U23QQAAgD//////0U23QQAAAADRTbdBAAAAAP////8QyLtBAACAPxDIu0EAAIA//////xDIu0EAAAAAEMi7QQAAAAD/////uWTGQQAAgD+5ZMZBAACAP/////+5ZMZBAAAAALlkxkEAAAAA//////3o00EAAIA//ejTQQAAgD///////ejTQQAAAAD96NNBAAAAAP////9vrfZBAACAP2+t9kEAAIA//////2+t9kEAAAAAb632QQAAAAD/////0f33QQAAgD/R/fdBAACAP//////R/fdBAAAAANH990EAAAAA//////GO+UEAAIA/8Y75QQAAgD//////8Y75QQAAAADxjvlBAAAAAP////95aftBAACAP3lp+0EAAIA//////3lp+0EAAAAAeWn7QQAAAAD/////3Yf9QQAAgD/dh/1BAACAP//////dh/1BAAAAAN2H/UEAAAAA/////9jIA0IAAIA/2MgDQgAAgD//////2MgDQgAAAADYyANCAAAAAP////9ijApCAACAP2KMCkIAAIA//////2KMCkIAAAAAYowKQgAAAAD/////OCUOQgAAgD84JQ5CAACAP/////84JQ5CAAAAADglDkIAAAAA/////wAAEEIAAIA/AAAQQgAAgD//////AAAQQgAAAAAAABBCAAAAAA=="),
 "format": 34359742527,
-"index_count": 108,
-"index_data": PackedByteArray("AAABAAIAAAACAAMAAwACAAQAAwAEAAUABQAEAAYABQAGAAcABwAGAAgABwAIAAkACQAIAAoACQAKAAsACwAKAAwACwAMAA0ADQAMAA4ADQAOAA8ADwAOABAADwAQABEAEQAQABIAEQASABMAEwASABQAEwAUABUAFQAUABYAFQAWABcAFwAWABgAFwAYABkAGQAYABoAGQAaABsAGwAaABwAGwAcAB0AHQAcAB4AHQAeAB8AHwAeACAAHwAgACEAIQAgACIAIQAiACMAIwAiACQAIwAkACUA"),
+"index_count": 162,
+"index_data": PackedByteArray("AAABAAIAAAACAAMAAwACAAQAAwAEAAUABQAEAAYABQAGAAcABwAGAAgABwAIAAkACQAIAAoACQAKAAsACwAKAAwACwAMAA0ADQAMAA4ADQAOAA8ADwAOABAADwAQABEAEQAQABIAEQASABMAEwASABQAEwAUABUAFQAUABYAFQAWABcAFwAWABgAFwAYABkAGQAYABoAGQAaABsAGwAaABwAGwAcAB0AHQAcAB4AHQAeAB8AHwAeACAAHwAgACEAIQAgACIAIQAiACMAIwAiACQAIwAkACUAJQAkACYAJQAmACcAJwAmACgAJwAoACkAKQAoACoAKQAqACsAKwAqACwAKwAsAC0ALQAsAC4ALQAuAC8ALwAuADAALwAwADEAMQAwADIAMQAyADMAMwAyADQAMwA0ADUANQA0ADYANQA2ADcA"),
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
-"vertex_count": 38,
-"vertex_data": PackedByteArray("MZGNw7l0Z8MAAAAA7cNuww9VOcMAAAAAg+ASQwyubsMAAAAAsVIbQ2APl8MAAAAAXzXIQz5vAMMAAAAAbSTfQ3QRLcMAAAAA/77jQ2XbuUAAAAAA8d0BRJtN8kAAAAAARQa4Q16aO0MAAAAAM6TPQ8rJZkMAAAAAFLaMQ6bhbEMAAAAAtMmcQ+8bkkMAAAAApYmIQwnCcUMAAAAAdZOWQ6GilUMAAAAAZZODQyjHdUMAAAAAEfyNQxYmmUMAAAAAZvZnQ3yXfkMAAAAAnCx2QzZ/nkMAAAAA0/0WQ59ThkMAAAAA+b8fQ40GpkMAAAAANj1IQo6+i0MAAAAA6rI1Qgqpq0MAAAAAibpew/0jUkMAAAAAp91wwyfCh0MAAAAAbf6Ew+RyQ0MAAAAAsXCQw+A2f0MAAAAAj7+Lw220PUMAAAAAjQ2aw030dkMAAAAAk9eMwx3YPEMAAAAA7yOnw9NOYUMAAAAAep2Nw8k8NUMAAAAAtGatwyugPEMAAAAAPOeNwzu7BkMAAAAAItytw21mA0MAAAAA7oyFwxH0osAAAAAAziylw2jibcEAAAAA7cNuww9VOcMAAAAAMZGNw7l0Z8MAAAAA/3//fxvw8Uf/f/9/cPDGR/9//3+M8cY4/3//f4zxxjj/f/9/Kb+VH/9//38dv44f/3//fw58+AH/f/9/JXztAf9//39qQsoe/3//f8RCnR7/f/9/bi9IKP9//39QL1co/3//fyAq7yr/f/9/2CkTK/9//3+wIKcv/3//f88gmC//f/9/uhciNP9//3+/Fx80/3//f8YPHDj/f/9/oQ8vOP9//3/QCGdE/3//f/AId0T/f/9/Jx2TTv9//38iHZBO/3//f10jrlH/f/9/fCO9Uf9//38/JZ9S/3//f64v11f/f/9/2EZsY/9//38GTANm/3//f1FxqHj/f/9/sG3Xdv9//39ihs58/3//f0KG3nz/f/9/gI8+eP9//38IkPp3/3//fxiW8nT/f/9/6JaLdA==")
+"vertex_count": 56,
+"vertex_data": PackedByteArray("yStUw5IcEcMAAAAAm0QZw+YjKsMAAAAAYGsiw/3VMMMAAAAAoJRhwwMqO8MAAAAAmjMQw5ygPsMAAAAAZswtw2Rfd8MAAAAAuRXowUQfUcMAAAAAotKAwk44g8MAAAAAiSTdQTfGlcMAAAAAEklawck5rsMAAAAAjHeAQnPtnMMAAAAAOOlsQlnUvMMAAAAAkpriQj+MmMMAAAAAbmXBQsFzt8MAAAAA9oAnQ6Mot8MAAAAACn8wQ13X1sMAAAAAzU9BQ15plsMAAAAAM7B6Q6KWpMMAAAAAVLl3Q3AQM8MAAAAAViONQ5DvaMMAAAAAzZC3Q2LDNsMAAAAAkwHEQ466ccMAAAAAHc73Q09iHcIAAAAAbs0LROH5OcIAAAAAHE+4QyH/OkMAAAAAXFvPQwdlZ0MAAAAAFLaMQ6bhbEMAAAAAtMmcQ+8bkkMAAAAApYmIQwnCcUMAAAAAdZOWQ6GilUMAAAAAZZODQyjHdUMAAAAAEfyNQxYmmUMAAAAAZvZnQ3yXfkMAAAAAnCx2QzZ/nkMAAAAA0/0WQ59ThkMAAAAA+b8fQ40GpkMAAAAANCVcQqAfjEMAAAAA7MohQvhHq0MAAAAAkw0nwyudCkMAAAAAsWxQw7VxO0MAAAAAau8nwzmuCUMAAAAAYoddw4upLEMAAAAAxcMpw84mBUMAAAAAryNmw85iGkMAAAAABCcsw0y59kIAAAAApAJrwwZmB0MAAAAAOtotwxqM3UIAAAAAisBtw0a25EIAAAAAkFosw7QiC0IAAAAAxCVsw4Az7UEAAAAAaMYdw/v/h8IAAAAAmDlcwwUApMIAAAAAEgUMwycgA8MAAAAA7vpLw9nfAMMAAAAAm0QZw+YjKsMAAAAAyStUw5IcEcMAAAAA/3//f8Bb4G3/f/9/FDYKW/9//3+vgqd+/3//f4eVO3X/f/9/ttUjVf9//3+40qJW/3//f27NR1n/f/9/bc1IWf9//3+JxTpd/3//fx3FcF3/f/9/8/MFRv9//39J9tpE/3//f5LjNk7/f/9/juc4TP9//3955b0y/3//f8/r5zX/f/9/bq23Fv9//384rhwX/3//f0rMJSb/f/9/UsupJf9//3/T2mot/3//f//agC3/f/9/kIvIBf9//3+ti9cF/3//fwlBeh//f/9/YEFPH/9//39oL0so/3//f0AvXyj/f/9/ICrvKv9//3/YKRMr/3//f7Agpy//f/9/zyCYL/9//3+6FyI0/3//f78XHzT/f/9/chDGN/9//3/hDw84/3//f6EYUEz/f/9/9hh7TP9//3+QOcdc/3//f5s6TV3/f/9/NU4aZ/9//39FTaJm/3//f3pgPXD/f/9/MF4Yb/9//3+Pa8d1/3//f0trpXX/f/9/GnmNfP9//39NeaZ8/3//f4GJPnv/f/9/gYk+e/9//388luB0/3//f3qXQnT/f/9/5H3xfv9//3/hefB8/3//f31dvm7/f/9/FFWJag==")
 }]
 
 [sub_resource type="Resource" id="Resource_fhjrn"]
 script = ExtResource("5_swyx3")
-texture = ExtResource("8_udfb6")
-mesh = SubResource("ArrayMesh_u0a7f")
+texture = ExtResource("8_qi5h8")
+mesh = SubResource("ArrayMesh_qi5h8")
 
 [sub_resource type="Resource" id="Resource_sc6h3"]
 script = ExtResource("10_u0a7f")
-textures = Array[Texture2D]([ExtResource("8_udfb6")])
+textures = Array[Texture2D]([ExtResource("8_qi5h8")])
 metadata/_custom_type_script = "uid://d0xjijisx1woh"
 
 [sub_resource type="Resource" id="Resource_omfdq"]
@@ -146,6 +194,7 @@ my_shape = NodePath("SS2D_Shape")
 marker = NodePath("Marker2D")
 
 [node name="SS2D_Shape" type="Node2D" parent="."]
+position = Vector2(-7, 28)
 script = ExtResource("2_swyx3")
 _points = SubResource("Resource_8ckas")
 _meshes = Array[ExtResource("5_swyx3")]([SubResource("Resource_u0a7f"), SubResource("Resource_fhjrn")])

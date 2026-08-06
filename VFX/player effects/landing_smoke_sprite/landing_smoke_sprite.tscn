@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bx2drp4qlmdxr" path="res://VFX/player effects/landing_smoke_sprite/landing_smoke_sprite.gd" id="1_62tg1"]
 [ext_resource type="Shader" uid="uid://dtoviqqbhchoa" path="res://VFX/player effects/landing_smoke_sprite/landing_smoke_sprite.gdshader" id="1_plsa2"]
 [ext_resource type="Texture2D" uid="uid://c3oj703jqlhgk" path="res://assets/Sprites/landing smoke.png" id="2_62tg1"]
-[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="3_3cb86"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="3_3cb86"]
 [ext_resource type="Script" uid="uid://cr3erhn5hhtot" path="res://VFX/player effects/vfx_effect_component.gd" id="5_gn2c4"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_2o5h4"]

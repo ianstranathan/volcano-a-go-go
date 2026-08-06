@@ -15,7 +15,7 @@
 [ext_resource type="Script" uid="uid://crnrkpiidg5es" path="res://player/interpolating_visual_component.gd" id="9_hg6s5"]
 [ext_resource type="Shader" uid="uid://4tgxtrnpxo5i" path="res://player/cloud.gdshader" id="10_2ieo8"]
 [ext_resource type="Texture2D" uid="uid://df0njwv75h0io" path="res://assets/Cloud_1.png" id="10_8t03j"]
-[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="11_ebec5"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="11_ebec5"]
 [ext_resource type="Script" uid="uid://wot2cetc4r57" path="res://player/metaball_manager.gd" id="14_kb6p2"]
 [ext_resource type="Script" uid="uid://dd5gau6j7y8dy" path="res://player/animation_controller.gd" id="16_32hag"]
 
@@ -190,6 +190,7 @@ body = NodePath("../CharacterVisuals/Body")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_ugqs2")
+debug_color = Color(0.90204775, 0.08549591, 0.724159, 0.41960785)
 
 [node name="FloorCheckContainer" type="Node2D" parent="."]
 script = ExtResource("6_wodsf")

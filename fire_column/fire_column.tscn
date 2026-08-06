@@ -3,16 +3,17 @@
 [ext_resource type="Script" uid="uid://11goqla2cwnh" path="res://fire_column/fire_column.gd" id="1_trxax"]
 [ext_resource type="Shader" uid="uid://dscditq8agmtp" path="res://fire_column/fire_column.gdshader" id="1_wp3km"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_5qt0c"]
-[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/shaders/reusuable_fastnoise.tres" id="2_trxax"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="2_trxax"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wp3km"]
 shader = ExtResource("1_wp3km")
 shader_parameter/noise_tex = ExtResource("2_trxax")
-shader_parameter/texture_size = Vector2(512, 512)
+shader_parameter/target_size = Vector2(1000, 1000)
 
 [node name="FireColumn" type="Node2D"]
 z_index = -100
 script = ExtResource("1_trxax")
+apply = null
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 material = SubResource("ShaderMaterial_wp3km")
