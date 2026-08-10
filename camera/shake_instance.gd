@@ -1,10 +1,9 @@
-# Save as ShakeInstance.gd
 class_name ShakeInstance
 extends RefCounted
 
 var amplitude: float
 var duration: float
-var direction: Vector2  # -- Vector2.ZERO => omni-directional
+var direction: Vector2
 var ease_func: Callable
 var is_looping: bool = false
 var time_elapsed: float = 0.0
@@ -20,7 +19,8 @@ func _init(_amplitude: float,
 	ease_func = _ease_func
 	direction = _direction.normalized()
 	is_looping = _is_looping
-	
+
+
 func update(delta: float) -> float:
 	time_elapsed += delta
 	if is_looping:
@@ -32,7 +32,6 @@ func update(delta: float) -> float:
 func stop() -> void:
 	if is_looping:
 		is_looping = false
-		# Set elapsed time to the start of the current cycle so it finishes one clean final loop
 		time_elapsed = fmod(time_elapsed, duration) 
 	else:
 		_force_finished = true

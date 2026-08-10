@@ -983,6 +983,8 @@ func cloud_state_fn( _delta: float ) -> void:
 		movement_state_transition_to( MovementStates.IDLE )
 
 
+var default_land_shake_data = ShakeData.new(Vector2.UP)
+
 func movement_state_transition_to(new_movement_state: MovementStates):
 	if movement_state != new_movement_state:
 		match movement_state:
@@ -1014,6 +1016,8 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 					MovementStates.IDLE:
 						g = kd.fall_gravity
 						play_landing_effect = true
+						if velocity.y >= 0.8 * TERMINAL_FALL_SPEED:
+							Events.shake_cam.emit(default_land_shake_data)
 					MovementStates.WALL_SLIDING:
 						velocity = velocity.clamp(Vector2(0., 50), Vector2(0., 150))
 					MovementStates.JUMPING:

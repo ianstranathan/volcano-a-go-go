@@ -27,13 +27,13 @@ func accl_sample(delta: float) -> float:
 	interpolant = clamp(interpolant, 0., 1)
 	return accl_curve.sample(interpolant)
 
-@onready var shake_struct = ShakeInstance.new(0.3, 0.1, Vector2.ZERO, MyMathUtils.heavy_impact_curve, true)
+#@onready var shake_struct = ShakeInstance.new(0.3, 0.1, Vector2.ZERO, MyMathUtils.heavy_impact_curve, true)
 
 
 var started: bool = false
 func tick_update(delta: float, cmd: PlayerCommand):
 	if cmd.item_use_held:
-		Events.shake_cam.emit(shake_struct)
+		#Events.shake_cam.emit(shake_struct)
 		if !started:
 			#player_ref.testing = true
 			on_item_started()
@@ -46,7 +46,7 @@ func tick_update(delta: float, cmd: PlayerCommand):
 			player_ref.velocity.y -= 1.5 * g * accl_sample( delta ) * delta
 	else:
 		if started:
-			shake_struct.stop()
+			#shake_struct.stop()
 			on_item_stopped()
 			started = false
 

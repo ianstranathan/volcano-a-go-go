@@ -9,7 +9,7 @@ a hot loop or something that happens a bunch, try to avoid
 """
 
 # -- camera connects to this in its _ready
-signal shake_cam(shake: ShakeInstance)
+signal shake_cam(shake: ShakeData)
 
 # -- PickupItems connects to this signal in its _ready
 signal item_picked_up( world_id: int)
