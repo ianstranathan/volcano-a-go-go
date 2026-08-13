@@ -13580,3 +13580,17 @@ offset_top = -2781.0
 offset_right = -3826.0
 offset_bottom = -2758.0
 text = "push button to make platforms appear"
+
+[node name="Label5" type="Label" parent="Marker2D"]
+offset_left = 6044.0
+offset_top = -1440.0
+offset_right = 6487.0
+offset_bottom = -1417.0
+text = "Push button for wall jump platform to pop out of the wall"
+
+[node name="Label6" type="Label" parent="Marker2D"]
+offset_left = 5276.0
+offset_top = -1891.0
+offset_right = 5719.0
+offset_bottom = -1868.0
+text = "Defeat enemy to make top of dome open up"
