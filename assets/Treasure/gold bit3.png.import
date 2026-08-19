@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bgl4i8by2p81d"
-path="res://.godot/imported/Gem3.png-0e21c957108ce5754b1091c781dbc93e.ctex"
+uid="uid://fuvk4kt5vxcj"
+path="res://.godot/imported/gold bit3.png-941100b4ba4e1399d168d9fa236b6115.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Gem3.png"
-dest_files=["res://.godot/imported/Gem3.png-0e21c957108ce5754b1091c781dbc93e.ctex"]
+source_file="res://assets/Treasure/gold bit3.png"
+dest_files=["res://.godot/imported/gold bit3.png-941100b4ba4e1399d168d9fa236b6115.ctex"]
 
 [params]
 
