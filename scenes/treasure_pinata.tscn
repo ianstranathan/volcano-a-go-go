@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://dwm2q4p45ilr7"]
+[gd_scene load_steps=17 format=3 uid="uid://dwm2q4p45ilr7"]
 
 [ext_resource type="Texture2D" uid="uid://fuvk4kt5vxcj" path="res://assets/Treasure/gold bit3.png" id="1_m0dlu"]
 [ext_resource type="Texture2D" uid="uid://b1l1jgdayhd8j" path="res://assets/Treasure/Treasure_Box.png" id="2_d6iyg"]
@@ -51,6 +51,13 @@ point_count = 3
 [sub_resource type="CurveTexture" id="CurveTexture_qrext"]
 curve = SubResource("Curve_d6iyg")
 
+[sub_resource type="Curve" id="Curve_fwg4k"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.6026549, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.22929388), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_jjmil"]
+curve = SubResource("Curve_fwg4k")
+
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_qrext"]
 particle_flag_disable_z = true
 direction = Vector3(0, -1, 0)
@@ -62,6 +69,7 @@ angular_velocity_max = 462.66998
 gravity = Vector3(0, 350, 0)
 scale_min = 0.19999999
 scale_max = 0.5
+scale_curve = SubResource("CurveTexture_jjmil")
 alpha_curve = SubResource("CurveTexture_qrext")
 collision_mode = 1
 collision_friction = 0.4
