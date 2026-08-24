@@ -1,0 +1,20 @@
+[gd_scene load_steps=6 format=3 uid="uid://vhm7r3jcu7v2"]
+
+[ext_resource type="Shader" uid="uid://b3isusaferms3" path="res://items/swap_gun/teleportation_visual.gdshader" id="1_uu6n5"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_03shs"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="2_l8ln3"]
+[ext_resource type="Script" uid="uid://bq6yx0wciavcq" path="res://items/swap_gun/teleportation_visual.gd" id="4_l8ln3"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_l8ln3"]
+shader = ExtResource("1_uu6n5")
+shader_parameter/color = Color(0.10980392, 0.627451, 1, 1)
+shader_parameter/control = 0.0
+shader_parameter/noise_tex = ExtResource("2_l8ln3")
+
+[node name="TeleportationVisual" type="Sprite2D"]
+z_index = 400
+z_as_relative = false
+material = SubResource("ShaderMaterial_l8ln3")
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_03shs")
+script = ExtResource("4_l8ln3")

@@ -15,8 +15,9 @@ var special_item = null
 #-----------------------------------------------------------
 signal item_moving_started()
 signal item_moving_stopped()
-# TODO clean up aiming stuff
-signal item_targeted_something( pos_or_null )
+# TODO rename signals to reflect that aiming visual is general thing now
+# ---- so there can be projectile aiming and other fun stuff
+signal item_targeted_something( pos_or_null ) 
 signal item_ray_target_position_changed( pos: Vector2 )
 #signal targeting_item_removed()
 #signal targeting_item_added()
@@ -26,6 +27,13 @@ signal item_switched( keep_aiming_visual: bool )
 #signal rollback_pickup_spawn_requested(item_enum: ItemsDb.ItemNames)
 
 @export var player_ref: Player
+var projectiles_container_ref : Node2D # game:: world :: projectiles_container_ref
+
+enum AimingTypes{
+	NONE,
+	RAYCAST,
+	PROJECTILE
+}
 
 func _ready():
 	inventory_item_handles.resize(INV_SIZE)
@@ -67,7 +75,9 @@ func pick_up(spawn_id:int,  item_lookup: ItemsDb.ItemNames) -> void:
 	item.set_multiplayer_authority( multiplayer.get_unique_id() )
 	if item.has_method("set_player_ref"):
 		item.set_player_ref(player_ref)
-
+	if item.has_method("set_projectiles_container_ref"):
+		item.set_projectiles_container_ref(projectiles_container_ref)
+		
 	if is_multiplayer_authority():
 		connect_local_signals(item)
 	else:
@@ -128,7 +138,17 @@ func equip_inventory_slot_local_stuff(slot_index: int):
 		inventory_items[slot_index],
 		func(c): return c is RayCastItemComponent
 	)
-	item_switched.emit(true if raycast_comp else false)
+	var projectile_comp = get_component(
+		inventory_items[slot_index],
+		func(c): return c is ProjectileItemComponent
+	)
+	var aim_type = AimingTypes.NONE
+	if raycast_comp:
+		aim_type = AimingTypes.RAYCAST
+	elif projectile_comp:
+		aim_type = AimingTypes.PROJECTILE
+	
+	item_switched.emit(aim_type)
 	emit_inventory_changed()
 
 
@@ -185,7 +205,7 @@ func connect_remote_signals(item):
 
 
 func connect_local_signals(item):
-	connect_signals_based_on_component(item, ["raycast", "movement_override"])
+	connect_signals_based_on_component(item, ["raycast", "projectile", "movement_override"])
 
 
 func connect_signals_based_on_component(item, arr_of_signal_names):
@@ -202,6 +222,11 @@ func connect_signals_based_on_component(item, arr_of_signal_names):
 									   func(pos: Vector2): self.emit_signal("item_ray_target_position_changed", pos)]
 									   #func(): emit_signal("targeting_item_removed")]
 					#targeting_item_added.emit()
+			"projectile":
+				comp = get_component( item, func(c): return c is ProjectileItemComponent)
+				if comp:
+					signals = [comp.target_position_changed]
+					connections_fns = [func(pos: Vector2): self.emit_signal("item_ray_target_position_changed", pos)]
 			"movement_override":
 				comp = get_component( item, func(c): return c is MovementOverrideComponent)
 				if comp:

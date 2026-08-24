@@ -1,0 +1,33 @@
+[gd_scene load_steps=7 format=3 uid="uid://cbr35wfln5y1h"]
+
+[ext_resource type="Script" uid="uid://diby5gvorhu0" path="res://items/swap_gun/swap_projectile.gd" id="1_igufh"]
+[ext_resource type="Texture2D" uid="uid://c0djq7jtk61s5" path="res://assets/shootay_bullet.png" id="1_spdht"]
+[ext_resource type="Shader" uid="uid://ycce5u7wm773" path="res://items/swap_gun/swap_projectile.gdshader" id="1_ypl08"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="2_kawao"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kawao"]
+shader = ExtResource("1_ypl08")
+shader_parameter/noiseTexture = ExtResource("2_kawao")
+shader_parameter/noise_seed = 0.23
+shader_parameter/src_col = Color(0.4, 0.6, 0.9, 1)
+shader_parameter/_st_sq = 0.70000001043084
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_kawao"]
+radius = 12.0
+height = 72.0
+
+[node name="SwapProjectile" type="Node2D"]
+script = ExtResource("1_igufh")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_kawao")
+position = Vector2(-14, 6)
+scale = Vector2(3, 3)
+texture = ExtResource("1_spdht")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+rotation = 1.5707964
+shape = SubResource("CapsuleShape2D_kawao")

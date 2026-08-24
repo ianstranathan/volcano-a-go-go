@@ -35,6 +35,7 @@ NetManager="*res://networking/NetManager.gd"
 AudioDb="*res://audio/audio_db.gd"
 AudioManager="*res://audio/audio_manager.gd"
 SettingsManager="*res://autoload/settings_manager.gd"
+DynamicObjectsDb="*res://autoload/dynamic_objects_db.gd"
 
 [display]
 

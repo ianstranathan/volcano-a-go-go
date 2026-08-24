@@ -4,15 +4,16 @@ extends Control
 
 
 var game_ref
+@onready var minimap_cam: Camera2D = $HudMargin/HudLayout/BottomArea/BottomRight/SubViewportContainer/SubViewport/Camera2D
+var player_ref: Player
 
 @onready var hotbar_ui: HotbarUi = $HudMargin/HudLayout/BottomArea/BottomCenter/CenterContainer/HotbarUi
 
-# -- 
 @export var track: TextureRect
 @export var leader_icon_bar: Control
 
-func _ready() -> void:
-	visible = false
+@export var minimap_viewport: SubViewport
+
 
 # -- TODO probably don't do this every tick to save some cycles as an ez heuristic
 func execute_tick( _delta: float ):
@@ -29,6 +30,20 @@ func execute_tick( _delta: float ):
 			ordered_players.map( func(c): return c.name.to_int()),
 			game_ref.player_data_dict)
 
+
+func _physics_process(_delta: float) -> void:
+	if player_ref:
+		minimap_cam.global_position = player_ref.global_position
+
+
+func set_minimap_world2d( w: World2D):
+	minimap_viewport.world_2d = w
+	
+	minimap_viewport.set_canvas_cull_mask_bit(0, false)
+	minimap_viewport.set_canvas_cull_mask_bit(1, true)
+
+	
+	#debug_check_layer_hierarchy( minimap_viewport, 1)
 
 #func ordered_players_by_height() -> Array:
 	#var ret = $PlayersContainer.get_children()

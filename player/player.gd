@@ -114,6 +114,12 @@ var color: Color = Color(1., 1., 1., 1.);
 
 var can_run: bool = true
 
+var projectiles_container_ref: Node2D:
+	set(v):
+		projectiles_container_ref = v
+		if is_node_ready():
+			$ItemManager.projectiles_container_ref = projectiles_container_ref
+
 func _ready() -> void:
 	animation_controller.set_movement_state(movement_state)
 	#----------------------------------------------------------- Running signals
@@ -143,6 +149,8 @@ func _ready() -> void:
 				coyote_timer.start()
 			else:
 				movement_state_transition_to( MovementStates.IDLE))
+	
+	
 	# ------------------------------------------------------------ Local signals
 	if is_multiplayer_authority():
 		# -- TODO get_child(0) is terrible
@@ -150,26 +158,27 @@ func _ready() -> void:
 		#local_controller_added.emit( input_manager )
 		assert($PlayerController.get_children().size() == 1)
 		assert(input_manager is LocalPlayerController)
+		
+		# -- raycast visual TODO change scene path name
 		var aiming_visual  = load("res://player/aiming_visual/aiming_visual.tscn").instantiate()
 		add_child(aiming_visual)
+		
+		
+		
 		# -------------------------------------------- this controls aiming line
 		input_manager.aim_input_detected.connect( func():
 			aiming_visual.update_aiming_visual())
 			
 		
 		# ------------------------------------------ this controls aiming target
-		
 		$ItemManager.item_targeted_something.connect( func(pos_or_null):
 			aiming_visual.update_target_pos( pos_or_null))
 		$ItemManager.item_ray_target_position_changed.connect( func(pos: Vector2):
 			aiming_visual.update_dir( pos ))
-			
 		# --
-		$ItemManager.item_switched.connect( func( keep_aiming_visual):
-			if keep_aiming_visual:
-				aiming_visual.start_aiming()
-			else:
-				aiming_visual.stop_aiming())
+		$ItemManager.item_switched.connect( func( aim_type):
+			aiming_visual.handle_aim_type( aim_type ) )
+
 		#$ItemManager.targeting_item_added.connect( func():
 			#aiming_visual.start_aiming( ))
 		input_manager.inventory_slot_selected.connect( func(slot_index: int):
@@ -886,7 +895,7 @@ func wall_sliding_state_fn(_delta) -> void:
 func item_moving_state_fn(_delta) -> void:
 	if $ItemManager.active_movement_override.allows_horizontal_movement():
 		if !move_input.is_zero_approx():
-			velocity.x = move_toward(velocity.x, move_input.x * kd.baseline_speed, kd.DECL / 12.0)
+			velocity.x = move_toward(velocity.x, move_input.x * kd.baseline_speed, kd.DECL / 2.)
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, kd.DECL / 12.0)
 
@@ -968,7 +977,7 @@ func start_cloud_descent():
 	toggle_all_collision_masks(false)
 	movement_state_transition_to(MovementStates.CLOUD)
 
-@onready var cloud_move_speed = 2. * kd.baseline_speed
+@onready var cloud_move_speed = 4. * kd.baseline_speed
 func cloud_state_fn( _delta: float ) -> void:
 	#if !$Cloud.visible:
 		#$Cloud.visible = true
@@ -1035,16 +1044,19 @@ func movement_state_transition_to(new_movement_state: MovementStates):
 						do_wall_jump_vfx()
 			MovementStates.RUNNING:
 				$StaminaVisual.use( false )
-			MovementStates.ITEM_MOVING:
-				if $CollisionShape2D.disabled:
-					$CollisionShape2D.set_deferred("disabled", false)
+			#MovementStates.ITEM_MOVING:
+				#if $CollisionShape2D.disabled:
+					#$CollisionShape2D.set_deferred("disabled", false)
 			MovementStates.METABALL:
 				$CharacterVisuals/Body.visible = true
 				go_2_capsule_shape()
 				do_jump_out_of_metaball_vfx()
 
 				integrate_motion = true
-		
+			#MovementStates.LEDGE_GRABBING:
+				#$CollisionShape2D.set_deferred("disabled", false)
+		if $CollisionShape2D.disabled:
+			$CollisionShape2D.set_deferred("disabled", false)
 		# ----------------- things we do for all state transitions
 		# ----------------- maybe separate and call it such
 		state_target_x_speed = get_horizontal_target_speed_from_state( new_movement_state )

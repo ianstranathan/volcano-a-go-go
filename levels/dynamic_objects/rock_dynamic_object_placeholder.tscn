@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://cr6gngifyktpp"]
+
+[ext_resource type="Script" uid="uid://x7uxn7nwb2x8" path="res://levels/dynamic_objects/dynamic_object_chunk_placeholder.gd" id="1_e6emh"]
+[ext_resource type="Texture2D" uid="uid://b0t0mm4qoyfnn" path="res://assets/tmp/Cave - SmallRocks.png" id="2_0pi7u"]
+
+[node name="RockDynamicObjectPlaceholder" type="Node2D"]
+script = ExtResource("1_e6emh")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_0pi7u")
+region_enabled = true
+region_rect = Rect2(94, 521, 195, 178)

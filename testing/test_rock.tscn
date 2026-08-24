@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ojtheoogmgnx" path="res://testing/test_rock.gd" id="1_dhvfo"]
 [ext_resource type="Texture2D" uid="uid://b0t0mm4qoyfnn" path="res://assets/tmp/Cave - SmallRocks.png" id="1_x3ecp"]
-[ext_resource type="Script" uid="uid://bhkxeye46mno" path="res://grabbable/grabbable.gd" id="3_jybef"]
+[ext_resource type="Script" uid="uid://bhkxeye46mno" path="res://items/grabbable/grabbable.gd" id="3_jybef"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_x3ecp"]
 radius = 26.172504

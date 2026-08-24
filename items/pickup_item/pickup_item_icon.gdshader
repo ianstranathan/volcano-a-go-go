@@ -6,9 +6,18 @@ void vertex() {
 
 uniform vec4 src_col: source_color;
 
-
+// https://www.shadertoy.com/view/4stcWH
+// https://www.shadertoy.com/view/XsdXRl
 void fragment() {
     vec2 uv = 2. * UV - 1.0;
+	
+	//float d = sqrt(uv.x*uv.x + uv.y*uv.y);
+    //float cng = asin(d);
+	//float lambda = atan(uv.x*sin(cng) , d*cos(cng));
+	//float phi = asin(uv.y*sin(cng) / d);
+	//vec2 duv = vec2(lambda * 2. / PI , phi * 2.0 / PI);
+	//duv.x = duv.x*(1.0 - 0.5*abs(duv.y)*(abs(duv.y)));
+	
     vec4 tex_sample = texture(TEXTURE, UV);
     float r = length(uv);
     

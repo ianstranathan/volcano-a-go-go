@@ -4,6 +4,7 @@ extends Node2D
 class_name LevelChunk
 
 signal moveable_platform_made( c: MovingPlatformComponent, fn: Callable )
+
 @onready var players_container_ref: Node2D
 @export var coin_manager: Node2D
 @export var tickable_geometry_container: Node2D
@@ -53,6 +54,9 @@ func _ready() -> void:
 		#var cm =  get_node_or_null("CoinManager")
 		if coin_manager:
 			coin_manager.players_container_ref = players_container_ref
+			
+		# -- TODO
+		# -- MOVE THIS
 		var cloud_start_area = get_node_or_null("CloudStart")
 		if cloud_start_area:
 			cloud_start_area.body_entered.connect( func(b):
@@ -66,6 +70,8 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_EDITOR_PRE_SAVE:
 		bake_level_data()
+	if Engine.is_editor_hint() and minimap_geometry_container and minimap_geometry_container.get_children().size() == 0:
+		_generate_minimap()
 
 
 func bake_level_data() -> void:
@@ -99,6 +105,21 @@ func bake_level_data() -> void:
 					})
 		level_data.pickup_definitions = found_pickups
 		
+		
+		# -- dyanmic items (e.g. rocks you can grab and throw)
+		var found_dynamic_objects: Array[Dictionary] = []
+		var dynamic_object_placeholders_container = get_node_or_null("DynamicObjectPlaceholders")
+		if dynamic_object_placeholders_container:
+			for child in dynamic_object_placeholders_container.get_children():
+				if child is DynamicObjectPlaceholder:
+					found_dynamic_objects.append({
+						"dynamic_object_type": child.dynamic_object_type,
+						"position": child.position # Using local pos so it easily stacks in world coords
+					})
+		level_data.dynamic_object_definitions = found_dynamic_objects
+		
+		
+		
 		# -- from docs:
 		#level_data.emit_changed()
 		#var save_path = "res://levels/level_data_rscs/" + name.to_snake_case() + "_data.tres"
@@ -111,3 +132,64 @@ func bake_level_data() -> void:
 			print("Successfully baked and saved to: ", save_path)
 		else:
 			push_error("Failed to save resource! Error code: ", error)
+
+
+@export var platforms_root: Node2D
+@export var minimap_geometry_container: Node2D
+
+func _generate_minimap() -> void:
+	if not platforms_root or not minimap_geometry_container:
+		push_warning("Platforms Root or Minimap Container is not assigned")
+		return
+		
+	for child in minimap_geometry_container.get_children():
+		child.free()
+		
+	_recurse_platforms(platforms_root)
+	print("Minimap geometry successfully generated")
+	
+
+func _recurse_platforms(current_node: Node) -> void:
+	# -- actually make the polygon
+	if current_node is CollisionPolygon2D:
+		var minimap_poly = Polygon2D.new()
+		minimap_poly.polygon = current_node.polygon
+		minimap_poly.color = Color.WHITE
+		
+		minimap_geometry_container.add_child(minimap_poly)
+		minimap_poly.set_visibility_layer_bit(0, false)
+		minimap_poly.set_visibility_layer_bit(1, true)
+		# -- // I did not know this
+		# CRITICAL FOR TOOL SCRIPTS: 
+		# If running in the editor, you must set the owner so the nodes save with the scene.
+		if Engine.is_editor_hint():
+			minimap_poly.owner = get_tree().edited_scene_root
+
+		# Match transforms
+		minimap_poly.global_position = current_node.global_position
+		minimap_poly.global_rotation = current_node.global_rotation
+		minimap_poly.scale = current_node.global_scale
+
+	# -- recurse through node tree
+	for child in current_node.get_children():
+		_recurse_platforms(child)
+
+
+
+func debug_check_layer_hierarchy(node: Node, target_bit: int) -> void:
+	var current = node
+	print("--- STARTING HIERARCHY CULL CHECK FOR: ", node.name, " ---")
+	
+	while current is Node:
+		if current is CanvasItem:
+			# Check if the node has the target bit enabled in its visibility_layer
+			var has_bit = (current.visibility_layer & (1 << target_bit)) != 0
+			print("Node: ", current.name, " | Type: ", current.get_class(), " | Layer Bit ", target_bit, " Enabled: ", has_bit)
+			
+			if not has_bit:
+				print(" --> BREAKDOWN FOUND HERE! Node '", current.name, "' does not have bit ", target_bit, " enabled.")
+		else:
+			print("Node: ", current.name, " | Type: ", current.get_class(), " (Not a CanvasItem, skips culling)")
+			
+		current = current.get_parent()
+	print("--- CHECK COMPLETE ---")

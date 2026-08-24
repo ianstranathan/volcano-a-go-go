@@ -22,8 +22,10 @@ func _ready():
 	noise.frequency = 20.0
 	
 	viewport_size_change_callback()
-	get_viewport().size_changed.connect( viewport_size_change_callback )
+	var vp : Viewport = get_viewport()
+	vp.size_changed.connect( viewport_size_change_callback )
 
+	vp.set_canvas_cull_mask_bit(1, false)
 
 
 func _physics_process(delta: float) -> void:

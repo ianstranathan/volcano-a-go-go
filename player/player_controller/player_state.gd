@@ -7,6 +7,7 @@ var rot: float = 0.0
 var movement_state: int = 0
 var tick: int = -1
 var is_on_platform: bool = false
+
 # NOTE
 # -- this will break or will require a manager of some kind if platforms are
 # -- created dynamically (outside of scene assembly)

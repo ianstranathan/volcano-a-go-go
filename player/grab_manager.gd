@@ -8,28 +8,27 @@ signal weighed_down
 var grabbable_items_near_player: Array[Grabbable] # -- overly generic, CHANGE ME
 var grabbed_item_ref = null
 
-func _ready() -> void:
-	area_entered.connect( func( area: Area2D):
-		if area is Grabbable:
-			grabbable_items_near_player.append(area))
-	area_exited.connect( func(area):
-		if grabbable_items_near_player.has( area):
-			grabbable_items_near_player.erase( area ))
+#func _ready() -> void:
+	#body_entered.connect( func( body: Area2D):
+		#if body is Grabbable and body.can_be_grabbed:
+			#grabbable_items_near_player.append(area))
+	#body_exited.connect( func(body):
+		#if grabbable_items_near_player.has( area):
+			#grabbable_items_near_player.erase( area ))
 
 
-func _physics_process(_delta: float) -> void:
-	if Input.is_action_just_pressed("grab"):
+func on_grab_key_pressed():
+	if grabbed_item_ref:
+		grabbed_item_ref.toss( player_ref.last_move_input.x * throw_speed)
+		grabbed_item_ref = null
+	elif grabbable_items_near_player.size() > 0:
+		grabbed_item_ref = get_closest_grabbable()
 		if grabbed_item_ref:
-			grabbed_item_ref.toss( player_ref.last_move_input.x * throw_speed)
-			grabbed_item_ref = null
-		elif grabbable_items_near_player.size() > 0:
-			grabbed_item_ref = get_closest_grabbable()
-			if grabbed_item_ref:
-				if grabbed_item_ref.can_be_grabbed():
-					# -- see ret of grabble.grab
-					set_props_from_grabbed_item( grabbed_item_ref.grab( self ))
-				else:
-					grabbed_item_ref = null
+			if grabbed_item_ref.can_be_grabbed():
+				# -- see ret of grabble.grab
+				set_props_from_grabbed_item( grabbed_item_ref.grab( self ))
+			else:
+				grabbed_item_ref = null
 
 
 func set_props_from_grabbed_item( data: Dictionary):

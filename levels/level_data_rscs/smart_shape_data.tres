@@ -5,13 +5,16 @@
 [resource]
 script = ExtResource("1_b35qc")
 level_index = 0
-level_height = 10751.0
-offset_to_chunk_origin = -9969.0
+level_height = 12771.0
+offset_to_chunk_origin = -11989.0
 level_width = 14496.0
-player_spawn_points = [Vector2(527, -8885), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
+player_spawn_points = [Vector2(466, -38), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
 pickup_definitions = Array[Dictionary]([{
 "item_enum": 3,
 "position": Vector2(-927, 76)
+}, {
+"item_enum": 4,
+"position": Vector2(-282, 46)
 }, {
 "item_enum": 1,
 "position": Vector2(-708, 76)
@@ -21,6 +24,10 @@ pickup_definitions = Array[Dictionary]([{
 }, {
 "item_enum": 0,
 "position": Vector2(-534, 52)
+}])
+dynamic_object_definitions = Array[Dictionary]([{
+"dynamic_object_type": 2,
+"position": Vector2(1423, 0)
 }])
 chunk_scene_path = "res://levels/smart_shape.tscn"
 metadata/_custom_type_script = "uid://cptvpu01udgc8"
