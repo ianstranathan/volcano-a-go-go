@@ -1,9 +1,10 @@
-[gd_scene load_steps=32 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=33 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
 [ext_resource type="PackedScene" uid="uid://boqw66q2xy4sh" path="res://camera/camera.tscn" id="2_vasa2"]
 [ext_resource type="PackedScene" uid="uid://cjuitcyofgqc3" path="res://VFX/post_processing/post_processing_quad.tscn" id="4_ee6o4"]
+[ext_resource type="PackedScene" uid="uid://c1ftjetihovr7" path="res://UI/Wager/wager_window.tscn" id="8_q52ks"]
 [ext_resource type="Script" uid="uid://dae2c8i45te8f" path="res://game/world_effects.gd" id="8_y36n6"]
 [ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="9_vsp63"]
 [ext_resource type="Shader" uid="uid://b4b1lrasl85eg" path="res://levels/platforms/platform_components/metaball_platform_component/metaball_platform.gdshader" id="10_hb504"]
@@ -46,12 +47,13 @@ shader_parameter/circ_scale_increase = 2.0
 [sub_resource type="Curve2D" id="Curve2D_4cobl"]
 resource_local_to_scene = true
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "camera", "world_effects_container")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "wager_window", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "camera", "world_effects_container")]
 script = ExtResource("1_dxrkv")
 player_scene = ExtResource("2_4fuuu")
 players_container = NodePath("World/PlayersContainer")
 spawn_points = NodePath("World/InitialSpawnPoints")
 ui = NodePath("World/CanvasLayer/Ui")
+wager_window = NodePath("World/CanvasLayer/WagerWindow")
 post_processing_quad = NodePath("World/PostProcessingQuad")
 world_pickup_items_manager = NodePath("World/WorldPickupItemsManager")
 world_level_manager = NodePath("World/LevelManager")
@@ -81,6 +83,8 @@ players_container = NodePath("../PlayersContainer")
 metadata/_edit_use_anchors_ = true
 
 [node name="OptionsWindow" parent="World/CanvasLayer" instance=ExtResource("16_ee6o4")]
+
+[node name="WagerWindow" parent="World/CanvasLayer" instance=ExtResource("8_q52ks")]
 
 [node name="Lava" parent="World" instance=ExtResource("15_hb504")]
 initial_world_lava_level = 0

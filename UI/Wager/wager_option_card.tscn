@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3 uid="uid://32k8djene5gp"]
+
+[ext_resource type="Script" uid="uid://cojvtvrg1ffm1" path="res://UI/Wager/wager_option_card.gd" id="1_yi04y"]
+
+[node name="WagerOptionCard" type="Button"]
+custom_minimum_size = Vector2(0, 80)
+script = ExtResource("1_yi04y")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+
+[node name="TextVBox" type="VBoxContainer" parent="Margin/HBoxContainer"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="Margin/HBoxContainer/TextVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "First Eliminated"
+
+[node name="DescriptionLabel" type="Label" parent="Margin/HBoxContainer/TextVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Bet on who is eliminated first"

@@ -1,0 +1,97 @@
+[gd_scene load_steps=4 format=3 uid="uid://c1ftjetihovr7"]
+
+[ext_resource type="Script" uid="uid://b0v737xwdnics" path="res://UI/Wager/wager_window.gd" id="1_rjtq5"]
+[ext_resource type="PackedScene" uid="uid://ct8nwa0lwk8aj" path="res://UI/Wager/wager_selection_screen.tscn" id="2_v54sq"]
+[ext_resource type="PackedScene" uid="uid://dlugnshkkw54x" path="res://UI/Wager/contestant_selection_screen.tscn" id="4_wn3ln"]
+
+[node name="WagerWindow" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_rjtq5")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.4862745)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WindowPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(900, 600)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/WindowPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="WindowVBox" type="VBoxContainer" parent="CenterContainer/WindowPanel/Margin"]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="CenterContainer/WindowPanel/Margin/WindowVBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CenterContainer/WindowPanel/Margin/WindowVBox/Header"]
+layout_mode = 2
+text = "Genie's Wagers"
+
+[node name="Spacer" type="Control" parent="CenterContainer/WindowPanel/Margin/WindowVBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CurrencyLabel" type="Label" parent="CenterContainer/WindowPanel/Margin/WindowVBox/Header"]
+layout_mode = 2
+text = "Coins: 1,234"
+
+[node name="Seperator" type="HSeparator" parent="CenterContainer/WindowPanel/Margin/WindowVBox"]
+layout_mode = 2
+
+[node name="ContentContainer" type="MarginContainer" parent="CenterContainer/WindowPanel/Margin/WindowVBox"]
+custom_minimum_size = Vector2(0, 450)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="WagerSelectionScreen" parent="CenterContainer/WindowPanel/Margin/WindowVBox/ContentContainer" instance=ExtResource("2_v54sq")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ContestantSelectionScreen" parent="CenterContainer/WindowPanel/Margin/WindowVBox/ContentContainer" instance=ExtResource("4_wn3ln")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="Seperator2" type="HSeparator" parent="CenterContainer/WindowPanel/Margin/WindowVBox"]
+layout_mode = 2
+
+[node name="Footer" type="HBoxContainer" parent="CenterContainer/WindowPanel/Margin/WindowVBox"]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="CenterContainer/WindowPanel/Margin/WindowVBox/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Back"
+
+[node name="FooterSpacer" type="Control" parent="CenterContainer/WindowPanel/Margin/WindowVBox/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ConfirmButton" type="Button" parent="CenterContainer/WindowPanel/Margin/WindowVBox/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Confirm"

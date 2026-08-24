@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3 uid="uid://ct8nwa0lwk8aj"]
+
+[ext_resource type="Script" uid="uid://biyh3rrtstwsh" path="res://UI/Wager/wager_selection_screen.gd" id="1_p7425"]
+[ext_resource type="PackedScene" uid="uid://32k8djene5gp" path="res://UI/Wager/wager_option_card.tscn" id="1_scee6"]
+
+[node name="WagerSelectionScreen" type="MarginContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_p7425")
+wager_option_card_scene = ExtResource("1_scee6")
+
+[node name="WagerVBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="InstructionLabel" type="Label" parent="WagerVBox"]
+layout_mode = 2
+text = "Choose a wager"
+
+[node name="WagerList" type="VBoxContainer" parent="WagerVBox"]
+unique_name_in_owner = true
+layout_mode = 2

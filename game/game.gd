@@ -10,6 +10,7 @@ var player_data_dict:Dictionary = {} # -- id to player_data
 @export var players_container: Node2D
 @export var spawn_points: Node2D
 @export var ui: Control
+@export var wager_window: WagerWindow
 @export var post_processing_quad: Sprite2D
 @export var world_pickup_items_manager: Node2D
 @export var world_level_manager: Node2D
@@ -55,7 +56,8 @@ func _ready():
 	
 	# ------------------------------------------------------- UI hookups
 	ui.game_ref = self
-
+	wager_window.set_player_data(player_data_dict)
+	
 	Events.emit_signal("play_music", AudioDb.MusicTrackId.GAMEPLAY,-10,1)
 	
 	test_death_tv()
