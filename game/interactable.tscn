@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://toxchaqvxhng"]
+
+[ext_resource type="Script" uid="uid://dundblkv4618i" path="res://game/interactable.gd" id="1_ggvfb"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qlxal"]
+resource_local_to_scene = true
+radius = 50.0
+
+[node name="Interactable" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_ggvfb")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_qlxal")
+
+[node name="Prompt" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+offset_right = 40.0
+offset_bottom = 23.0
+text = "[E] Interact"

@@ -35,3 +35,5 @@ signal stop_music()
 signal play_world_sound(sound_id: int, world_position: Vector2, volume_db_offset: float, pitch_scale_mult: float, world_overrides: Dictionary)
 signal start_world_loop(loop_key: StringName, loop_id: int, source: Node2D, volume_db_offset: float, pitch_scale_mult: float, world_overrides: Dictionary)
 signal stop_world_loop(loop_key: StringName)
+
+signal wager_window_requested

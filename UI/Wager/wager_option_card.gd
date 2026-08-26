@@ -1,3 +1,4 @@
+# Displays one available WagerData entry in the wager-selection list.
 class_name WagerOptionCard
 extends Button
 

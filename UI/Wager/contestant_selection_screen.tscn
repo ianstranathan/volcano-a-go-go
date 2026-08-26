@@ -10,6 +10,14 @@ contestant_card_scene = ExtResource("2_tamsn")
 [node name="ScreenVbox" type="VBoxContainer" parent="."]
 layout_mode = 2
 
+[node name="WagerTitleLabel" type="Label" parent="ScreenVbox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Wager Type"
+horizontal_alignment = 1
+uppercase = true
+
 [node name="InstructionLabel" type="Label" parent="ScreenVbox"]
 layout_mode = 2
 text = "Choose a contestant"
@@ -31,17 +39,83 @@ layout_mode = 2
 
 [node name="DetailsMargin" type="MarginContainer" parent="ScreenVbox/DetailsPanel"]
 layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
 
-[node name="DetailsVBox" type="VBoxContainer" parent="ScreenVbox/DetailsPanel/DetailsMargin"]
+[node name="WagerHBox" type="HBoxContainer" parent="ScreenVbox/DetailsPanel/DetailsMargin"]
 layout_mode = 2
 
-[node name="SelectedNameLabel" type="Label" parent="ScreenVbox/DetailsPanel/DetailsMargin/DetailsVBox"]
+[node name="PlayerSection" type="CenterContainer" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SelectedPlayerVBox" type="VBoxContainer" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/PlayerSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="SelectedNameLabel" type="Label" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/PlayerSection/SelectedPlayerVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Select a contestant"
 horizontal_alignment = 1
 
-[node name="SelectedOddsLabel" type="Label" parent="ScreenVbox/DetailsPanel/DetailsMargin/DetailsVBox"]
+[node name="SelectedOddsLabel" type="Label" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/PlayerSection/SelectedPlayerVBox"]
 unique_name_in_owner = true
 layout_mode = 2
+horizontal_alignment = 1
+
+[node name="BetSection" type="CenterContainer" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AmountVBox" type="VBoxContainer" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/BetSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="AmountTitleLabel" type="Label" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/BetSection/AmountVBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Bet"
+horizontal_alignment = 1
+
+[node name="AmountHBox" type="HBoxContainer" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/BetSection/AmountVBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="DecreaseButton" type="Button" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/BetSection/AmountVBox/AmountHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "( - )"
+
+[node name="AmountValueLabel" type="Label" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/BetSection/AmountVBox/AmountHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "---"
+horizontal_alignment = 1
+
+[node name="IncreaseButton" type="Button" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/BetSection/AmountVBox/AmountHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "( + )"
+
+[node name="PayoutSection" type="CenterContainer" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PayoutVBox" type="VBoxContainer" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/PayoutSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="PayoutTitleLabel" type="Label" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/PayoutSection/PayoutVBox"]
+layout_mode = 2
+text = "Payout"
+horizontal_alignment = 1
+
+[node name="PayoutValueLabel" type="Label" parent="ScreenVbox/DetailsPanel/DetailsMargin/WagerHBox/PayoutSection/PayoutVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "200"
 horizontal_alignment = 1

@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=34 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -21,6 +21,7 @@
 [ext_resource type="Material" uid="uid://3v66203jd2su" path="res://VFX/parallax/background/bg_1.tres" id="18_dxwpq"]
 [ext_resource type="Script" uid="uid://c1v1wffkshhet" path="res://VFX/parallax/background/background_manager.gd" id="18_mhvfb"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="19_dxwpq"]
+[ext_resource type="Script" uid="uid://bkph433k5qarc" path="res://game/gambling/wager_manager.gd" id="19_jucfl"]
 [ext_resource type="Script" uid="uid://d2hrglvsb7qwg" path="res://VFX/parallax/background/follow_cam_container.gd" id="20_leid8"]
 [ext_resource type="Script" uid="uid://cr80xpke88uhc" path="res://VFX/parallax/background/mesh_2_viewport_component.gd" id="21_5e03w"]
 [ext_resource type="Shader" uid="uid://ftymhn0l1uan" path="res://VFX/parallax/background/background_screen_quad.gdshader" id="22_5e03w"]
@@ -47,7 +48,7 @@ shader_parameter/circ_scale_increase = 2.0
 [sub_resource type="Curve2D" id="Curve2D_4cobl"]
 resource_local_to_scene = true
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "wager_window", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "camera", "world_effects_container")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "wager_window", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "wager_manager", "camera", "world_effects_container")]
 script = ExtResource("1_dxrkv")
 player_scene = ExtResource("2_4fuuu")
 players_container = NodePath("World/PlayersContainer")
@@ -58,6 +59,7 @@ post_processing_quad = NodePath("World/PostProcessingQuad")
 world_pickup_items_manager = NodePath("World/WorldPickupItemsManager")
 world_level_manager = NodePath("World/LevelManager")
 oasis = NodePath("Oasis")
+wager_manager = NodePath("WagerManager")
 camera = NodePath("World/Camera")
 world_effects_container = NodePath("World/WorldEffects")
 metadata/_edit_group_ = true
@@ -95,10 +97,13 @@ initial_world_lava_level = 0
 position = Vector2(-4719, 4578)
 
 [node name="Marker2D2" type="Marker2D" parent="World/InitialSpawnPoints"]
+position = Vector2(-4826, 5077)
 
 [node name="Marker2D3" type="Marker2D" parent="World/InitialSpawnPoints"]
+position = Vector2(-6075, 5093)
 
 [node name="Marker2D4" type="Marker2D" parent="World/InitialSpawnPoints"]
+position = Vector2(-4373, 5407)
 
 [node name="WorldPickupItemsManager" type="Node2D" parent="World"]
 script = ExtResource("11_3vho3")
@@ -144,6 +149,9 @@ cam = NodePath("../SubViewportLayer0/FollowMainCam/Camera2D")
 script = ExtResource("24_8bboj")
 target_2_move = NodePath("..")
 cam = NodePath("../../../../Camera")
+
+[node name="WagerManager" type="Node2D" parent="."]
+script = ExtResource("19_jucfl")
 
 [node name="DeathTv" parent="." node_paths=PackedStringArray("starting_position_marker") instance=ExtResource("12_qf6n1")]
 z_index = 100

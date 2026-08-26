@@ -1,14 +1,15 @@
+# Displays one contestant and the current WagerOffer associated with that player.
 class_name ContestantCard
 extends Button
 
-signal selected(player_data: PlayerData)
+signal selected
 
 @onready var player_icon = %PlayerIcon
 @onready var player_name: Label = %PlayerName
 @onready var odds_label: Label = %OddsLabel
 
 var player_data: PlayerData
-var odds: float
+var wager_offer: WagerOffer
 
 
 func _ready() -> void:
@@ -18,17 +19,17 @@ func _ready() -> void:
 	player_icon.set_placement_visible(false)
 
 
-func setup(data: PlayerData, player_odds: float) -> void:
+func setup(data: PlayerData, offer: WagerOffer) -> void:
 	player_data = data
-	odds = player_odds
+	wager_offer = offer
 
 	player_name.text = player_data.display_name
 
 	player_icon.change_turban_color(player_data.turban_color)
 	player_icon.change_icon_skin_tone(player_data.skin_tone)
 
-	odds_label.text = "%.1fx" % odds
+	odds_label.text = "%.1fx" % wager_offer.odds_multiplier
 
 
 func _on_pressed() -> void:
-	selected.emit(player_data)
+	selected.emit()

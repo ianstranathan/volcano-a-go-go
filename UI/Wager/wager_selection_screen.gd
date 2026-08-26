@@ -1,3 +1,4 @@
+# Builds the list of currently available wager options and forwards the player's selection.
 class_name WagerSelectionScreen
 extends MarginContainer
 

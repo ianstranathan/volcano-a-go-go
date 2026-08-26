@@ -1,9 +1,16 @@
-[gd_scene load_steps=2 format=3 uid="uid://cmw4mc183vist"]
+[gd_scene load_steps=4 format=3 uid="uid://cmw4mc183vist"]
 
 [ext_resource type="Texture2D" uid="uid://ygdc3bmstf7a" path="res://assets/Sprites/GenGenie.png" id="1_bdft2"]
+[ext_resource type="Script" uid="uid://cx2al11tj0wns" path="res://game/genie/Genie.gd" id="1_x57k5"]
+[ext_resource type="PackedScene" uid="uid://toxchaqvxhng" path="res://game/interactable.tscn" id="2_87s48"]
 
 [node name="TheGenie" type="Node2D"]
+script = ExtResource("1_x57k5")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("1_bdft2")
+
+[node name="Interactable" parent="." instance=ExtResource("2_87s48")]
+prompt_text = "Wager"
+interaction_radius = 185.0
