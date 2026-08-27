@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5v2fxwbly37t"
-path="res://.godot/imported/volcano fill blank.png-4c7515f0352c14674626ae515fc5539d.ctex"
+uid="uid://bxswqdgqidc3l"
+path="res://.godot/imported/light.png-fa81d3cafd28ed249f2023dd5a5d2f63.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/volcano fill blank.png"
-dest_files=["res://.godot/imported/volcano fill blank.png-4c7515f0352c14674626ae515fc5539d.ctex"]
+source_file="res://assets/Treasure/light.png"
+dest_files=["res://.godot/imported/light.png-fa81d3cafd28ed249f2023dd5a5d2f63.ctex"]
 
 [params]
 

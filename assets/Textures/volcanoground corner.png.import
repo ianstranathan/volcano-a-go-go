@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://kg8m5o45ix3h"
-path="res://.godot/imported/volcano fill 2.png-2bd6efd5d330acf3ccede3280edb6185.ctex"
+uid="uid://cv5c56jsunlnc"
+path="res://.godot/imported/volcanoground corner.png-6e57cfbb7232a6f193f1472a60457b68.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/volcano fill 2.png"
-dest_files=["res://.godot/imported/volcano fill 2.png-2bd6efd5d330acf3ccede3280edb6185.ctex"]
+source_file="res://assets/Textures/volcanoground corner.png"
+dest_files=["res://.godot/imported/volcanoground corner.png-6e57cfbb7232a6f193f1472a60457b68.ctex"]
 
 [params]
 

@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://llobjh5hvry" path="res://addons/rmsmartshape/shapes/mesh.gd" id="5_swyx3"]
 [ext_resource type="Shader" uid="uid://bqeum1wbpv5h6" path="res://levels/misc/darren_edge_test.gdshader" id="6_qi5h8"]
 [ext_resource type="Texture2D" uid="uid://opy7dao8ejop" path="res://assets/PBR textures/Rocks011_1K-PNG_Color.png" id="7_ew7sn"]
-[ext_resource type="Texture2D" uid="uid://b2affa2yike87" path="res://assets/volcano ground.png" id="8_qi5h8"]
+[ext_resource type="Texture2D" uid="uid://b2affa2yike87" path="res://assets/Textures/volcano ground.png" id="8_qi5h8"]
 [ext_resource type="Script" uid="uid://0lhxan4cqrc1" path="res://addons/rmsmartshape/materials/edge_material_metadata.gd" id="9_fs07m"]
 [ext_resource type="Script" uid="uid://d0xjijisx1woh" path="res://addons/rmsmartshape/materials/edge_material.gd" id="10_u0a7f"]
 [ext_resource type="Script" uid="uid://d218yx0d1ilsn" path="res://addons/rmsmartshape/normal_range.gd" id="11_fhjrn"]
