@@ -100,6 +100,7 @@ position = Vector2(-4712, 4578)
 position = Vector2(-5119, 4661)
 
 [node name="Marker2D3" type="Marker2D" parent="World/InitialSpawnPoints"]
+position = Vector2(-4886, 5071)
 
 [node name="Marker2D4" type="Marker2D" parent="World/InitialSpawnPoints"]
 

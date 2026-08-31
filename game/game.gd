@@ -72,7 +72,8 @@ var world_is_ticking := false
 	world_pickup_items_manager, 
 	post_processing_quad, 
 	ui,
-	$World/ProjectilesContainer
+	$World/ProjectilesContainer,
+	world_dynamic_objects_manager
 ]
 
 

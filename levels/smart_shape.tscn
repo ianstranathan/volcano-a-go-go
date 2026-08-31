@@ -1,4 +1,4 @@
-[gd_scene load_steps=1855 format=4 uid="uid://fooirwkjdwxl"]
+[gd_scene load_steps=1858 format=4 uid="uid://fooirwkjdwxl"]
 
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_hy8xc"]
 [ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_go1yl"]
@@ -19,8 +19,11 @@
 [ext_resource type="Texture2D" uid="uid://b2affa2yike87" path="res://assets/volcano ground.png" id="17_yy7ml"]
 [ext_resource type="Texture2D" uid="uid://btg280ipditcw" path="res://assets/volcanobg2.png" id="18_8aauq"]
 [ext_resource type="PackedScene" uid="uid://dxvt8fbol7y6b" path="res://fire_column/fire_column.tscn" id="19_go1yl"]
+[ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="19_lv54x"]
 [ext_resource type="Script" uid="uid://dfndtocpf6lff" path="res://levels/pickup_editor_placeholder.gd" id="20_5ghxw"]
-[ext_resource type="PackedScene" uid="uid://cr6gngifyktpp" path="res://levels/dynamic_objects/rock_dynamic_object_placeholder.tscn" id="21_k2k0m"]
+[ext_resource type="Script" uid="uid://b1nvb61fqdic5" path="res://levels/platforms/platform_components/fall_through_platform_component/fall_through_platform_component.gd" id="20_rywxm"]
+[ext_resource type="Script" uid="uid://x7uxn7nwb2x8" path="res://levels/dynamic_objects/dynamic_object_placeholder.gd" id="23_m8ier"]
+[ext_resource type="PackedScene" uid="uid://dc8lgy70k2yf8" path="res://levels/lantern_area/lantern_area.tscn" id="24_m8ier"]
 
 [sub_resource type="Resource" id="Resource_b0i2u"]
 script = ExtResource("2_go1yl")
@@ -46,8 +49,11 @@ pickup_definitions = Array[Dictionary]([{
 "position": Vector2(-534, 52)
 }])
 dynamic_object_definitions = Array[Dictionary]([{
-"dynamic_object_type": 2,
-"position": Vector2(1423, 0)
+"dynamic_object_type": 0,
+"position": Vector2(0, 0)
+}, {
+"dynamic_object_type": 1,
+"position": Vector2(379, 0)
 }])
 chunk_scene_path = "res://levels/smart_shape.tscn"
 metadata/_custom_type_script = "uid://cptvpu01udgc8"
@@ -13519,6 +13525,15 @@ metadata/_custom_type_script = "uid://dhdc4b8yddyej"
 [node name="CollisionPolygon2D108" type="CollisionPolygon2D" parent="Platforms/Rest"]
 polygon = PackedVector2Array(-1800, -8624, -2312, -8584, -2136, -9072, -2000, -9528, -1864, -10072, -1552, -10352, -1288, -10720, -920, -11272, -680, -11288, -678.7535, -11211.766, -808, -10880, -880, -10400, -805.52563, -10299.031, 1536, -10304, 1536, -10048, -968, -10048, -1264, -10064, -1608, -9896, -1768, -9608, -1856, -9256, -1848, -8872)
 
+[node name="BasePlatform" parent="Platforms" instance=ExtResource("19_lv54x")]
+position = Vector2(1136, -60)
+coll_extents = Vector2(400, 25)
+
+[node name="FallThroughPlatformComponent" type="Node2D" parent="Platforms/BasePlatform" node_paths=PackedStringArray("p")]
+script = ExtResource("20_rywxm")
+p = NodePath("..")
+metadata/_custom_type_script = "uid://b1nvb61fqdic5"
+
 [node name="FireColumn" parent="." node_paths=PackedStringArray("root") instance=ExtResource("19_go1yl")]
 z_index = -50
 root = NodePath("..")
@@ -13567,9 +13582,15 @@ metadata/_custom_type_script = "uid://dfndtocpf6lff"
 
 [node name="DynamicObjectPlaceholders" type="Node2D" parent="."]
 
-[node name="RockDynamicObjectPlaceholder" parent="DynamicObjectPlaceholders" instance=ExtResource("21_k2k0m")]
-position = Vector2(1423, 0)
-dynamic_object_type = 2
+[node name="SomeRock" type="Node2D" parent="DynamicObjectPlaceholders"]
+script = ExtResource("23_m8ier")
+metadata/_custom_type_script = "uid://x7uxn7nwb2x8"
+
+[node name="Lantern" type="Node2D" parent="DynamicObjectPlaceholders"]
+position = Vector2(379, 0)
+script = ExtResource("23_m8ier")
+dynamic_object_type = 1
+metadata/_custom_type_script = "uid://x7uxn7nwb2x8"
 
 [node name="Notes" type="Node2D" parent="."]
 
@@ -13602,6 +13623,10 @@ offset_top = -2269.0
 offset_right = -3565.0
 offset_bottom = -2246.0
 text = "push button to make platforms appear"
+
+[node name="LanternArea" parent="." instance=ExtResource("24_m8ier")]
+z_index = 10
+position = Vector2(-3490.5, -839.50006)
 
 [node name="MinimapGeometryContainer" type="Node2D" parent="."]
 visibility_layer = 2
@@ -14049,3 +14074,7 @@ polygon = PackedVector2Array(1984, -9856, 1984, -10176, 2304, -10176, 2304, -105
 [node name="@Polygon2D@33240" type="Polygon2D" parent="MinimapGeometryContainer"]
 visibility_layer = 2
 polygon = PackedVector2Array(-1800, -8624, -2312, -8584, -2136, -9072, -2000, -9528, -1864, -10072, -1552, -10352, -1288, -10720, -920, -11272, -680, -11288, -678.7535, -11211.766, -808, -10880, -880, -10400, -805.52563, -10299.031, 1536, -10304, 1536, -10048, -968, -10048, -1264, -10064, -1608, -9896, -1768, -9608, -1856, -9256, -1848, -8872)
+
+[node name="BasePlatform" parent="." instance=ExtResource("19_lv54x")]
+position = Vector2(105, 66)
+coll_extents = Vector2(150, 50)

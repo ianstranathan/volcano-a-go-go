@@ -94,9 +94,10 @@ func target_initialize( player: Player) -> void:
 
 
 func camera_shake_fn( shake_data: ShakeData) -> void:
-	current_shake = shake_data
-	shake_timer = shake_data.duration
-	noise.frequency = shake_data.frequency
+	if shake_data.is_authority:
+		current_shake = shake_data
+		shake_timer = shake_data.duration
+		noise.frequency = shake_data.frequency
 
 
 func shake_offset( delta: float) -> Vector2:

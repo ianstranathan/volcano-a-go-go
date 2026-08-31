@@ -36,13 +36,29 @@ func update_command(player_command_ref: PlayerCommand, _delta):
 		player_command_ref.item_dropped = false
 		player_command_ref.crouch_pressed = false
 		return
-		
+
+	#var move_input: Vector2 = Vector2.ZERO
+	#var aiming_input: Vector2 = Vector2.ZERO
+	#var impulse: Vector2 = Vector2.ZERO
+	#var collided_id := -1
+	#var jump_pressed     := false
+	#var jump_released    := false
+	#var using_controller := false
+	#var grab_pressed    := false
+	#var item_use_pressed := false
+	#var item_use_held    := false
+	#var sprint_held      := false
+	#var item_dropped     := false
+	#var crouch_pressed   := false
+	
+
 	player_command_ref.move_input = movement_vector()
 	player_command_ref.jump_pressed = just_pressed_action("jump")
 	player_command_ref.jump_released = just_released_action("jump")
 	player_command_ref.aiming_input = aiming_pos()
 	player_command_ref.using_controller = is_using_controller()
 	player_command_ref.item_use_pressed = just_pressed_action("use_item")
+	player_command_ref.grab_pressed = just_pressed_action("grab")
 	player_command_ref.item_use_held = Input.is_action_pressed("use_item")
 	player_command_ref.sprint_held = Input.is_action_pressed("sprint")
 	player_command_ref.item_dropped = just_pressed_action("drop_item")

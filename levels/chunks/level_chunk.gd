@@ -117,9 +117,8 @@ func bake_level_data() -> void:
 						"position": child.position # Using local pos so it easily stacks in world coords
 					})
 		level_data.dynamic_object_definitions = found_dynamic_objects
-		
-		
-		
+
+
 		# -- from docs:
 		#level_data.emit_changed()
 		#var save_path = "res://levels/level_data_rscs/" + name.to_snake_case() + "_data.tres"

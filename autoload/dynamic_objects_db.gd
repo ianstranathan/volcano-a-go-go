@@ -1,16 +1,18 @@
+@tool
 extends Node
 
+# -----------------------------------------------------------------------------
+enum DynamicObjectType { ROCK, LANTERN, SKULL }
 
-enum DynamicObjectType{
-	ROCK_1,
-	ROCK_2,
-	ROCK_3,
+
+@export var profiles: Dictionary = {
+	DynamicObjectType.ROCK: preload("res://levels/dynamic_objects/data/rock/dynamic_rock.tres"),
+	DynamicObjectType.LANTERN: preload("res://levels/dynamic_objects/data/lantern/dynamic_lantern.tres")
 }
+	#DynamicObjectType.ROCK: preload("res://data/objects/rock_profile.tres"),
+	#DynamicObjectType.LANTERN: preload("res://data/objects/lantern_profile.tres"),
+	#DynamicObjectType.SKULL: preload("res://data/objects/skull_profile.tres"),
+#}
 
-const ROCK_ATLAS := preload("res://assets/tmp/Cave - SmallRocks.png")
-
-const ROCK_ATLAS_REGIONS := {
-	DynamicObjectType.ROCK_1: Rect2(106, 79, 131, 128),
-	DynamicObjectType.ROCK_2: Rect2(89, 276, 185, 141),
-	DynamicObjectType.ROCK_3: Rect2(94, 521, 195, 178),
-}
+func get_profile(type: DynamicObjectType) -> DynamicObjectProfile:
+	return profiles.get(type)

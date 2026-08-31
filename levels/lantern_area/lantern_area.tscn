@@ -1,0 +1,30 @@
+[gd_scene load_steps=7 format=3 uid="uid://dc8lgy70k2yf8"]
+
+[ext_resource type="Shader" uid="uid://4k55mtmmvrfu" path="res://levels/lantern_area/lantern_area.gdshader" id="1_vudly"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="2_h6uph"]
+[ext_resource type="Script" uid="uid://cq05aa6ww3v8u" path="res://levels/lantern_area/lantern_area.gd" id="3_h6uph"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hy7c0"]
+shader = ExtResource("1_vudly")
+shader_parameter/noise_tex = ExtResource("2_h6uph")
+shader_parameter/dim = Vector2(2, 1)
+shader_parameter/lantern_radius = 0.4
+shader_parameter/lantern_pos = Vector2(0, 0)
+
+[sub_resource type="QuadMesh" id="QuadMesh_cie1a"]
+size = Vector2(5000, 2000)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vudly"]
+
+[node name="LanternArea" type="MeshInstance2D"]
+material = SubResource("ShaderMaterial_hy7c0")
+scale = Vector2(0.9797999, 1.0395)
+mesh = SubResource("QuadMesh_cie1a")
+script = ExtResource("3_h6uph")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_vudly")

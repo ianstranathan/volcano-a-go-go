@@ -26,8 +26,11 @@ pickup_definitions = Array[Dictionary]([{
 "position": Vector2(-534, 52)
 }])
 dynamic_object_definitions = Array[Dictionary]([{
-"dynamic_object_type": 2,
-"position": Vector2(1423, 0)
+"dynamic_object_type": 0,
+"position": Vector2(0, 0)
+}, {
+"dynamic_object_type": 1,
+"position": Vector2(379, 0)
 }])
 chunk_scene_path = "res://levels/smart_shape.tscn"
 metadata/_custom_type_script = "uid://cptvpu01udgc8"

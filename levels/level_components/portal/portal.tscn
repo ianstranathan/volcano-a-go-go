@@ -19,7 +19,7 @@ shader_parameter/volcano_tex = ExtResource("3_rxy02")
 shader_parameter/distortion_strength = 0.1
 shader_parameter/wave_speed = 1.5
 shader_parameter/wave_frequency = 2.0
-shader_parameter/is_volcano = 0.0
+shader_parameter/is_volcano = 1.0
 
 [node name="Portal" type="Node2D"]
 

@@ -17,6 +17,7 @@ func _ready() -> void:
 		set_deferred("lock_rotation", true)
 		$CollisionShape2D.set_deferred("disabled", true))
 
+
 func _physics_process(_delta: float) -> void:
 	if holder and $CollisionShape2D.disabled:
 		global_position = holder.global_position
