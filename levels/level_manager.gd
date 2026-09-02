@@ -277,6 +277,12 @@ func start_level() -> void:
 # -- but I don't see how else to do this in advance at runtime
 # -- (we're doing the same incr math as in _instantiate_chunk)
 
+
+# -- TODO
+# consolidate logic for
+# ------ get_all_dynamic_object_definitions
+# ------ get_all_pickup_item_definitions
+# -- they're basically the same thing keep it DRY
 func get_all_pickup_item_definitions() -> Array[ Dictionary ]:
 	var ret : Array[ Dictionary] = []
 	var _local_next_spawn_y = LEVEL_TOP_Y
@@ -286,7 +292,7 @@ func get_all_pickup_item_definitions() -> Array[ Dictionary ]:
 	# -- since we're filling our LEVEL_CHUNK_DB
 	# -- automatically from a folder, the layout can vary (dir fns do things
 	# -- alphabetically, so we need to gaurentee that we're doing things
-	# -- dequentially
+	# -- sequentially (i.e. 0, 1, 2, ... , N)
 	var sorted_indices = LEVEL_CHUNK_DB.keys()
 	sorted_indices.sort()
 	
@@ -302,6 +308,39 @@ func get_all_pickup_item_definitions() -> Array[ Dictionary ]:
 				var p = {"global_position": 
 						 _chunk_global_position + pickup_definition["position"],
 						 "item_enum": pickup_definition["item_enum"]}
+				ret.append(p)
+				
+		_local_next_spawn_y += level_chunk_data.level_height
+		
+	return ret
+
+
+func get_all_dynamic_object_definitions() -> Array[ Dictionary ]:
+	var ret : Array[ Dictionary] = []
+	var _local_next_spawn_y = LEVEL_TOP_Y
+
+	assert(!LEVEL_CHUNK_DB.is_empty())
+	
+	# -- since we're filling our LEVEL_CHUNK_DB
+	# -- automatically from a folder, the layout can vary (dir fns do things
+	# -- alphabetically, so we need to gaurentee that we're doing things
+	# -- sequentially (i.e. 0, 1, 2, ... , N)
+	var sorted_indices = LEVEL_CHUNK_DB.keys()
+	sorted_indices.sort()
+	
+	for chunk_index in sorted_indices:
+		var level_chunk_data = LEVEL_CHUNK_DB[chunk_index]
+		
+		if (level_chunk_data.dynamic_object_definitions is Array and 
+			!level_chunk_data.dynamic_object_definitions.is_empty()):
+			var _chunk_global_position = Vector2(0, 
+					_local_next_spawn_y - level_chunk_data.offset_to_chunk_origin)
+			
+		
+			for dynamic_object_def in level_chunk_data.dynamic_object_definitions:
+				var p = {"global_position": 
+						 _chunk_global_position + dynamic_object_def["position"],
+						 "dynamic_object_type": dynamic_object_def["dynamic_object_type"]}
 				ret.append(p)
 				
 		_local_next_spawn_y += level_chunk_data.level_height

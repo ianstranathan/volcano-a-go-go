@@ -64,6 +64,7 @@ extends Resource
 @export var somersault_factor: float = 1.2
 #@export var ledge_climb_duration := 0.6
 
+
 var inv_mass: float = 1.0
 var v_x_peak_2_fall: float = 0.0
 var time_to_peak: float = 0.0
@@ -75,6 +76,7 @@ var jump_speed: float = 0.0
 var climb_speed: float = 0.0
 var wall_jump_scale: Vector2
 var crouching_speed: float
+
 
 func _init() -> void:
 	_recalculate_physics()

@@ -73,7 +73,6 @@ shader_parameter/level_dims = Vector2(120000, 10000)
 
 [node name="TextureRect" type="TextureRect"]
 material = SubResource("ShaderMaterial_jqf55")
-custom_minimum_size = Vector2(256, 256)
 texture = ExtResource("1_41wdq")
 expand_mode = 1
 script = ExtResource("1_3x0di")

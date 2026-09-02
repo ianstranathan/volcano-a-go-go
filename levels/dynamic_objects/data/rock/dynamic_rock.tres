@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="DynamicObjectProfile" load_steps=6 format=3 uid="uid://c11q63oqyfj5a"]
+
+[ext_resource type="Script" uid="uid://coet1aykh71w6" path="res://levels/dynamic_objects/data/rock/dynamic_rock_physics.gd" id="1_3tv03"]
+[ext_resource type="Script" uid="uid://ihjaqti7awa5" path="res://levels/dynamic_objects/dynamic_object_profile.gd" id="2_w0fr4"]
+[ext_resource type="PackedScene" uid="uid://icwkif721hv4" path="res://levels/dynamic_objects/data/rock/rock_1_sprite.tscn" id="3_cqtq3"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hif0n"]
+radius = 40.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mrepg"]
+radius = 97.5
+
+[resource]
+script = ExtResource("2_w0fr4")
+visual_scene = ExtResource("3_cqtq3")
+collision_shape = SubResource("CircleShape2D_hif0n")
+physics_script = ExtResource("1_3tv03")
+grab_area_collision_shape = SubResource("CircleShape2D_mrepg")
+metadata/_custom_type_script = "uid://ihjaqti7awa5"

@@ -22,8 +22,10 @@ func _ready():
 	noise.frequency = 20.0
 	
 	viewport_size_change_callback()
-	get_viewport().size_changed.connect( viewport_size_change_callback )
+	var vp : Viewport = get_viewport()
+	vp.size_changed.connect( viewport_size_change_callback )
 
+	vp.set_canvas_cull_mask_bit(1, false)
 
 
 func _physics_process(delta: float) -> void:
@@ -92,9 +94,10 @@ func target_initialize( player: Player) -> void:
 
 
 func camera_shake_fn( shake_data: ShakeData) -> void:
-	current_shake = shake_data
-	shake_timer = shake_data.duration
-	noise.frequency = shake_data.frequency
+	if shake_data.is_authority:
+		current_shake = shake_data
+		shake_timer = shake_data.duration
+		noise.frequency = shake_data.frequency
 
 
 func shake_offset( delta: float) -> Vector2:

@@ -8,6 +8,7 @@ class_name ShakeData
 @export var falloff_curve: Curve
 @export var randomness = 0.25;
 @export var direction: Vector2 = Vector2.ZERO
+@export var is_authority: bool = false
 
 func _init(dir: Vector2) -> void:
 	direction = dir

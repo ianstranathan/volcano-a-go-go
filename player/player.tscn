@@ -157,7 +157,7 @@ radius = 20.0
 height = 100.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boad6"]
-size = Vector2(50, 20)
+size = Vector2(100, 125)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ebec5"]
 shader = ExtResource("10_2ieo8")
@@ -171,8 +171,10 @@ collision_mask = 15
 script = ExtResource("1_yf0e5")
 kd = ExtResource("2_yllr7")
 hang_time_curve = SubResource("Curve_rgyib")
+metadata/_edit_group_ = true
 
 [node name="CharacterVisuals" type="Node2D" parent="."]
+visible = false
 
 [node name="Body" type="AnimatedSprite2D" parent="CharacterVisuals"]
 texture_filter = 1
@@ -232,6 +234,7 @@ player_ref = NodePath("../..")
 metadata/_custom_type_script = "uid://crnrkpiidg5es"
 
 [node name="WallCheckContainer" type="Node2D" parent="."]
+visible = false
 script = ExtResource("6_wodsf")
 
 [node name="RHS1" type="RayCast2D" parent="WallCheckContainer"]
@@ -244,7 +247,7 @@ target_position = Vector2(25, 0)
 collision_mask = 5
 
 [node name="RHS3" type="RayCast2D" parent="WallCheckContainer"]
-position = Vector2(0, 36)
+position = Vector2(0, 40)
 target_position = Vector2(25, 0)
 collision_mask = 5
 
@@ -258,7 +261,7 @@ target_position = Vector2(-25, 0)
 collision_mask = 5
 
 [node name="LHS3" type="RayCast2D" parent="WallCheckContainer"]
-position = Vector2(0, 36)
+position = Vector2(0, 40)
 target_position = Vector2(-25, 0)
 collision_mask = 5
 
@@ -277,16 +280,14 @@ collision_mask = 5
 
 [node name="GrabManager" type="Area2D" parent="." node_paths=PackedStringArray("player_ref")]
 visible = false
-collision_layer = 0
-collision_mask = 0
-monitoring = false
-monitorable = false
+collision_layer = 16
+collision_mask = 16
 script = ExtResource("7_boad6")
 player_ref = NodePath("..")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GrabManager"]
 shape = SubResource("RectangleShape2D_boad6")
-disabled = true
+debug_color = Color(0, 0.6, 0, 0.41568628)
 
 [node name="ClimbingInterface" type="Area2D" parent="."]
 collision_layer = 0
@@ -314,7 +315,6 @@ player_ref = NodePath("../..")
 metadata/_custom_type_script = "uid://crnrkpiidg5es"
 
 [node name="StaminaVisual" parent="." instance=ExtResource("9_8t03j")]
-visible = false
 scale = Vector2(0.4, 0.4)
 seconds_of_stamina = 2.0
 drain_coeff = 1.0
@@ -348,3 +348,21 @@ collision_mask = 5
 
 [node name="MetaballManager" type="Node2D" parent="."]
 script = ExtResource("14_kb6p2")
+
+[node name="StepOverContainer" type="Node2D" parent="."]
+
+[node name="BottomRight" type="RayCast2D" parent="StepOverContainer"]
+position = Vector2(0, 40)
+target_position = Vector2(25, 0)
+
+[node name="BottomLeft" type="RayCast2D" parent="StepOverContainer"]
+position = Vector2(0, 40)
+target_position = Vector2(-25, 0)
+
+[node name="TopRight" type="RayCast2D" parent="StepOverContainer"]
+position = Vector2(0, -17)
+target_position = Vector2(25, 0)
+
+[node name="TopLeft" type="RayCast2D" parent="StepOverContainer"]
+position = Vector2(0, -17)
+target_position = Vector2(-25, 0)

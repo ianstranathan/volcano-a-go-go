@@ -3,61 +3,81 @@ extends Area2D
 @export var player_ref: Player
 @export var throw_speed: float = 200
 
-signal weighed_down
-
-var grabbable_items_near_player: Array[Grabbable] # -- overly generic, CHANGE ME
-var grabbed_item_ref = null
+var grabbed_dynamic_object_ref = null
+ 
+@onready var player: Player = get_parent()
 
 func _ready() -> void:
-	area_entered.connect( func( area: Area2D):
-		if area is Grabbable:
-			grabbable_items_near_player.append(area))
-	area_exited.connect( func(area):
-		if grabbable_items_near_player.has( area):
-			grabbable_items_near_player.erase( area ))
+	$CollisionShape2D.debug_color = Color(0, 0.6, 0.7, 0.42)
+	#print("grab_manager: ", get_multiplayer_authority())
 
 
-func _physics_process(_delta: float) -> void:
-	if Input.is_action_just_pressed("grab"):
-		if grabbed_item_ref:
-			grabbed_item_ref.toss( player_ref.last_move_input.x * throw_speed)
-			grabbed_item_ref = null
-		elif grabbable_items_near_player.size() > 0:
-			grabbed_item_ref = get_closest_grabbable()
-			if grabbed_item_ref:
-				if grabbed_item_ref.can_be_grabbed():
-					# -- see ret of grabble.grab
-					set_props_from_grabbed_item( grabbed_item_ref.grab( self ))
-				else:
-					grabbed_item_ref = null
+func on_grab_key_pressed(object_override=null):
+	# -- grab
+	if !grabbed_dynamic_object_ref:
+		# -- this is how rpcs on a dynamic object are routed
+		if object_override:
+			grabbed_dynamic_object_ref = object_override
+			grabbed_dynamic_object_ref.get_grabbed( self )
+		# -- this is how local player picks up a dynamic object
+		else:
+			var areas_that_can_be_grabbed = get_overlapping_areas().filter( func(grabbable_area):
+					return can_grab( grabbable_area ))
+			#print(areas_that_can_be_grabbed)
+			var closest_area  = get_closest_grabbable( areas_that_can_be_grabbed )
+			#print(closest_area)
+			if closest_area:
+				# -- not great, but we're mandating that this area only lives on this physics
+				# -- layer associated with dynamic areas
+				grabbed_dynamic_object_ref = closest_area.get_parent()
+				assert(grabbed_dynamic_object_ref)
+				grabbed_dynamic_object_ref.get_grabbed( self, int(player_ref.name))
+	
+	## -- throw
+	#else:
+		#var throw_dir = Vector2(sign(player.last_non_zero_move_input.x), 0.)
+		#var throw_vel = throw_dir * player.throw_speed
+		#print("throwing: ", get_multiplayer_authority())
+		#print("throwing is server: ", multiplayer.is_server())
+		#grabbed_dynamic_object_ref.global_position += throw_dir * 20.0
+		#if get_multiplayer_authority() == int(player.name):
+			#grabbed_dynamic_object_ref.get_thrown(throw_vel, int(player.name))
+		#else:
+			#grabbed_dynamic_object_ref.get_thrown(throw_vel )
+		#grabbed_dynamic_object_ref = null
 
 
-func set_props_from_grabbed_item( data: Dictionary):
-	if data.has("weight"):
-		var weight_factor = data["weight"]
-		assert( weight_factor > 0 and weight_factor <= 1.)
-		emit_signal("weighed_down", weight_factor)
-
-
-func can_grab( grabbable_item : Node2D) -> bool:
+func can_grab( grabbable_area : Area2D) -> bool:
 	# -- are we facing the way? / is the item in front of us
-	var r = grabbable_item.global_position - global_position
-	var facing_dir = player_ref.last_move_input.x
+	var r = grabbable_area.global_position - global_position
+	var facing_dir = player_ref.last_non_zero_move_input.x
 	return (facing_dir * r.x >= 0)
 
 
-# -- will either return a grabbable or none
-func get_closest_grabbable():
-	# -- reduce down the grabables based on facing the same dir and dist:
-	#var item_to_grab = grabbable_items_near_player.reduce( func(prev, curr):
-		#var dist_to_curr = global_position.distance_to(curr)
-		#return curr if (can_grab(curr) and dist_to_curr
-	#)
-	var valid_grabbables := grabbable_items_near_player.filter(func(node):
-		return can_grab(node)
+func _process(_delta: float) -> void:
+	if get_tree().debug_collisions_hint:
+		if has_overlapping_areas():
+			$CollisionShape2D.debug_color = Color(1, 0, 1, 0.4) 
+		else:
+			$CollisionShape2D.debug_color = Color(0, 0.6, 0.7, 0.42)
+
+
+func get_closest_grabbable( grabbable_areas: Array):
+	if grabbable_areas.is_empty():
+		return
+	
+	return grabbable_areas.reduce(func(a, b):
+		return a if a.global_position.distance_to(global_position) < b.global_position.distance_to(global_position) else b
 	)
-	# -- easy, quick broad phase check
-	if valid_grabbables.size() > 0:
-		return valid_grabbables.reduce(func(a, b):
-			return a if a.global_position.distance_to(global_position) < b.global_position.distance_to(global_position) else b
-		)
+	#if grabbable_areas.size() > 1:
+		#return grabbable_areas.reduce(func(a, b):
+			#return a if a.global_position.distance_to(global_position) < b.global_position.distance_to(global_position) else b
+		#)
+	#else:
+		##print("returning first: ", grabbable_areas[0])
+		#return grabbable_areas[0]
+
+
+
+func set_player_weight_modifier():
+	pass

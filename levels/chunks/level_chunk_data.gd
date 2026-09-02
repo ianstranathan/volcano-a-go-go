@@ -8,4 +8,5 @@ extends Resource
 @export var level_width: float = 0.0
 @export var player_spawn_points: Array
 @export var pickup_definitions: Array[Dictionary] = []
+@export var dynamic_object_definitions: Array[Dictionary] = []
 @export var chunk_scene_path: String

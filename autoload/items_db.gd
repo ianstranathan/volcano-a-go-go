@@ -1,15 +1,15 @@
 @tool
 extends Node
 
-# ItemDatabase.gd (Autoload)
 
 enum ItemNames{
 	GRAPPLING_HOOK,
 	HOOKSHOT,
 	JETPACK,
 	PARACHUTE,
-	ROPE,
-	ROPE_LADDER
+	SWAP_GUN,
+	#ROPE,
+	#ROPE_LADDER
 }
 
 
@@ -18,8 +18,9 @@ var items = {
 	ItemNames.HOOKSHOT:       preload("res://items/hookshot/hookshot.tscn"),
 	ItemNames.JETPACK:        preload("res://items/jet_pack/jet_pack.tscn"),
 	ItemNames.PARACHUTE:      preload("res://items/parachute/parachute.tscn"),
-	ItemNames.ROPE:           preload("res://items/rope_ladder/rope_ladder_spawner.tscn"),
-	ItemNames.ROPE_LADDER:    preload("res://items/rope_ladder/rope_ladder.tscn")
+	ItemNames.SWAP_GUN:       preload("res://items/swap_gun/swap_gun.tscn")
+	#ItemNames.ROPE:           preload("res://items/rope_ladder/rope_ladder_spawner.tscn"),
+	#ItemNames.ROPE_LADDER:    preload("res://items/rope_ladder/rope_ladder.tscn")
 }
 
 
@@ -28,7 +29,8 @@ var item_pickup_textures = {
 	ItemNames.HOOKSHOT:       preload("res://assets/hookshot.svg"),
 	ItemNames.JETPACK:        preload("res://assets/jetpack.svg"),
 	ItemNames.PARACHUTE:      preload("res://assets/parachute.svg"),
-	ItemNames.ROPE:           preload("res://assets/rope-coil.svg"),
+	ItemNames.SWAP_GUN:       preload("res://assets/body-swapping.svg")
+	#ItemNames.ROPE:           preload("res://assets/rope-coil.svg"),
 }
 
 

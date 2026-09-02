@@ -1,10 +1,12 @@
-[gd_scene load_steps=8 format=3 uid="uid://btg4x06vjsk5q"]
+[gd_scene load_steps=11 format=3 uid="uid://btg4x06vjsk5q"]
 
 [ext_resource type="Script" uid="uid://ctyi08d6b1xq2" path="res://UI/UI.gd" id="1_6dd3c"]
 [ext_resource type="PackedScene" uid="uid://ceborxxuc334h" path="res://UI/HotBar/hotbar_ui.tscn" id="2_dhe1o"]
 [ext_resource type="PackedScene" uid="uid://sk0genylx2rr" path="res://UI/leader_icon_bar/leader_icon_bar.tscn" id="2_q0uhn"]
 [ext_resource type="Script" uid="uid://d3an8jw4234yh" path="res://networking/networking_stats_overlay/networking_stats_overlay.gd" id="3_f1fl4"]
 [ext_resource type="PackedScene" uid="uid://c04hhdbm4x1" path="res://UI/track_ui_minimap/track_ui_minimap.tscn" id="4_e707p"]
+[ext_resource type="Shader" uid="uid://bmxcw5ep3dfa4" path="res://UI/minimap.gdshader" id="6_jqf55"]
+[ext_resource type="Texture2D" uid="uid://1c7qd20h0yjl" path="res://assets/arabesque/633.jpg" id="7_byuxr"]
 
 [sub_resource type="Shader" id="Shader_f1fl4"]
 resource_local_to_scene = true
@@ -74,7 +76,11 @@ shader_parameter/positions = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0)
 shader_parameter/player_cols = PackedVector3Array(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0)
 shader_parameter/level_dims = Vector2(120000, 10000)
 
-[node name="Ui" type="Control" node_paths=PackedStringArray("track", "leader_icon_bar")]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_byuxr"]
+shader = ExtResource("6_jqf55")
+shader_parameter/bg_tex = ExtResource("7_byuxr")
+
+[node name="Ui" type="Control" node_paths=PackedStringArray("track", "leader_icon_bar", "minimap_viewport")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -84,6 +90,7 @@ grow_vertical = 2
 script = ExtResource("1_6dd3c")
 track = NodePath("HudMargin/HudLayout/BottomArea/BottomRight/TextureRect")
 leader_icon_bar = NodePath("HudMargin/HudLayout/TopArea/TopLeft/LeaderIconBar")
+minimap_viewport = NodePath("HudMargin/HudLayout/BottomArea/BottomRight/SubViewportContainer/SubViewport")
 
 [node name="HudMargin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -138,6 +145,7 @@ layout_mode = 2
 [node name="BottomArea" type="HBoxContainer" parent="HudMargin/HudLayout"]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
+size_flags_vertical = 8
 
 [node name="BottomLeft" type="VBoxContainer" parent="HudMargin/HudLayout/BottomArea"]
 custom_minimum_size = Vector2(250, 0)
@@ -149,9 +157,10 @@ layout_mode = 2
 script = ExtResource("3_f1fl4")
 
 [node name="BottomCenter" type="VBoxContainer" parent="HudMargin/HudLayout/BottomArea"]
+custom_minimum_size = Vector2(0.55, 100)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 4
+size_flags_vertical = 8
 
 [node name="CenterContainer" type="CenterContainer" parent="HudMargin/HudLayout/BottomArea/BottomCenter"]
 layout_mode = 2
@@ -168,3 +177,16 @@ layout_mode = 2
 [node name="TextureRect" parent="HudMargin/HudLayout/BottomArea/BottomRight" instance=ExtResource("4_e707p")]
 material = SubResource("ShaderMaterial_jqf55")
 layout_mode = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HudMargin/HudLayout/BottomArea/BottomRight"]
+material = SubResource("ShaderMaterial_byuxr")
+layout_mode = 2
+
+[node name="SubViewport" type="SubViewport" parent="HudMargin/HudLayout/BottomArea/BottomRight/SubViewportContainer"]
+handle_input_locally = false
+msaa_2d = 1
+size = Vector2i(256, 256)
+render_target_update_mode = 4
+
+[node name="Camera2D" type="Camera2D" parent="HudMargin/HudLayout/BottomArea/BottomRight/SubViewportContainer/SubViewport"]
+zoom = Vector2(0.05, 0.05)

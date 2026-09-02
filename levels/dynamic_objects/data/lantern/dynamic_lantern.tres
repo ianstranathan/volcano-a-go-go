@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="DynamicObjectProfile" load_steps=6 format=3 uid="uid://dmqsup5ntp117"]
+
+[ext_resource type="Script" uid="uid://ihjaqti7awa5" path="res://levels/dynamic_objects/dynamic_object_profile.gd" id="1_075wj"]
+[ext_resource type="Script" uid="uid://3eoyhtho7aw8" path="res://levels/dynamic_objects/data/lantern/lantern_physics.gd" id="1_tcea6"]
+[ext_resource type="PackedScene" uid="uid://bjn7abf0ehh63" path="res://levels/dynamic_objects/data/lantern/lantern_animated_sprite2d.tscn" id="3_aqogr"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_4iu0r"]
+radius = 12.0
+height = 45.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_b86kn"]
+radius = 60.0
+
+[resource]
+script = ExtResource("1_075wj")
+type = 1
+visual_scene = ExtResource("3_aqogr")
+collision_shape = SubResource("CapsuleShape2D_4iu0r")
+physics_script = ExtResource("1_tcea6")
+grab_area_collision_shape = SubResource("CircleShape2D_b86kn")
+metadata/_custom_type_script = "uid://ihjaqti7awa5"

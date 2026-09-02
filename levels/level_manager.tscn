@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://c8ncf2ojbw8cf" path="res://levels/level_manager.gd" id="1_x4ns8"]
 
 [node name="LevelManager" type="Node2D"]
+visibility_layer = 3
 script = ExtResource("1_x4ns8")
 
 [node name="ChunkContainer" type="Node2D" parent="."]
+visibility_layer = 3

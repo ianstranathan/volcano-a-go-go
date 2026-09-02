@@ -13,6 +13,7 @@ var player_data_dict:Dictionary = {} # -- id to player_data
 @export var wager_window: WagerWindow
 @export var post_processing_quad: Sprite2D
 @export var world_pickup_items_manager: Node2D
+@export var world_dynamic_objects_manager: Node2D
 @export var world_level_manager: Node2D
 @export var oasis: Node2D
 @export var wager_manager: WagerManager
@@ -32,6 +33,9 @@ func _ready():
 	)
 	world_pickup_items_manager.load_pickup_items_from_level_chunks(
 		world_level_manager.get_all_pickup_item_definitions()
+	)
+	world_dynamic_objects_manager.load_dynamic_objects_from_level_chunks(
+		world_level_manager.get_all_dynamic_object_definitions()
 	)
 	assert( camera )
 	
@@ -58,9 +62,10 @@ func _ready():
 	
 	# ------------------------------------------------------- UI hookups
 	ui.game_ref = self
+
 	wager_window.set_player_data(player_data_dict)
 	wager_window.set_wager_manager(wager_manager)
-	
+
 	Events.emit_signal("play_music", AudioDb.MusicTrackId.GAMEPLAY,-10,1)
 	
 	test_death_tv()
@@ -72,7 +77,9 @@ var world_is_ticking := false
 	#lava, 
 	world_pickup_items_manager, 
 	post_processing_quad, 
-	ui
+	ui,
+	$World/ProjectilesContainer,
+	world_dynamic_objects_manager
 ]
 
 
@@ -151,10 +158,14 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	var spawn_marker_pos = spawn_points.get_child(spawn_index % points_count).global_position
 	a_player.global_position = spawn_marker_pos
 	
+	a_player.projectiles_container_ref = $World/ProjectilesContainer
+	
 	if peer_id == multiplayer.get_unique_id():
 		camera.target_initialize(a_player)
 		camera.global_position = a_player.global_position
-	
+		ui.player_ref = a_player
+		
+		print($World/ProjectilesContainer)
 	# -- we need the players to spawn before running this
 	world_effects_container.initialize_recurring_player_vfx()
 	#print_tree_pretty()
@@ -230,6 +241,8 @@ func on_level_manager_loaded_first_chunk( _spawn_points: Array ):
 	print("bottom of volcano: ", $World/LevelManager.get_level_bottom_y())
 	the_lava.start_lava(Vector2(level_x_length, level_y_length))
 	
+	ui.set_minimap_world2d( $World.get_world_2d() )
+
 
 func on_player_touched_bottom( _player_id):
 	#lava.global_position = Vector2(0., 0.)

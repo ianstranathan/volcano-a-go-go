@@ -9,7 +9,7 @@ var collided_id := -1
 var jump_pressed     := false
 var jump_released    := false
 var using_controller := false
-var carrying_item    := false
+var grab_pressed    := false
 var item_use_pressed := false
 var item_use_held    := false
 var sprint_held      := false
@@ -30,7 +30,7 @@ static func serialize_list_of_commands(commands: Array[PlayerCommand]) -> Packed
 		if cmd.jump_pressed:     flags |= 1 << 0
 		if cmd.jump_released:    flags |= 1 << 1
 		if cmd.using_controller: flags |= 1 << 2
-		if cmd.carrying_item:    flags |= 1 << 3
+		if cmd.grab_pressed:    flags |= 1 << 3
 		if cmd.item_use_pressed: flags |= 1 << 4
 		if cmd.item_use_held:    flags |= 1 << 5
 		if cmd.sprint_held:      flags |= 1 << 6
@@ -81,7 +81,7 @@ static func deserialize_list_of_commands(byte_arr: PackedByteArray) -> Array[Pla
 		cmd.jump_pressed     = bool(flags & (1 << 0))
 		cmd.jump_released    = bool(flags & (1 << 1))
 		cmd.using_controller = bool(flags & (1 << 2))
-		cmd.carrying_item    = bool(flags & (1 << 3))
+		cmd.grab_pressed    = bool(flags & (1 << 3))
 		cmd.item_use_pressed = bool(flags & (1 << 4))
 		cmd.item_use_held    = bool(flags & (1 << 5))
 		cmd.sprint_held      = bool(flags & (1 << 6))
@@ -132,7 +132,7 @@ static func deserialize_list_of_commands(byte_arr: PackedByteArray) -> Array[Pla
 		#cmd.jump_pressed     = bool(flags & (1 << 0))
 		#cmd.jump_released    = bool(flags & (1 << 1))
 		#cmd.using_controller = bool(flags & (1 << 2))
-		#cmd.carrying_item    = bool(flags & (1 << 3))
+		#cmd.grab_pressed    = bool(flags & (1 << 3))
 		#cmd.item_use_pressed = bool(flags & (1 << 4))
 		#cmd.item_use_held    = bool(flags & (1 << 5))
 		#cmd.sprint_held      = bool(flags & (1 << 6))

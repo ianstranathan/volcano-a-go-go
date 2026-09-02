@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://bo4uyetw358uf"]
+
+[ext_resource type="Shader" uid="uid://dj36x8tfjxbk8" path="res://levels/platforms/platform_components/fall_through_platform_component/fall_through_platform_mat_shader.gdshader" id="1_1a8vu"]
+
+[resource]
+shader = ExtResource("1_1a8vu")
+shader_parameter/src_col = Color(0, 0, 0, 1)

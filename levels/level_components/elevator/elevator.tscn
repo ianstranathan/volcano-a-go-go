@@ -1,0 +1,76 @@
+[gd_scene load_steps=13 format=3 uid="uid://bj3e2svr1xvwf"]
+
+[ext_resource type="PackedScene" uid="uid://5x7tnpyvft8y" path="res://levels/platforms/base_platform/base_platform.tscn" id="1_mfekx"]
+[ext_resource type="Script" uid="uid://dxmf407du8a7b" path="res://levels/level_components/elevator/elevator.gd" id="1_mt1ra"]
+[ext_resource type="Texture2D" uid="uid://d3740438gcdi0" path="res://assets/chain1.png" id="2_1su21"]
+[ext_resource type="Shader" uid="uid://burlalkxuqxdd" path="res://levels/level_components/elevator/elevator_middle_chain.gdshader" id="2_mivi7"]
+[ext_resource type="Shader" uid="uid://ql0cc80f0w4u" path="res://levels/level_components/elevator/chain_sides.gdshader" id="3_numfo"]
+[ext_resource type="Texture2D" uid="uid://vc4wmewwfixw" path="res://assets/particle_masks/floaty_64.png" id="6_oywdn"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mivi7"]
+shader = ExtResource("3_numfo")
+shader_parameter/chain_tex = ExtResource("2_1su21")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_numfo"]
+shader = ExtResource("2_mivi7")
+shader_parameter/chain_tex = ExtResource("2_1su21")
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_ntn6h"]
+blend_mode = 1
+particles_animation = true
+particles_anim_h_frames = 7
+particles_anim_v_frames = 7
+particles_anim_loop = false
+
+[sub_resource type="Curve" id="Curve_mt1ra"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.06259906), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_oywdn"]
+curve = SubResource("Curve_mt1ra")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_17se0"]
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+initial_velocity_min = 400.0
+initial_velocity_max = 500.0
+gravity = Vector3(0, 98, 0)
+scale_min = 1.6999999
+scale_max = 5.0
+scale_curve = SubResource("CurveTexture_oywdn")
+
+[node name="Elevator" type="Node2D"]
+script = ExtResource("1_mt1ra")
+
+[node name="BasePlatform" parent="." instance=ExtResource("1_mfekx")]
+coll_extents = Vector2(150, 25)
+
+[node name="Node2D" type="Node2D" parent="."]
+material = SubResource("ShaderMaterial_mivi7")
+
+[node name="LHS" type="Line2D" parent="Node2D"]
+use_parent_material = true
+position = Vector2(-58, 0)
+points = PackedVector2Array(0, 0, 0, -190)
+width = 32.0
+texture_mode = 1
+
+[node name="LHS2" type="Line2D" parent="Node2D"]
+use_parent_material = true
+position = Vector2(63, 0)
+points = PackedVector2Array(0, 0, 0, -190)
+width = 32.0
+texture_mode = 1
+
+[node name="Line2D" type="Line2D" parent="."]
+material = SubResource("ShaderMaterial_numfo")
+points = PackedVector2Array(0, 0, 0, -186)
+width = 24.0
+texture_mode = 1
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_ntn6h")
+texture = ExtResource("6_oywdn")
+lifetime = 0.3
+randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_17se0")

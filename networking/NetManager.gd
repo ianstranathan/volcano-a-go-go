@@ -78,7 +78,7 @@ func _physics_process(delta: float) -> void:
 	while _timer >= TICK_RATE and ticks_processed < max_ticks_per_frame:
 		current_tick += 1
 		_timer -= TICK_RATE
-		
+		ticks_processed += 1
 		# ----------------------------------------------------------------------
 		tick_scheduler.tick(current_tick)
 		
@@ -384,13 +384,26 @@ func host_process_remote_client(id: int, _player: Player):
 	_controller.reconciliation_state_buffer[_idx].set_state(_player, current_tick)
 
 
-@rpc("authority", "reliable")
-func request_smaller_lead():
-	tick_lead -= 1
-
+#@rpc("authority", "reliable")
+#func request_smaller_lead():
+	#tick_lead -= 1
+#
+#@rpc("authority", "reliable")
+#func client_increase_tick_lead():
+	#tick_lead += 1
+const MIN_TICK_LEAD := 2
+const MAX_TICK_LEAD := 30
 @rpc("authority", "reliable")
 func client_increase_tick_lead():
-	tick_lead += 1
+	var old = tick_lead
+	tick_lead = min(MAX_TICK_LEAD, tick_lead + 1)
+	#print("LEAD +1: ", old, " -> ", tick_lead)
+
+@rpc("authority", "reliable")
+func request_smaller_lead():
+	var old = tick_lead
+	tick_lead = max(MIN_TICK_LEAD, tick_lead - 1)
+	#print("LEAD -1: ", old, " -> ", tick_lead)
 
 
 @rpc("any_peer", "unreliable")
