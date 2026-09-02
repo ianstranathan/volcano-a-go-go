@@ -7,6 +7,7 @@ signal inventory_slot_selected(slot_index: int)
 
 var pending_command := PlayerCommand.new()
 var input_blocked: bool = false
+var current_interactable: Interactable
 
 enum InputSourceType{
 	CONTROLLER,
@@ -68,6 +69,10 @@ func _input(event: InputEvent) -> void:
 	if input_blocked:
 		return
 		
+	if event.is_action_pressed("interact"):
+		if current_interactable != null:
+			current_interactable.interact()	
+			
 	inventory_slot_input(event)
 	# -------------------------------------- change controller types
 	if (current_input_source == InputSourceType.CONTROLLER and
@@ -168,3 +173,21 @@ func inventory_slot_input(event: InputEvent) -> void:
 		if event.is_action_pressed("inventory_slot_" + str(i + 1)): #ai's way of avoiding nested if statement/ switch - fragile
 			inventory_slot_selected.emit(i)
 			return
+
+func set_interactable(interactable: Interactable) -> void:
+	if current_interactable == interactable:
+		return
+
+	if current_interactable != null:
+		current_interactable.hide_prompt()
+
+	current_interactable = interactable
+	current_interactable.show_prompt()
+
+
+func clear_interactable(interactable: Interactable) -> void:
+	if current_interactable != interactable:
+		return
+
+	current_interactable.hide_prompt()
+	current_interactable = null

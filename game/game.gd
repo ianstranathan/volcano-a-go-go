@@ -10,11 +10,13 @@ var player_data_dict:Dictionary = {} # -- id to player_data
 @export var players_container: Node2D
 @export var spawn_points: Node2D
 @export var ui: Control
+@export var wager_window: WagerWindow
 @export var post_processing_quad: Sprite2D
 @export var world_pickup_items_manager: Node2D
 @export var world_dynamic_objects_manager: Node2D
 @export var world_level_manager: Node2D
 @export var oasis: Node2D
+@export var wager_manager: WagerManager
 
 @onready var the_lava: TheLava = $World/Lava
 #@onready var lava_scene: PackedScene = preload("res://lava/lava.tscn")
@@ -56,10 +58,14 @@ func _ready():
 		spawn_player(id, d[NetManager.KEY_NAME], d[NetManager.KEY_INDEX])
 	
 	NetManager.game_world = self
+	wager_manager.set_player_data(player_data_dict)
 	
 	# ------------------------------------------------------- UI hookups
 	ui.game_ref = self
-	
+
+	wager_window.set_player_data(player_data_dict)
+	wager_window.set_wager_manager(wager_manager)
+
 	Events.emit_signal("play_music", AudioDb.MusicTrackId.GAMEPLAY,-10,1)
 	
 	test_death_tv()

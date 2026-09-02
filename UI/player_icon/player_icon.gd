@@ -12,3 +12,6 @@ func change_icon_skin_tone(skin_enum:int) -> void:
 
 func change_placement_number_label( num: int):
 	$Label.text = str( num )
+
+func set_placement_visible(is_visible: bool) -> void:
+	$Label.visible = is_visible
