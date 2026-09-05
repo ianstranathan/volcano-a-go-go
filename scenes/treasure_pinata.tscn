@@ -1,10 +1,11 @@
-[gd_scene load_steps=17 format=3 uid="uid://dwm2q4p45ilr7"]
+[gd_scene load_steps=18 format=3 uid="uid://dwm2q4p45ilr7"]
 
 [ext_resource type="Texture2D" uid="uid://fuvk4kt5vxcj" path="res://assets/Treasure/gold bit3.png" id="1_m0dlu"]
 [ext_resource type="Texture2D" uid="uid://b1l1jgdayhd8j" path="res://assets/Treasure/Treasure_Box.png" id="2_d6iyg"]
 [ext_resource type="Texture2D" uid="uid://fh26lnde40ig" path="res://assets/Treasure/Gem2.png" id="3_d6iyg"]
 [ext_resource type="Texture2D" uid="uid://b4bkbs2vo3lpm" path="res://assets/Treasure/Gem1.png" id="4_fwg4k"]
 [ext_resource type="Texture2D" uid="uid://bgl4i8by2p81d" path="res://assets/Treasure/Gem3.png" id="5_jjmil"]
+[ext_resource type="Texture2D" uid="uid://bprhwhsxwqjql" path="res://assets/Treasure/treasure2.png" id="6_jjmil"]
 
 [sub_resource type="Curve" id="Curve_m0dlu"]
 _data = [Vector2(0, 1), 0.0, 0.024990356, 0, 0, Vector2(0.37079644, 1), 0.0, 0.0, 0, 0, Vector2(0.70530975, 0), -0.0020636187, 0.0, 0, 0]
@@ -112,5 +113,13 @@ process_material = SubResource("ParticleProcessMaterial_qrext")
 texture_filter = 1
 amount = 1
 texture = ExtResource("5_jjmil")
+lifetime = 3.25
+process_material = SubResource("ParticleProcessMaterial_qrext")
+
+[node name="GPUparticlerefactor" type="GPUParticles2D" parent="."]
+visible = false
+texture_filter = 1
+amount = 1
+texture = ExtResource("6_jjmil")
 lifetime = 3.25
 process_material = SubResource("ParticleProcessMaterial_qrext")

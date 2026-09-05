@@ -573,16 +573,20 @@ metadata/_custom_type_script = "uid://0lhxan4cqrc1"
 script = ExtResource("12_m7al0")
 _edge_meta_materials = Array[ExtResource("9_hw7bs")]([SubResource("Resource_fm77j")])
 fill_textures = Array[Texture2D]([ExtResource("5_a8wue")])
-fill_texture_scale = 1.6500000000000001
+fill_texture_scale = 1.65
 fill_texture_angle_offset = -50.30000000000001
 
 [node name="Node2D" type="Node2D"]
 
 [node name="SS2D_Shape" type="Node2D" parent="."]
-texture_filter = 1
 position = Vector2(-1, 0)
 script = ExtResource("1_dkroi")
 _points = SubResource("Resource_lw7nh")
 _meshes = Array[ExtResource("4_tl6am")]([SubResource("Resource_ga8gt"), SubResource("Resource_2kmp0"), SubResource("Resource_mgijg"), SubResource("Resource_qlkdb"), SubResource("Resource_ng04n"), SubResource("Resource_isi6i"), SubResource("Resource_03mjk"), SubResource("Resource_cbtgc"), SubResource("Resource_4xcls"), SubResource("Resource_2hr6y"), SubResource("Resource_u8gmi"), SubResource("Resource_y0iik"), SubResource("Resource_3cg86"), SubResource("Resource_iv1ot"), SubResource("Resource_84nm2"), SubResource("Resource_c1nwq"), SubResource("Resource_d8nph"), SubResource("Resource_gh7fk"), SubResource("Resource_2dgj0"), SubResource("Resource_yt374"), SubResource("Resource_qag7x"), SubResource("Resource_h0o2g"), SubResource("Resource_mxr5u"), SubResource("Resource_apphm"), SubResource("Resource_f5tgn")])
 shape_material = SubResource("Resource_iokcj")
 metadata/_custom_type_script = "uid://dhdc4b8yddyej"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(536, 70)
+texture = ExtResource("8_o2sup")
