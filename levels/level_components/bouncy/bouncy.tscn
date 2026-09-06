@@ -1,0 +1,33 @@
+[gd_scene load_steps=8 format=3 uid="uid://c37go2qp0t4v2"]
+
+[ext_resource type="Shader" uid="uid://c676mrq4otfib" path="res://levels/level_components/bouncy/bouncy.gdshader" id="1_fv172"]
+[ext_resource type="Script" uid="uid://6sl3f7b2vrmf" path="res://levels/level_components/bouncy/bouncy.gd" id="1_l4e18"]
+[ext_resource type="Texture2D" uid="uid://c86gxkiqc1kne" path="res://VFX/reusuable_fastnoise.tres" id="2_bccnn"]
+[ext_resource type="Texture2D" uid="uid://boh752oaa4a6x" path="res://assets/PBR textures/Lava_01_basecolor-1K.png" id="2_evuiy"]
+[ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="2_yisfv"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yisfv"]
+shader = ExtResource("1_fv172")
+shader_parameter/progress = 0.0
+shader_parameter/radius = 0.45000001974506
+shader_parameter/squash_amount = 1.0000000475
+shader_parameter/rebound_amount = 0.400000019
+shader_parameter/noise_tex = ExtResource("2_bccnn")
+shader_parameter/magma_tex = ExtResource("2_evuiy")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_7wb3k"]
+radius = 80.0
+
+[node name="Bouncy" type="Node2D"]
+script = ExtResource("1_l4e18")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_yisfv")
+scale = Vector2(3, 3)
+texture = ExtResource("2_yisfv")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_7wb3k")

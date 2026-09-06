@@ -1,0 +1,30 @@
+[gd_scene load_steps=3 format=3 uid="uid://bt4oox66cmvtq"]
+
+[ext_resource type="Texture2D" uid="uid://ccqw5yvx6j4ar" path="res://assets/Treasure/puff cloud.png" id="1_cmief"]
+
+[sub_resource type="Gradient" id="Gradient_cdmca"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+metadata/_snap_count = 17
+
+[node name="direction_hit_clouds" type="Node2D"]
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+amount = 19
+texture = ExtResource("1_cmief")
+lifetime = 1.1
+speed_scale = 1.65
+explosiveness = 1.0
+randomness = 0.89
+direction = Vector2(1, -0.2)
+spread = 20.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 380.0
+initial_velocity_max = 575.0
+angular_velocity_min = 12.86
+angular_velocity_max = 102.86
+linear_accel_min = -400.0
+linear_accel_max = -385.0
+scale_amount_min = 0.5
+scale_amount_max = 2.2
+color = Color(0.42, 0.40816998, 0.3654, 0.99607843)
+color_ramp = SubResource("Gradient_cdmca")

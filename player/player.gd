@@ -1230,7 +1230,16 @@ func slow(b: bool):
 
 # -- Utils to keep kinematic state straight with the outside world
 func get_g() -> float:
+	#print((gravity_from_state() * gravity_modifier * hang_time_modifier))
 	return (gravity_from_state() * gravity_modifier * hang_time_modifier)
+
+var stash_push_gravity: float
+func disable_gravity_modifier(b: bool):
+	if b:
+		stash_push_gravity = gravity_modifier
+		gravity_modifier = 0.0
+	else:
+		gravity_modifier = stash_push_gravity
 
 
 func can_parachute() -> bool:
@@ -1255,21 +1264,36 @@ func host_confirmed_drop():
 func can_collect_coints() -> bool:
 	return movement_state != MovementStates.CLOUD
 
-func grab_dynamic_object(object_override=null):
+
+# -- we need this to work optionally with a local and a remote client
+func grab_dynamic_object(object_override=null) -> bool:
 	if object_override:
-		$GrabManager.on_grab_key_pressed( object_override )
-	$GrabManager.on_grab_key_pressed()
+		return $GrabManager.grab_dynamic_object( object_override )
+	return $GrabManager.grab_dynamic_object()
+
 
 
 func return_grabbed_object() -> DynamicObject:
-	return $GrabManager.grabbed_dynamic_object_ref
+	return grabbed_dynamic_object_ref
 
 # -- this should be called from walking, running
+#func should_step_over():
+	#if last_move_input.x < 0:
+		#return ($StepOverContainer/BottomLeft.is_colliding() and !$StepOverContainer/TopLeft.is_colliding())
+	#return ($StepOverContainer/BottomRight.is_colliding() and !$StepOverContainer/TopRight.is_colliding())
 func should_step_over():
-	if last_move_input.x < 0:
+	var stepping_left = last_move_input.x < 0
+	var bottom_ray = $StepOverContainer/BottomLeft if stepping_left else $StepOverContainer/BottomRight
+	
+	# -- sloped surface check
+	if bottom_ray.is_colliding():
+		var normal = bottom_ray.get_collision_normal()
+		if abs(normal.x) < 0.7: # Adjust threshold based on your game's slope tolerance
+			return false
+
+	if stepping_left:
 		return ($StepOverContainer/BottomLeft.is_colliding() and !$StepOverContainer/TopLeft.is_colliding())
 	return ($StepOverContainer/BottomRight.is_colliding() and !$StepOverContainer/TopRight.is_colliding())
-
 
 var step_over_starting_player_pos
 var step_over_target_pos
@@ -1308,21 +1332,36 @@ func step_over( delta: float ):
 
 
 # ------------------------------------------------------------------------------
-var throw_speed := 1000.
+var throw_speed := 500.
+var grabbed_dynamic_object_ref: DynamicObject # --player state tracks grabbed_dynamic_object_ref
 
 func apply_command( c: PlayerCommand):
 	move_input = c.move_input
 	update_visual_facing(move_input.x)
 	
+	if c.sword_swung:
+		$TEMP_SWORD.swing_sword()
+		return
+	
+	# -- go through 1 way platform
+	# -- the magic 20 corresponds to the one way platform threshold
+	# -- which itself is magic, just played with it until the player stopped
+	# -- falling through at terminal velocity
 	if (c.move_input.y < 0 and is_on_one_way_platform and  c.jump_pressed):
 		global_position.y += 20
 		return
 	
-	if c.grab_pressed:
-		#print("authority:", get_multiplayer_authority())
-		#print("player:", name)
-		#print("-------------")
-		grab_dynamic_object()
+	# -- 
+	if c.grab_pressed and !grabbed_dynamic_object_ref:
+		# -- try
+		var successfully_grabbed = grab_dynamic_object()
+		if successfully_grabbed:
+			# -- player state tracks grabbed_dynamic_object_ref
+			grabbed_dynamic_object_ref = $GrabManager.grabbed_dynamic_object_ref
+	elif c.grab_pressed: # -- throw
+		$GrabManager.throw_dynamic_object()
+		grabbed_dynamic_object_ref = null
+
 	
 	if c.jump_pressed:
 		jump_buffer_timer.start()
@@ -1376,11 +1415,13 @@ func apply_command( c: PlayerCommand):
 		# -- we were running and we just let off of run
 		if movement_state == MovementStates.RUNNING:
 			movement_state_transition_to(MovementStates.WALKING)
-			
+
+
 func update_visual_facing(horizontal_direction: float) -> void:
 	if absf(horizontal_direction) < 0.01:
 		return
 	animation_controller.set_facing_direction(horizontal_direction)
+
 # ------------------------------------------------------------------------------
 
 # -- NOTE we're kind of mandating that this is only one layer deep for Node2d

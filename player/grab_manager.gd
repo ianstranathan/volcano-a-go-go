@@ -12,10 +12,20 @@ func _ready() -> void:
 	#print("grab_manager: ", get_multiplayer_authority())
 
 
-func on_grab_key_pressed(object_override=null):
+# -- this is a local only thing
+# -- mental model is like this:
+# -- local player grabs -> this changes the player's is_holding_something
+# -- player state automatically looks this when it's being set
+# -- when the remote state is being updated, this state id is passed and looked up
+# -- in the dynamic world manager
+# -- then grabbed locally with the object override
+
+func grab_dynamic_object(object_override=null) -> bool:
+	var success = false
+	
 	# -- grab
 	if !grabbed_dynamic_object_ref:
-		# -- this is how rpcs on a dynamic object are routed
+		# -- remote versions of local client need to grab same object
 		if object_override:
 			grabbed_dynamic_object_ref = object_override
 			grabbed_dynamic_object_ref.get_grabbed( self )
@@ -31,20 +41,27 @@ func on_grab_key_pressed(object_override=null):
 				# -- layer associated with dynamic areas
 				grabbed_dynamic_object_ref = closest_area.get_parent()
 				assert(grabbed_dynamic_object_ref)
-				grabbed_dynamic_object_ref.get_grabbed( self, int(player_ref.name))
-	
-	## -- throw
-	#else:
-		#var throw_dir = Vector2(sign(player.last_non_zero_move_input.x), 0.)
-		#var throw_vel = throw_dir * player.throw_speed
-		#print("throwing: ", get_multiplayer_authority())
-		#print("throwing is server: ", multiplayer.is_server())
-		#grabbed_dynamic_object_ref.global_position += throw_dir * 20.0
-		#if get_multiplayer_authority() == int(player.name):
-			#grabbed_dynamic_object_ref.get_thrown(throw_vel, int(player.name))
-		#else:
-			#grabbed_dynamic_object_ref.get_thrown(throw_vel )
-		#grabbed_dynamic_object_ref = null
+				grabbed_dynamic_object_ref.get_grabbed( self )
+		success = (grabbed_dynamic_object_ref != null)
+		
+	return success
+
+@rpc("any_peer", "reliable")
+func throw_dynamic_object():
+	# -- NOTE
+	# -- projectile / thrown object should be 
+	# -- RTT / 2. ahead, so you need to account for this
+	assert(grabbed_dynamic_object_ref != null)
+	# -- this can be a functional arg, might be cool to allow player
+	# -- to have an upgrade or something (or a style like in downwell)
+	# -- that allows throwing up or straight down or something
+	var throw_dir = Vector2(sign(player.last_non_zero_move_input.x), -1.41).normalized()
+	var throw_vel = throw_dir * player.throw_speed
+	#print("throwing: ", get_multiplayer_authority())
+	#print("throwing is server: ", multiplayer.is_server())
+	grabbed_dynamic_object_ref.global_position += throw_dir * 20.0
+	grabbed_dynamic_object_ref.get_thrown( throw_vel )
+	grabbed_dynamic_object_ref = null
 
 
 func can_grab( grabbable_area : Area2D) -> bool:

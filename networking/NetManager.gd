@@ -274,6 +274,7 @@ func sync_player_state(hosts_current_tick: int, id: int, byte_arr: PackedByteArr
 	if !_player:
 		return
 	else:
+		# -- if this is the locally controller player
 		if id == multiplayer.get_unique_id():
 			# -- we're adjusting how much our reconcile threshold is in pixels
 			# -- based on the velocity which has to account for this

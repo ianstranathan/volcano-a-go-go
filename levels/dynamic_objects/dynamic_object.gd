@@ -1,11 +1,13 @@
 extends CharacterBody2D
 class_name DynamicObject
 
-# --TODO
-# -- a dynamic object knowing how a player is structured is def
-# -- anti-pattern / backwards
-# -- but I can't think of how else to account for the case where there
-# -- is a small off-by-one area overlap miss and the item isn't grabbed
+"""
+Dynamic object just connects to its manager to makes things more performant
+and have network ids
+Pseudo-ish strategy pattern with the dynamic_object_profile
+(can hook up a different script to handle collisions or do whatever
+i.e. rock can roll, lantern just stops etc)
+"""
 
 signal put_to_sleep( _self: DynamicObject)
 signal woke_up(_self: DynamicObject)
@@ -114,63 +116,26 @@ func can_be_grabbed():
 	return (grabbing_player_area == null)
 
 
-func get_grabbed( grbbing_area: Area2D, calling_id=null):
+func get_grabbed( grabbing_area: Area2D) -> void:
 	$CollisionShape2D.set_deferred("disabled", true)
 	$Area2D.set_deferred("monitorable", false)
 	$Area2D.set_deferred("monitoring", false)
 	velocity = Vector2.ZERO
-	grabbing_player_area = grbbing_area
+	grabbing_player_area = grabbing_area
 	set_state( DynamicObjectState.GRABBED )
-	#if calling_id:
-		#got_grabbed.emit( calling_id )
-	if calling_id:
-		remote_get_grabbed.rpc(calling_id)
 
 
-@rpc("any_peer", "reliable", "call_remote")
-func remote_get_grabbed( id: int):
-	# -- so, the host is simulating the remote already
-	# -- just like in items, we shouldnt' need to manually tell
-	# -- the corresponding remote player to pick up the object
-	if !multiplayer.is_server():
-		# -- get player ref on this machine
-		# -- force it to take this object as a reference
-		NetManager.player_instances_by_player_id.get(id).grab_dynamic_object( self )
-
-# -- TODO
-# -- My mental model is from the POV of the calling player
-# -- but maybe this should be from host POV since host is running the same commands
-func get_thrown(throw_vel: Vector2, calling_id=null):
+func get_thrown(throw_vel: Vector2) -> void :
 	$CollisionShape2D.set_deferred("disabled", false)
 	$Area2D.set_deferred("monitorable", true)
 	$Area2D.set_deferred("monitoring", true)
 	set_state( DynamicObjectState.ACTIVE )
-	
 	# -- collision test to get outside of player?
-	velocity = throw_vel
-	#if calling_id:
-		#got_grabbed.emit( thow_vel, calling_id )
-	#if calling_id:
-		#remote_got_thrown.rpc( calling_id )
+	velocity = throw_vel / dynamic_object_profile.mass
+	print( velocity )
 
 
-#@rpc("any_peer", "reliable", "call_remote")
-#func remote_got_thrown( id: int):
-	## -- so, the host is simulating the remote already
-	## -- just like in items, we shouldnt' need to manually tell
-	## -- the corresponding remote player to pick up the object
-	#if !multiplayer.is_server() or id == get_multiplayer_authority():
-		## -- get player ref on this machine
-		## -- force it to take this object as a reference
-		#var player = NetManager.player_instances_by_player_id.get(id)
-		#add_collision_exception_with(player)
-		## - -throw
-		#player.grab_dynamic_object()
-		#
-		#await get_tree().create_timer(0.2).timeout
-		#remove_collision_exception_with(player)
-
-func toss( _v ):
-	#emit_signal( "got_tossed", Vector2(v * throw_dir_coeff(), 0.0))
-	grabbing_player_area = null
-	set_state( DynamicObjectState.ACTIVE )
+#func toss( _v ):
+	##emit_signal( "got_tossed", Vector2(v * throw_dir_coeff(), 0.0))
+	#grabbing_player_area = null
+	#set_state( DynamicObjectState.ACTIVE )

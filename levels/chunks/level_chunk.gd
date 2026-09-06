@@ -11,12 +11,19 @@ signal moveable_platform_made( c: MovingPlatformComponent, fn: Callable )
 @export var parallax_manager:Node2D
 var tickable_geometry: Array
 
+# -- NOTE DELETE ME FIX BUG
+@export var enemy_container: Node2D
+@onready var enemy_container_children = enemy_container.get_children()
+
 var cam_ref: Camera2D # -- from: game -> level manager -> chunkinstance
 
 
 func execute_tick( delta: float ):
 	if !tickable_geometry.is_empty():
 		for c in tickable_geometry:
+			c.execute_tick( delta )
+	if enemy_container and enemy_container_children.size() > 0:
+		for c in enemy_container_children:
 			c.execute_tick( delta )
 	if coin_manager:
 		coin_manager.execute_tick( delta )

@@ -12,7 +12,7 @@ size = Vector2(110, 110)
 
 [node name="BasePlatform" type="AnimatableBody2D"]
 z_index = 1000
-collision_mask = 2
+collision_mask = 131
 script = ExtResource("1_5caue")
 coll_extents = Vector2(100, 100)
 sprite_2_coll_factor = 1.0

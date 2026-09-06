@@ -19,9 +19,13 @@ state variables agree to within a certain margin)
 @onready var TICK_RATE = NetManager.TICK_RATE
 @onready var player: Player = get_parent()
 
+# - -assigned in game script to player at spawn
 # -- a reference to the level managers moving_platform_components dictionary
 # -- for state assignment in update remote state
 var moving_platform_components_dict
+
+# -- reference for dynamic objects, assigned in game script to player at spawn
+var dynamic_objects_manager_ref
 
 # -- either RemotePlayerController or LocalPlayerController
 var controller: LocalPlayerController
@@ -86,10 +90,22 @@ func update_remote_state(host_state: PlayerState):
 	if incoming_tick <= 0:
 		# -- ignore, I chose -1 as intialization value
 		return
+	# -- actually look up the local platform
+	# -- see in game.tscn:
+	# 	a_player.get_node_or_null("PlayerController").moving_platform_components_dict = world_level_manager.moving_platform_components_dict
+
 	if host_state.platform_id != -1:
 		host_state.platform = moving_platform_components_dict.get(host_state.platform_id)
+		
+	if host_state.grabbed_dyanmic_object_id != -1:
+		# -- do we even need to be recording this?
+		host_state.grabbed_dyanmic_item = dynamic_objects_manager_ref.get_object(host_state.grabbed_dyanmic_object_id)
+		player.grab_dynamic_object( host_state.grabbed_dyanmic_item )
+	
+	
+	
 	interpolation_buffer[incoming_tick % interpolation_buffer_size] = host_state
-
+	
 	if incoming_tick > last_confirmed_interpolation_tick:
 		last_confirmed_interpolation_tick = incoming_tick
 
@@ -108,8 +124,8 @@ func on_tick_generated(tick: int, delta: float):
 	var current_command = command_history_buffer[_index]
 	current_command.tick = tick                       # -- timestamp the command
 	# -- reset all transient data
-	current_command.collided_id = -1
-	current_command.impulse = Vector2.ZERO
+	#current_command.collided_id = -1
+	#current_command.impulse = Vector2.ZERO
 	controller.update_command(current_command, delta) # -- update the command
 
 	player.execute_tick(delta, current_command) # -- client prediction
@@ -213,13 +229,15 @@ func _process(delta):
 				# so, where is this local coordinate right now, using the platform's current transform
 				# (we're using platform's present position, not the one from either network snapshot)
 				player.global_position = platform.to_global(interpolated_local_pos)
-			else:
-				# Fallback if the platform was destroyed or not found
-				player.global_position = point_a.pos.lerp(point_b.pos, t)
+			# -- We're already doing this
+			#else:
+				## Fallback if the platform was destroyed or not found
+				#player.global_position = point_a.pos.lerp(point_b.pos, t)
 		else:
 			# Fallback to standard global interpolation (transitioning on/off platforms, or on the ground)
 			player.global_position = point_a.pos.lerp(point_b.pos, t)
-			
+		
+		
 		player.movement_state_transition_to(point_a.movement_state)
 
 	# -- handling case where network lags and there's no future packet
@@ -381,7 +399,6 @@ func inject_predicted_state(new_velocity: Vector2):
 		future_state.movement_state = base_data.movement_state
 		update_remote_state(future_state)
 
-	# 2. THE GUARANTEE: 
 	# If our render clock is too far in the past, we won't see the injection.
 	# We can "heat up" the interpolation by reducing the offset temporarily.
 	# This forces the _process loop to look closer to 'base_tick + i'

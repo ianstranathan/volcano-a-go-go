@@ -1,4 +1,4 @@
-[gd_scene load_steps=1858 format=4 uid="uid://fooirwkjdwxl"]
+[gd_scene load_steps=1860 format=4 uid="uid://fooirwkjdwxl"]
 
 [ext_resource type="Script" uid="uid://dm5wfhjtpqix" path="res://levels/chunks/level_chunk.gd" id="1_hy8xc"]
 [ext_resource type="Script" uid="uid://cptvpu01udgc8" path="res://levels/chunks/level_chunk_data.gd" id="2_go1yl"]
@@ -24,6 +24,8 @@
 [ext_resource type="Script" uid="uid://b1nvb61fqdic5" path="res://levels/platforms/platform_components/fall_through_platform_component/fall_through_platform_component.gd" id="20_rywxm"]
 [ext_resource type="Script" uid="uid://x7uxn7nwb2x8" path="res://levels/dynamic_objects/dynamic_object_placeholder.gd" id="23_m8ier"]
 [ext_resource type="PackedScene" uid="uid://dc8lgy70k2yf8" path="res://levels/lantern_area/lantern_area.tscn" id="24_m8ier"]
+[ext_resource type="PackedScene" uid="uid://bstwsvd7h5cew" path="res://enemies/skeleton/skeleton.tscn" id="25_hy7c0"]
+[ext_resource type="PackedScene" uid="uid://c37go2qp0t4v2" path="res://levels/level_components/bouncy/bouncy.tscn" id="26_cie1a"]
 
 [sub_resource type="Resource" id="Resource_b0i2u"]
 script = ExtResource("2_go1yl")
@@ -31,7 +33,7 @@ level_index = 0
 level_height = 12771.0
 offset_to_chunk_origin = -11989.0
 level_width = 14496.0
-player_spawn_points = [Vector2(466, -38), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
+player_spawn_points = [Vector2(1666, -38), Vector2(-163, -143), Vector2(392, -139), Vector2(-31, -136)]
 pickup_definitions = Array[Dictionary]([{
 "item_enum": 3,
 "position": Vector2(-927, 76)
@@ -43,14 +45,14 @@ pickup_definitions = Array[Dictionary]([{
 "position": Vector2(-708, 76)
 }, {
 "item_enum": 2,
-"position": Vector2(768, 20)
+"position": Vector2(520, 57)
 }, {
 "item_enum": 0,
 "position": Vector2(-534, 52)
 }])
 dynamic_object_definitions = Array[Dictionary]([{
 "dynamic_object_type": 0,
-"position": Vector2(0, 0)
+"position": Vector2(-45, 0)
 }, {
 "dynamic_object_type": 1,
 "position": Vector2(379, 0)
@@ -101,7 +103,7 @@ _point_order = PackedInt32Array(0, 5, 6, 1, 2, 3, 4)
 _constraints = {
 Vector2i(0, 4): 15
 }
-_next_key = 7
+_next_key = 10
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_7hxsd"]
 _surfaces = [{
@@ -12194,9 +12196,11 @@ fill_textures = Array[Texture2D]([ExtResource("8_hy7c0")])
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_go1yl"]
 size = Vector2(10000, 532)
 
-[node name="SmartShape" type="Node2D" node_paths=PackedStringArray("bottom_marker", "top_marker", "left_marker", "right_marker", "platforms_root", "minimap_geometry_container")]
+[node name="SmartShape" type="Node2D" node_paths=PackedStringArray("tickable_geometry_container", "enemy_container", "bottom_marker", "top_marker", "left_marker", "right_marker", "platforms_root", "minimap_geometry_container")]
 visibility_layer = 3
 script = ExtResource("1_hy8xc")
+tickable_geometry_container = NodePath("TickableGeometry")
+enemy_container = NodePath("StandInForEnemyManager")
 bottom_marker = NodePath("DimMarkers/Bottom")
 top_marker = NodePath("DimMarkers/Top")
 left_marker = NodePath("DimMarkers/Left")
@@ -12227,7 +12231,7 @@ position = Vector2(-1352, -9648)
 [node name="SpawnPoints" type="Node2D" parent="."]
 
 [node name="Marker2D" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(466, -38)
+position = Vector2(1666, -38)
 
 [node name="Marker2D2" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(-163, -143)
@@ -13569,7 +13573,7 @@ item_enum_type = 1
 metadata/_custom_type_script = "uid://dfndtocpf6lff"
 
 [node name="PickupEditorPlaceholder3" type="Marker2D" parent="PickupPlaceholders"]
-position = Vector2(768, 20)
+position = Vector2(520, 57)
 script = ExtResource("20_5ghxw")
 item_enum_type = 2
 metadata/_custom_type_script = "uid://dfndtocpf6lff"
@@ -13583,6 +13587,7 @@ metadata/_custom_type_script = "uid://dfndtocpf6lff"
 [node name="DynamicObjectPlaceholders" type="Node2D" parent="."]
 
 [node name="SomeRock" type="Node2D" parent="DynamicObjectPlaceholders"]
+position = Vector2(-45, 0)
 script = ExtResource("23_m8ier")
 metadata/_custom_type_script = "uid://x7uxn7nwb2x8"
 
@@ -14078,3 +14083,18 @@ polygon = PackedVector2Array(-1800, -8624, -2312, -8584, -2136, -9072, -2000, -9
 [node name="BasePlatform" parent="." instance=ExtResource("19_lv54x")]
 position = Vector2(105, 66)
 coll_extents = Vector2(150, 50)
+
+[node name="BasePlatform2" parent="." instance=ExtResource("19_lv54x")]
+position = Vector2(2251, -143)
+coll_extents = Vector2(400, 400)
+
+[node name="StandInForEnemyManager" type="Node2D" parent="."]
+
+[node name="Skeleton" parent="StandInForEnemyManager" instance=ExtResource("25_hy7c0")]
+position = Vector2(1891, 0)
+
+[node name="TickableGeometry" type="Node2D" parent="."]
+position = Vector2(-499, 0)
+
+[node name="Bouncy" parent="TickableGeometry" instance=ExtResource("26_cie1a")]
+position = Vector2(1265, 5)

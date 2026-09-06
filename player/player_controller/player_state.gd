@@ -18,6 +18,10 @@ var local_pos: Vector2 = Vector2.ZERO
 # -- we're looking this up at runtime (machine / authority specific)
 var platform: MovingPlatformComponent = null 
 
+# -- 
+var grabbed_dyanmic_object_id: int = -1
+var grabbed_dyanmic_item: DynamicObject = null
+
 
 func serialize() -> PackedByteArray:
 	var spb = StreamPeerBuffer.new()
@@ -30,7 +34,11 @@ func serialize() -> PackedByteArray:
 	spb.put_32(tick)
 	# -- NOTE 7 more bools can fit here if we make more stff
 	spb.put_u8(is_on_platform)
+	
 	spb.put_32(platform_id)
+	
+	spb.put_32(grabbed_dyanmic_object_id)
+	
 	spb.put_float(local_pos.x)
 	spb.put_float(local_pos.y)
 	
@@ -50,6 +58,7 @@ static func deserialize(byte_arr: PackedByteArray) -> PlayerState:
 	ps.tick = spb.get_32()
 	ps.is_on_platform = spb.get_u8()
 	ps.platform_id = spb.get_32()
+	ps.grabbed_dyanmic_object_id = spb.get_32()
 	ps.local_pos.x = spb.get_float()
 	ps.local_pos.y = spb.get_float()
 	return ps
@@ -63,6 +72,7 @@ func set_state(player: Player, _tick: int) -> void:
 	is_on_platform = true if player.current_platform_displacement_ref else false
 	tick = _tick
 	
+	# -- PLATFORM STUFF
 	if player.current_platform_displacement_ref:
 		is_on_platform = true
 		var _platform = player.current_platform_displacement_ref
@@ -82,6 +92,10 @@ func set_state(player: Player, _tick: int) -> void:
 		platform_id = -1
 		local_pos = Vector2.ZERO
 
+	# -- GRABBING STUFF
+	if player.grabbed_dynamic_object_ref:
+		grabbed_dyanmic_object_id = player.grabbed_dynamic_object_ref.spawn_id
+
 
 func copy_state(another_state: PlayerState):
 	pos = another_state.pos
@@ -91,6 +105,7 @@ func copy_state(another_state: PlayerState):
 	tick = another_state.tick
 	is_on_platform = another_state.is_on_platform
 	platform_id = another_state.platform_id
+	grabbed_dyanmic_object_id = another_state.grabbed_dyanmic_object_id
 	local_pos = another_state.local_pos
 
 
@@ -102,4 +117,5 @@ func clear_state() -> void:
 	tick = -1
 	is_on_platform = false
 	platform_id = -1
+	grabbed_dyanmic_object_id = -1
 	local_pos = Vector2.ZERO

@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://ql7hqyibqr6h"]
+[gd_scene load_steps=36 format=3 uid="uid://ql7hqyibqr6h"]
 
 [ext_resource type="Script" uid="uid://b6oxqplhbugd0" path="res://game/game.gd" id="1_dxrkv"]
 [ext_resource type="PackedScene" uid="uid://by5kd51cixxgu" path="res://player/player.tscn" id="2_4fuuu"]
@@ -22,10 +22,10 @@
 [ext_resource type="Script" uid="uid://c1v1wffkshhet" path="res://VFX/parallax/background/background_manager.gd" id="18_mhvfb"]
 [ext_resource type="Script" uid="uid://bbd4i5vqp570v" path="res://game/projectiles_container.gd" id="18_q52ks"]
 [ext_resource type="Texture2D" uid="uid://dlweeb20tvspc" path="res://icon.svg" id="19_dxwpq"]
-[ext_resource type="Script" uid="uid://bkph433k5qarc" path="res://game/gambling/wager_manager.gd" id="19_jucfl"]
 [ext_resource type="Script" uid="uid://cij6f0lnimy3e" path="res://game/world_dynamic_objects_manager.gd" id="19_jucfl"]
 [ext_resource type="Script" uid="uid://d2hrglvsb7qwg" path="res://VFX/parallax/background/follow_cam_container.gd" id="20_leid8"]
 [ext_resource type="Script" uid="uid://cr80xpke88uhc" path="res://VFX/parallax/background/mesh_2_viewport_component.gd" id="21_5e03w"]
+[ext_resource type="Script" uid="uid://bkph433k5qarc" path="res://game/gambling/wager_manager.gd" id="21_58yx1"]
 [ext_resource type="Shader" uid="uid://ftymhn0l1uan" path="res://VFX/parallax/background/background_screen_quad.gdshader" id="22_5e03w"]
 [ext_resource type="Script" uid="uid://buaw6vowb1vpp" path="res://VFX/parallax/background/follow_cam_component.gd" id="24_8bboj"]
 [ext_resource type="PackedScene" uid="uid://cmw4mc183vist" path="res://game/genie/the_genie.tscn" id="25_8bboj"]
@@ -50,11 +50,8 @@ shader_parameter/circ_scale_increase = 2.0
 [sub_resource type="Curve2D" id="Curve2D_4cobl"]
 resource_local_to_scene = true
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "wager_window", "post_processing_quad", "world_pickup_items_manager", "world_level_manager", "oasis", "wager_manager", "camera", "world_effects_container")]
-
-[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "post_processing_quad", "world_pickup_items_manager", "world_dynamic_objects_manager", "world_level_manager", "oasis", "camera", "world_effects_container")]
+[node name="Game" type="Node2D" node_paths=PackedStringArray("players_container", "spawn_points", "ui", "wager_window", "post_processing_quad", "world_pickup_items_manager", "world_dynamic_objects_manager", "world_level_manager", "oasis", "wager_manager", "camera", "world_effects_container")]
 visibility_layer = 3
-
 script = ExtResource("1_dxrkv")
 player_scene = ExtResource("2_4fuuu")
 players_container = NodePath("World/PlayersContainer")
@@ -106,18 +103,15 @@ initial_world_lava_level = 0
 position = Vector2(-4712, 4578)
 
 [node name="Marker2D2" type="Marker2D" parent="World/InitialSpawnPoints"]
-
 position = Vector2(-4826, 5077)
 
 [node name="Marker2D3" type="Marker2D" parent="World/InitialSpawnPoints"]
-position = Vector2(-6075, 5093)
-
 position = Vector2(-5119, 4661)
 
-[node name="Marker2D3" type="Marker2D" parent="World/InitialSpawnPoints"]
+[node name="Marker2D4" type="Marker2D" parent="World/InitialSpawnPoints"]
 position = Vector2(-4886, 5071)
 
-[node name="Marker2D4" type="Marker2D" parent="World/InitialSpawnPoints"]
+[node name="Marker2D5" type="Marker2D" parent="World/InitialSpawnPoints"]
 position = Vector2(-4373, 5407)
 
 [node name="WorldPickupItemsManager" type="Node2D" parent="World"]
@@ -165,15 +159,14 @@ script = ExtResource("24_8bboj")
 target_2_move = NodePath("..")
 cam = NodePath("../../../../Camera")
 
-
-[node name="WagerManager" type="Node2D" parent="."]
-
 [node name="ProjectilesContainer" type="Node2D" parent="World"]
 script = ExtResource("18_q52ks")
 
 [node name="WorldDynamicObjectsManager" type="Node2D" parent="World"]
-
 script = ExtResource("19_jucfl")
+
+[node name="WagerManager" type="Node2D" parent="."]
+script = ExtResource("21_58yx1")
 
 [node name="DeathTv" parent="." node_paths=PackedStringArray("starting_position_marker") instance=ExtResource("12_qf6n1")]
 z_index = 100

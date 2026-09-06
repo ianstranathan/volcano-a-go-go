@@ -36,6 +36,7 @@ func update_command(player_command_ref: PlayerCommand, _delta):
 		player_command_ref.sprint_held = false
 		player_command_ref.item_dropped = false
 		player_command_ref.crouch_pressed = false
+		player_command_ref.sword_swung = false
 		return
 
 	#var move_input: Vector2 = Vector2.ZERO
@@ -64,6 +65,7 @@ func update_command(player_command_ref: PlayerCommand, _delta):
 	player_command_ref.sprint_held = Input.is_action_pressed("sprint")
 	player_command_ref.item_dropped = just_pressed_action("drop_item")
 	player_command_ref.crouch_pressed = just_pressed_action("crouch")
+	player_command_ref.sword_swung = just_pressed_action("swing_sword")
 	
 func _input(event: InputEvent) -> void:
 	if input_blocked:

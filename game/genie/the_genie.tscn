@@ -13,4 +13,4 @@ texture = ExtResource("1_bdft2")
 
 [node name="Interactable" parent="." instance=ExtResource("2_87s48")]
 prompt_text = "Wager"
-interaction_radius = 185.0
+interaction_radius = 225.0

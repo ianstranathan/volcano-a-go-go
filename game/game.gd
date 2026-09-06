@@ -113,9 +113,9 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	var a_player = player_scene.instantiate()
 	a_player.name = a_players_name
 	
-	# --
+	# -- ahhh so messy
 	a_player.get_node_or_null("PlayerController").moving_platform_components_dict = world_level_manager.moving_platform_components_dict
-	
+	a_player.get_node_or_null("PlayerController").dynamic_objects_manager_ref = $World/WorldDynamicObjectsManager
 	
 	# -- assign multiplayer authority to the player before
 	# -- it's added to scene tree
