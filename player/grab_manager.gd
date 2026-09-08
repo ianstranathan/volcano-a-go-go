@@ -3,7 +3,19 @@ extends Area2D
 @export var player_ref: Player
 @export var throw_speed: float = 200
 
-var grabbed_dynamic_object_ref = null
+# -- so I don't forget to set it in the player for the intermediary state stuff
+signal grabbed_a_dynamic_object( d: DynamicObject )
+signal threw_a_dynamic_object()
+
+var dynamic_objects_manager_ref
+
+var grabbed_dynamic_object_ref = null:
+	set(v):
+		grabbed_dynamic_object_ref = v
+		if v:
+			grabbed_a_dynamic_object.emit( v )
+		else:
+			threw_a_dynamic_object.emit()
  
 @onready var player: Player = get_parent()
 
@@ -19,10 +31,20 @@ func _ready() -> void:
 # -- when the remote state is being updated, this state id is passed and looked up
 # -- in the dynamic world manager
 # -- then grabbed locally with the object override
+@rpc("call_remote", "any_peer", "reliable")
+func grab_rpc_everyone_else( peer_id: int, object_spawn_id: int):
+	# -- call_remote & only called from server, so host can't call it anyway
+	if multiplayer.get_unique_id() != peer_id:
+		grab_dynamic_object( dynamic_objects_manager_ref.get_object( object_spawn_id ) )
 
-func grab_dynamic_object(object_override=null) -> bool:
+
+@rpc("authority", "reliable")
+func make_authority_drop_it():
+	throw_dynamic_object( Vector2.ZERO )
+
+
+func grab_dynamic_object(object_override=null) -> void:
 	var success = false
-	
 	# -- grab
 	if !grabbed_dynamic_object_ref:
 		# -- remote versions of local client need to grab same object
@@ -43,25 +65,44 @@ func grab_dynamic_object(object_override=null) -> bool:
 				assert(grabbed_dynamic_object_ref)
 				grabbed_dynamic_object_ref.get_grabbed( self )
 		success = (grabbed_dynamic_object_ref != null)
-		
-	return success
+	if success:
+		if multiplayer.is_server():
+			grab_rpc_everyone_else.rpc( int(player_ref.name),
+										grabbed_dynamic_object_ref.spawn_id )
+		#else:
+			#make_authority_drop_it.rpc_id(int(player_ref.name))
+			# -- tell the grabbing player to drop iot
+			
+const sqrt_two_over_two = -1.41 / 2.;
 
-@rpc("any_peer", "reliable")
-func throw_dynamic_object():
-	# -- NOTE
+
+@rpc("call_remote", "any_peer", "reliable")
+func throw_rpc_everyone_else( peer_id: int ):
+	# -- call_remote & only called from server, so host can't call it anyway
+	if multiplayer.get_unique_id() != peer_id:
+		throw_dynamic_object( )
+
+
+func throw_dynamic_object(velocity_override=null):
+	#print("--- calling on Peer ID: ", multiplayer.get_unique_id(), " ---")
+	#print("object spawn id: ", grabbed_dynamic_object_ref.spawn_id)
 	# -- projectile / thrown object should be 
 	# -- RTT / 2. ahead, so you need to account for this
 	assert(grabbed_dynamic_object_ref != null)
 	# -- this can be a functional arg, might be cool to allow player
 	# -- to have an upgrade or something (or a style like in downwell)
 	# -- that allows throwing up or straight down or something
-	var throw_dir = Vector2(sign(player.last_non_zero_move_input.x), -1.41).normalized()
-	var throw_vel = throw_dir * player.throw_speed
+	var throw_dir = Vector2(sign(player.last_non_zero_move_input.x), -sqrt_two_over_two).normalized()
+	var throw_vel = velocity_override if velocity_override else throw_dir * player.throw_speed
 	#print("throwing: ", get_multiplayer_authority())
 	#print("throwing is server: ", multiplayer.is_server())
 	grabbed_dynamic_object_ref.global_position += throw_dir * 20.0
 	grabbed_dynamic_object_ref.get_thrown( throw_vel )
 	grabbed_dynamic_object_ref = null
+	
+	if multiplayer.is_server():
+		throw_rpc_everyone_else.rpc( int(player_ref.name) )
+
 
 
 func can_grab( grabbable_area : Area2D) -> bool:
@@ -86,14 +127,6 @@ func get_closest_grabbable( grabbable_areas: Array):
 	return grabbable_areas.reduce(func(a, b):
 		return a if a.global_position.distance_to(global_position) < b.global_position.distance_to(global_position) else b
 	)
-	#if grabbable_areas.size() > 1:
-		#return grabbable_areas.reduce(func(a, b):
-			#return a if a.global_position.distance_to(global_position) < b.global_position.distance_to(global_position) else b
-		#)
-	#else:
-		##print("returning first: ", grabbable_areas[0])
-		#return grabbable_areas[0]
-
 
 
 func set_player_weight_modifier():

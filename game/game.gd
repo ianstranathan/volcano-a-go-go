@@ -115,8 +115,9 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	
 	# -- ahhh so messy
 	a_player.get_node_or_null("PlayerController").moving_platform_components_dict = world_level_manager.moving_platform_components_dict
-	a_player.get_node_or_null("PlayerController").dynamic_objects_manager_ref = $World/WorldDynamicObjectsManager
-	
+	#a_player.get_node_or_null("PlayerController").dynamic_objects_manager_ref = $World/WorldDynamicObjectsManager
+	#a_player.dynamic_objects_manager_ref = $World/WorldDynamicObjectsManager
+	a_player.dynamic_objects_manager_ref = $World/WorldDynamicObjectsManager
 	# -- assign multiplayer authority to the player before
 	# -- it's added to scene tree
 	# -- otherwise the controller logic breaks (remote vs local)
@@ -146,7 +147,8 @@ func spawn_player(peer_id: int, _name: String, spawn_index: int):
 	world_level_manager.setup_networked_level_player_connections(a_player)
 
 	players_container.add_child(a_player)
-
+	
+	assert( a_player.dynamic_objects_manager_ref != null )
 	# -- Adding after child is added to player container so that the local transformation
 	# -- (the displacement of the original world)
 	# -- doesn't add to the players position

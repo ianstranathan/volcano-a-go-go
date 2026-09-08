@@ -96,13 +96,12 @@ func update_remote_state(host_state: PlayerState):
 
 	if host_state.platform_id != -1:
 		host_state.platform = moving_platform_components_dict.get(host_state.platform_id)
-		
-	if host_state.grabbed_dyanmic_object_id != -1:
-		# -- do we even need to be recording this?
-		host_state.grabbed_dyanmic_item = dynamic_objects_manager_ref.get_object(host_state.grabbed_dyanmic_object_id)
-		player.grab_dynamic_object( host_state.grabbed_dyanmic_item )
 	
-	
+	#if host_state.grabbed_dyanmic_object_id != -1 and player.grabbed_dynamic_object_ref == null:
+		## -- do we even need to be recording this?
+		#host_state.grabbed_dyanmic_item = dynamic_objects_manager_ref.get_object(host_state.grabbed_dyanmic_object_id)
+		#player.grab_dynamic_object( host_state.grabbed_dyanmic_item )
+
 	
 	interpolation_buffer[incoming_tick % interpolation_buffer_size] = host_state
 	

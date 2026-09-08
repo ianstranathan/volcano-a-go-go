@@ -14,6 +14,7 @@ radius = 97.5
 script = ExtResource("2_w0fr4")
 visual_scene = ExtResource("3_cqtq3")
 collision_shape = SubResource("CircleShape2D_hif0n")
+mass = 100.0
 physics_script = ExtResource("1_3tv03")
 grab_area_collision_shape = SubResource("CircleShape2D_mrepg")
 metadata/_custom_type_script = "uid://ihjaqti7awa5"

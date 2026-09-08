@@ -123,7 +123,15 @@ var projectiles_container_ref: Node2D:
 
 var default_land_shake_data = ShakeData.new(Vector2.UP)
 
+var dynamic_objects_manager_ref
+
 func _ready() -> void:
+	$GrabManager.dynamic_objects_manager_ref = dynamic_objects_manager_ref
+	$GrabManager.grabbed_a_dynamic_object.connect( func( d: DynamicObject):
+		grabbed_dynamic_object_ref = d)
+	$GrabManager.threw_a_dynamic_object.connect( func():
+		grabbed_dynamic_object_ref = null)
+	
 	$Cloud.visible = false
 	# -- camera shouldn't react for non-authority players
 	default_land_shake_data.is_authority = get_multiplayer_authority()
@@ -1266,12 +1274,15 @@ func can_collect_coints() -> bool:
 
 
 # -- we need this to work optionally with a local and a remote client
-func grab_dynamic_object(object_override=null) -> bool:
-	if object_override:
-		return $GrabManager.grab_dynamic_object( object_override )
-	return $GrabManager.grab_dynamic_object()
+#func grab_dynamic_object(object_override=null) -> void:
+	##if object_override:
+		##$GrabManager.grab_dynamic_object( object_override )
+	#$GrabManager.grab_dynamic_object()
+	
 
-
+#func throw_dynamic_object() -> void:
+	#$GrabManager.throw_dynamic_object()
+	
 
 func return_grabbed_object() -> DynamicObject:
 	return grabbed_dynamic_object_ref
@@ -1335,6 +1346,10 @@ func step_over( delta: float ):
 var throw_speed := 500.
 var grabbed_dynamic_object_ref: DynamicObject # --player state tracks grabbed_dynamic_object_ref
 
+
+		
+		 # -- assigned in game, used to lookup ids for dynamic items
+
 func apply_command( c: PlayerCommand):
 	move_input = c.move_input
 	update_visual_facing(move_input.x)
@@ -1352,15 +1367,21 @@ func apply_command( c: PlayerCommand):
 		return
 	
 	# -- 
-	if c.grab_pressed and !grabbed_dynamic_object_ref:
-		# -- try
-		var successfully_grabbed = grab_dynamic_object()
-		if successfully_grabbed:
-			# -- player state tracks grabbed_dynamic_object_ref
-			grabbed_dynamic_object_ref = $GrabManager.grabbed_dynamic_object_ref
-	elif c.grab_pressed: # -- throw
-		$GrabManager.throw_dynamic_object()
-		grabbed_dynamic_object_ref = null
+	if c.grab_pressed:
+		if grabbed_dynamic_object_ref:
+			$GrabManager.throw_dynamic_object()
+		else:
+			$GrabManager.grab_dynamic_object()
+
+		#var successfully_grabbed = grab_dynamic_object()
+		#if successfully_grabbed:
+			## -- player state tracks grabbed_dynamic_object_ref
+			#grabbed_dynamic_object_ref = $GrabManager.grabbed_dynamic_object_ref
+	#elif c.grab_pressed: # -- throw
+		#set_target_on_interpolated.rpc( target_pos, int(player_ref.name) )
+		# -- if this is the host simluating a player's command, we just want
+		
+		#grabbed_dynamic_object_ref = null
 
 	
 	if c.jump_pressed:

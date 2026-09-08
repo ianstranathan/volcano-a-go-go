@@ -32,17 +32,21 @@ func _ready() -> void:
 # -- NOTE
 # -- this needs to be replaced with something that scales better
 # -- and integrates into deterministic tick
-@rpc("any_peer", "reliable")
-func set_target_on_interpolated(pos=null):
-	if !multiplayer.is_server():
+@rpc("any_peer", "reliable", "call_remote")
+func set_target_on_interpolated(pos, id: int):
+	# -- we don't want to do this on the host
+	# -- and we don't want to do this on the player that originally called it
+	if !multiplayer.is_server() and id != get_multiplayer_authority():
+		#print(get_multiplayer_authority(), "and player using this item")
 		target_pos = pos
 		if pos:
+			#print(is_multiplayer_authority())
 			rope.show()
 		else:
 			rope.hide()
 
 
-func tick_update(delta: float, cmd: PlayerCommand):
+func tick_update(_delta: float, cmd: PlayerCommand):
 	ray_component.tick_update(cmd)
 	
 	if cmd.item_use_pressed:
@@ -53,7 +57,7 @@ func tick_update(delta: float, cmd: PlayerCommand):
 				target_pos = hit_pos 
 				rope.show()
 				# -- send to everyone but yourself and the host
-				set_target_on_interpolated.rpc( target_pos )
+				set_target_on_interpolated.rpc( target_pos, int(player_ref.name) )
 				$MovementOverrideComponent.start()
 				if is_multiplayer_authority() and not player_ref.is_replaying:
 					Events.emit_signal("play_world_sound",
@@ -71,7 +75,7 @@ func on_item_stopped():
 	#print("grapple hook finished")
 	target_pos = null
 	rope.hide()
-	set_target_on_interpolated.rpc()
+	set_target_on_interpolated.rpc(null, int(player_ref.name))
 	$MovementOverrideComponent.finish()
 
 
